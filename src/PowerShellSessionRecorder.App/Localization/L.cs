@@ -1,0 +1,82 @@
+namespace PowerShellSessionRecorder.App.Localization;
+
+/// <summary>
+/// Localization keys shared by the interface and the JSON catalogs.
+/// </summary>
+public static class L
+{
+    public const string AppTitle = "AppTitle";
+    public const string AppSubtitle = "AppSubtitle";
+    public const string CheckpointBanner = "CheckpointBanner";
+    public const string SectionNavigation = "SectionNavigation";
+    public const string NavStartSession = "NavStartSession";
+    public const string NavHistory = "NavHistory";
+    public const string NavOpenLogFolder = "NavOpenLogFolder";
+    public const string NavSettings = "NavSettings";
+    public const string SectionSession = "SectionSession";
+    public const string SectionPreview = "SectionPreview";
+    public const string SectionHistory = "SectionHistory";
+    public const string SectionSettings = "SectionSettings";
+    public const string FieldCustomerTag = "FieldCustomerTag";
+    public const string FieldSessionName = "FieldSessionName";
+    public const string FieldLogDirectory = "FieldLogDirectory";
+    public const string FieldPowerShellVersion = "FieldPowerShellVersion";
+    public const string FieldRunAsAdministrator = "FieldRunAsAdministrator";
+    public const string FieldRunAsAdministratorHint = "FieldRunAsAdministratorHint";
+    public const string FieldIncludeDateAndTime = "FieldIncludeDateAndTime";
+    public const string FieldSaveInHistory = "FieldSaveInHistory";
+    public const string FieldSaveInHistoryHint = "FieldSaveInHistoryHint";
+    public const string FieldRecentTags = "FieldRecentTags";
+    public const string ButtonBrowse = "ButtonBrowse";
+    public const string PreviewCustomerTag = "PreviewCustomerTag";
+    public const string PreviewSessionName = "PreviewSessionName";
+    public const string PreviewPowerShellVersion = "PreviewPowerShellVersion";
+    public const string PreviewPrivilegeMode = "PreviewPrivilegeMode";
+    public const string PreviewLogDirectory = "PreviewLogDirectory";
+    public const string PreviewFileName = "PreviewFileName";
+    public const string PrivilegeStandard = "PrivilegeStandard";
+    public const string PrivilegeAdministrator = "PrivilegeAdministrator";
+    public const string PowerShell7 = "PowerShell7";
+    public const string WindowsPowerShell51 = "WindowsPowerShell51";
+    public const string WindowsPowerShell51Note = "WindowsPowerShell51Note";
+    public const string PlaceholderCustomerTag = "PlaceholderCustomerTag";
+    public const string PlaceholderSessionName = "PlaceholderSessionName";
+    public const string PlaceholderRecentTag = "PlaceholderRecentTag";
+    public const string ValidationCustomerTagRequired = "ValidationCustomerTagRequired";
+    public const string ValidationSessionNameRequired = "ValidationSessionNameRequired";
+    public const string ValidationCustomerTagNotFileSafe = "ValidationCustomerTagNotFileSafe";
+    public const string ValidationSessionNameNotFileSafe = "ValidationSessionNameNotFileSafe";
+    public const string ValidationLogDirectoryMissing = "ValidationLogDirectoryMissing";
+    public const string PreviewUnavailable = "PreviewUnavailable";
+    public const string PreviewNotSelected = "PreviewNotSelected";
+    public const string PreviewFilenameNote = "PreviewFilenameNote";
+    public const string StartSessionDisabledReason = "StartSessionDisabledReason";
+    public const string TooltipStartSessionDisabled = "TooltipStartSessionDisabled";
+    public const string TooltipBrowse = "TooltipBrowse";
+    public const string TooltipIncludeDateAndTime = "TooltipIncludeDateAndTime";
+    public const string TooltipSaveInHistory = "TooltipSaveInHistory";
+    public const string TooltipRunAsAdministrator = "TooltipRunAsAdministrator";
+    public const string TooltipOpenLogFolder = "TooltipOpenLogFolder";
+    public const string TooltipHistory = "TooltipHistory";
+    public const string TooltipSettings = "TooltipSettings";
+    public const string TooltipStartSessionNav = "TooltipStartSessionNav";
+    public const string StatusLogFolderEmpty = "StatusLogFolderEmpty";
+    public const string StatusLogFolderMissing = "StatusLogFolderMissing";
+    public const string StatusLogFolderOpened = "StatusLogFolderOpened";
+    public const string StatusLogFolderFailed = "StatusLogFolderFailed";
+    public const string StatusLogFolderNonLocal = "StatusLogFolderNonLocal";
+    public const string StatusLanguageChanged = "StatusLanguageChanged";
+    public const string StatusSettingsSaveFailed = "StatusSettingsSaveFailed";
+    public const string HistoryEmptyTitle = "HistoryEmptyTitle";
+    public const string HistoryEmptyBody = "HistoryEmptyBody";
+    public const string SettingsLanguage = "SettingsLanguage";
+    public const string SettingsLanguageHelp = "SettingsLanguageHelp";
+    public const string SettingsFile = "SettingsFile";
+    public const string SettingsAutoSave = "SettingsAutoSave";
+    public const string SettingsNoSecrets = "SettingsNoSecrets";
+    public const string SettingsRecentTags = "SettingsRecentTags";
+    public const string SettingsRecentTagsEmpty = "SettingsRecentTagsEmpty";
+    public const string SettingsWindowsPowerShellAdjusted = "SettingsWindowsPowerShellAdjusted";
+    public const string LanguageEnglish = "LanguageEnglish";
+    public const string LanguagePolish = "LanguagePolish";
+}

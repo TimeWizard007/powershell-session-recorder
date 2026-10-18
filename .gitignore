@@ -1,0 +1,66 @@
+# Build output
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+artifacts/
+TestResults/
+*.trx
+*.coverage
+coverage.*
+coverage/
+
+# .NET
+project.lock.json
+project.fragment.lock.json
+*.nuget.props
+*.nuget.targets
+.dotnet/
+
+# IDE
+.vs/
+.idea/
+.vscode/
+*.user
+*.userosscache
+*.suo
+*.sln.docstates
+*.rsuser
+*.userprefs
+.vsconfig
+
+# Local application state
+settings.json
+settings.invalid.json
+*.local.json
+appsettings.*.local.json
+
+# Session transcripts and runtime logs
+[Tt]ranscripts/
+[Ll]ogs/
+*.log
+*.transcript
+*.transcript.txt
+
+# Temporary bootstrap scripts and editor files
+*.tmp
+*.temp
+*.bootstrap.ps1
+*.bootstrap.sh
+*~
+*.swp
+
+# Secrets
+.env
+.env.*
+secrets.json
+*.pfx
+*.snk
+*.key
+credentials.json
+
+# Operating system files
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db

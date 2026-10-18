@@ -1,0 +1,97 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:PowerShellSessionRecorder.App.ViewModels"
+        xmlns:loc="using:PowerShellSessionRecorder.App.Localization"
+        xmlns:views="using:PowerShellSessionRecorder.App.Views"
+        x:Class="PowerShellSessionRecorder.App.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        x:CompileBindings="True"
+        Width="1080"
+        Height="760"
+        MinWidth="920"
+        MinHeight="640"
+        WindowStartupLocation="CenterScreen"
+        Background="#F3F5F8"
+        Title="{loc:Tr AppTitle}">
+  <Grid RowDefinitions="Auto,Auto,*,Auto">
+    <Border Grid.Row="0" Background="#0F1C2E" Padding="24,16">
+      <Grid ColumnDefinitions="*,Auto">
+        <StackPanel Spacing="2" VerticalAlignment="Center">
+          <TextBlock Text="{loc:Tr AppTitle}" FontSize="22" FontWeight="SemiBold" Foreground="#F7FBFF" />
+          <TextBlock Text="{loc:Tr AppSubtitle}" FontSize="13" Foreground="#C5D4E6" TextWrapping="Wrap" />
+        </StackPanel>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+          <TextBlock Text="{loc:Tr SettingsLanguage}" VerticalAlignment="Center" Foreground="#D5E3F2" />
+          <ComboBox ItemsSource="{Binding Languages}"
+                    SelectedItem="{Binding SelectedLanguage, Mode=TwoWay}"
+                    MinWidth="150"
+                    VerticalAlignment="Center">
+            <ComboBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:LanguageOption">
+                <TextBlock Text="{Binding DisplayName}" />
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <Border Grid.Row="1" Background="#E8F3FC" BorderBrush="#B9D6EE" BorderThickness="0,0,0,1" Padding="24,10">
+      <TextBlock Text="{loc:Tr CheckpointBanner}" Foreground="#16324A" TextWrapping="Wrap" />
+    </Border>
+
+    <Grid Grid.Row="2" ColumnDefinitions="240,*">
+      <Border Background="#16324C">
+        <DockPanel LastChildFill="False">
+          <TextBlock DockPanel.Dock="Top"
+                     Text="{loc:Tr SectionNavigation}"
+                     Margin="24,20,24,8"
+                     FontSize="12"
+                     FontWeight="SemiBold"
+                     Foreground="#8FB0CE" />
+          <Button Classes="nav"
+                  Classes.selected="{Binding IsSessionPage}"
+                  Command="{Binding ShowSessionCommand}"
+                  Content="{loc:Tr NavStartSession}"
+                  ToolTip.Tip="{loc:Tr TooltipStartSessionNav}" />
+          <Button Classes="nav"
+                  Classes.selected="{Binding IsHistoryPage}"
+                  Command="{Binding ShowHistoryCommand}"
+                  Content="{loc:Tr NavHistory}"
+                  ToolTip.Tip="{loc:Tr TooltipHistory}" />
+          <Button Classes="nav"
+                  Command="{Binding OpenLogFolderCommand}"
+                  Content="{loc:Tr NavOpenLogFolder}"
+                  ToolTip.Tip="{loc:Tr TooltipOpenLogFolder}" />
+          <Button Classes="nav"
+                  Classes.selected="{Binding IsSettingsPage}"
+                  Command="{Binding ShowSettingsCommand}"
+                  Content="{loc:Tr NavSettings}"
+                  ToolTip.Tip="{loc:Tr TooltipSettings}" />
+        </DockPanel>
+      </Border>
+
+      <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Disabled">
+        <Panel Margin="28">
+          <Border IsVisible="{Binding IsSessionPage}">
+            <views:SessionSetupView DataContext="{Binding Session}" />
+          </Border>
+          <Border IsVisible="{Binding IsHistoryPage}">
+            <views:HistoryView />
+          </Border>
+          <Border IsVisible="{Binding IsSettingsPage}">
+            <views:SettingsView />
+          </Border>
+        </Panel>
+      </ScrollViewer>
+    </Grid>
+
+    <Border Grid.Row="3" MinHeight="36" Padding="24,8" Background="#FFFFFF" BorderBrush="#D7DEE7" BorderThickness="0,1,0,0">
+      <TextBlock Text="{Binding StatusMessage}"
+                 IsVisible="{Binding HasStatusMessage}"
+                 VerticalAlignment="Center"
+                 Foreground="#243140"
+                 TextWrapping="Wrap" />
+    </Border>
+  </Grid>
+</Window>

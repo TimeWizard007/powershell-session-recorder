@@ -1,0 +1,131 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PowerShellSessionRecorder.App.ViewModels"
+             xmlns:loc="using:PowerShellSessionRecorder.App.Localization"
+             x:Class="PowerShellSessionRecorder.App.Views.SessionSetupView"
+             x:DataType="vm:SessionSetupViewModel"
+             x:CompileBindings="True">
+  <StackPanel MaxWidth="860" HorizontalAlignment="Left" Spacing="16">
+    <Border Classes="card">
+      <StackPanel Spacing="14">
+        <TextBlock Classes="section" Text="{loc:Tr SectionSession}" />
+
+        <StackPanel Spacing="4">
+          <TextBlock Classes="label" Text="{loc:Tr FieldCustomerTag}" />
+          <TextBox Text="{Binding CustomerTag, Mode=TwoWay}"
+                   PlaceholderText="{loc:Tr PlaceholderCustomerTag}"
+                   LostFocus="OnCustomerTagLostFocus" />
+          <TextBlock Classes="error"
+                     Text="{Binding CustomerTagError}"
+                     IsVisible="{Binding HasCustomerTagError}" />
+        </StackPanel>
+
+        <StackPanel Spacing="4" IsVisible="{Binding HasRecentTags}">
+          <TextBlock Classes="label" Text="{loc:Tr FieldRecentTags}" />
+          <ComboBox ItemsSource="{Binding RecentCustomerTags}"
+                    SelectedItem="{Binding SelectedRecentTag, Mode=TwoWay}"
+                    PlaceholderText="{loc:Tr PlaceholderRecentTag}"
+                    HorizontalAlignment="Stretch" />
+        </StackPanel>
+
+        <StackPanel Spacing="4">
+          <TextBlock Classes="label" Text="{loc:Tr FieldSessionName}" />
+          <TextBox Text="{Binding SessionName, Mode=TwoWay}"
+                   PlaceholderText="{loc:Tr PlaceholderSessionName}" />
+          <TextBlock Classes="error"
+                     Text="{Binding SessionNameError}"
+                     IsVisible="{Binding HasSessionNameError}" />
+        </StackPanel>
+
+        <StackPanel Spacing="4">
+          <TextBlock Classes="label" Text="{loc:Tr FieldLogDirectory}" />
+          <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+            <TextBox Grid.Column="0"
+                     Text="{Binding LogDirectory, Mode=TwoWay}"
+                     PlaceholderText="{loc:Tr TooltipBrowse}" />
+            <Button Grid.Column="1"
+                    MinWidth="120"
+                    Content="{loc:Tr ButtonBrowse}"
+                    Command="{Binding BrowseLogDirectoryCommand}"
+                    ToolTip.Tip="{loc:Tr TooltipBrowse}" />
+          </Grid>
+          <TextBlock Classes="error"
+                     Text="{Binding LogDirectoryWarning}"
+                     IsVisible="{Binding HasLogDirectoryWarning}" />
+        </StackPanel>
+
+        <StackPanel Spacing="4">
+          <TextBlock Classes="label" Text="{loc:Tr FieldPowerShellVersion}" />
+          <ComboBox ItemsSource="{Binding PowerShellChoices}"
+                    SelectedItem="{Binding SelectedPowerShellChoice, Mode=TwoWay}"
+                    HorizontalAlignment="Stretch">
+            <ComboBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:PowerShellChoice">
+                <TextBlock Text="{Binding DisplayName}" />
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+          <TextBlock Classes="hint"
+                     Text="{loc:Tr WindowsPowerShell51Note}"
+                     IsVisible="{Binding ShowWindowsPowerShellNote}" />
+        </StackPanel>
+
+        <StackPanel Spacing="4">
+          <CheckBox IsChecked="{Binding RunAsAdministrator, Mode=TwoWay}"
+                    Content="{loc:Tr FieldRunAsAdministrator}"
+                    ToolTip.Tip="{loc:Tr TooltipRunAsAdministrator}" />
+          <TextBlock Classes="hint" Text="{loc:Tr FieldRunAsAdministratorHint}" />
+        </StackPanel>
+
+        <StackPanel Spacing="4">
+          <CheckBox IsChecked="{Binding IncludeDateAndTime, Mode=TwoWay}"
+                    Content="{loc:Tr FieldIncludeDateAndTime}"
+                    ToolTip.Tip="{loc:Tr TooltipIncludeDateAndTime}" />
+        </StackPanel>
+
+        <StackPanel Spacing="4">
+          <CheckBox IsChecked="{Binding SaveSessionInHistory, Mode=TwoWay}"
+                    Content="{loc:Tr FieldSaveInHistory}"
+                    ToolTip.Tip="{loc:Tr TooltipSaveInHistory}" />
+          <TextBlock Classes="hint" Text="{loc:Tr FieldSaveInHistoryHint}" />
+        </StackPanel>
+      </StackPanel>
+    </Border>
+
+    <Border Classes="card">
+      <StackPanel Spacing="12">
+        <TextBlock Classes="section" Text="{loc:Tr SectionPreview}" />
+        <Grid ColumnDefinitions="220,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="8">
+          <TextBlock Grid.Row="0" Grid.Column="0" Classes="preview-label" Text="{loc:Tr PreviewCustomerTag}" />
+          <TextBlock Grid.Row="0" Grid.Column="1" Classes="preview-value" Text="{Binding PreviewCustomerTag}" />
+          <TextBlock Grid.Row="1" Grid.Column="0" Classes="preview-label" Text="{loc:Tr PreviewSessionName}" />
+          <TextBlock Grid.Row="1" Grid.Column="1" Classes="preview-value" Text="{Binding PreviewSessionName}" />
+          <TextBlock Grid.Row="2" Grid.Column="0" Classes="preview-label" Text="{loc:Tr PreviewPowerShellVersion}" />
+          <TextBlock Grid.Row="2" Grid.Column="1" Classes="preview-value" Text="{Binding PreviewPowerShellVersion}" />
+          <TextBlock Grid.Row="3" Grid.Column="0" Classes="preview-label" Text="{loc:Tr PreviewPrivilegeMode}" />
+          <TextBlock Grid.Row="3" Grid.Column="1" Classes="preview-value" Text="{Binding PreviewPrivilege}" />
+          <TextBlock Grid.Row="4" Grid.Column="0" Classes="preview-label" Text="{loc:Tr PreviewLogDirectory}" />
+          <TextBlock Grid.Row="4" Grid.Column="1" Classes="preview-value" Text="{Binding PreviewLogDirectory}" />
+          <TextBlock Grid.Row="5" Grid.Column="0" Classes="preview-label" Text="{loc:Tr PreviewFileName}" />
+          <TextBox Grid.Row="5"
+                   Grid.Column="1"
+                   Text="{Binding ProposedFileName}"
+                   IsReadOnly="True"
+                   TextWrapping="Wrap"
+                   Background="Transparent"
+                   BorderThickness="0" />
+        </Grid>
+        <TextBlock Classes="hint" Text="{loc:Tr PreviewFilenameNote}" />
+      </StackPanel>
+    </Border>
+
+    <StackPanel Spacing="8">
+      <!-- Disabled until a later checkpoint implements session recording. -->
+      <Button Classes="primary"
+              Content="{loc:Tr NavStartSession}"
+              IsEnabled="False"
+              ToolTip.Tip="{loc:Tr TooltipStartSessionDisabled}" />
+      <TextBlock Classes="hint" Text="{loc:Tr StartSessionDisabledReason}" />
+    </StackPanel>
+  </StackPanel>
+</UserControl>
