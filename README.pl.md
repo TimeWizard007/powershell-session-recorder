@@ -8,7 +8,7 @@ Aplikacja nie wymaga serwera zaplecza, serwera bazy danych, konta w chmurze ani 
 
 ## Stan projektu
 
-**Etap 2.1 — rejestrowanie w Ubuntu oraz jasny i ciemny interfejs.** Przycisk Uruchom sesję otwiera niezależny GNOME Terminal z programem `pwsh` i już działającym `Start-Transcript`. Motyw, strona O programie i sprawdzenie zależności są w tym etapie. Wersja 1.0.0 nie została wydana. Szczegóły zawierają [CHANGELOG.md](CHANGELOG.md) i [etap 2](docs/pl/etap-2.md).
+**Etap 2.2 — rejestrowanie w Ubuntu oraz sprawdzenie wydań w serwisie GitHub.** Przycisk Uruchom sesję otwiera niezależny GNOME Terminal z programem `pwsh` i już działającym `Start-Transcript`. Aplikacja może zapytać GitHub, czy jest nowsze stabilne wydanie. Nie pobiera ani nie instaluje aktualizacji. Wersja 1.0.0 nie została wydana. Szczegóły zawierają [CHANGELOG.md](CHANGELOG.md) i [etap 2.2](docs/pl/etap-2.2.md).
 
 ## Obsługiwane systemy operacyjne
 
@@ -39,6 +39,7 @@ Etap 2 rejestruje sesję programu PowerShell 7 w Ubuntu przez GNOME Terminal. Wi
 - Lokalne ustawienia JSON
 - Pusta strona Historia. Pliki transkrypcji i tak są zapisywane w katalogu dziennika
 - Przycisk **Uruchom sesję**, gdy formularz jest poprawny oraz dostępne są `pwsh` i GNOME Terminal
+- Samo powiadomienie o nowszym stabilnym wydaniu w serwisie GitHub. Automatyczne sprawdzenie działa najwyżej raz na 24 godziny i można je wyłączyć. Nic nie jest pobierane ani instalowane
 
 ## Ograniczenia
 

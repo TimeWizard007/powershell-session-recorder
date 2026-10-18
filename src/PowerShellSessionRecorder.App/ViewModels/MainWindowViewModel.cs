@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 using PowerShellSessionRecorder.App.Localization;
 using PowerShellSessionRecorder.App.Services;
 using PowerShellSessionRecorder.App.Services.Recording;
+using PowerShellSessionRecorder.App.Services.Updates;
 using PowerShellSessionRecorder.Core;
 
 namespace PowerShellSessionRecorder.App.ViewModels;
@@ -25,13 +26,22 @@ public partial class MainWindowViewModel : ViewModelBase
         JsonSettingsStore store,
         ISessionRecordingService? recordingService = null,
         IThemeController? themeController = null,
-        IExternalLinkOpener? links = null)
+        IExternalLinkOpener? links = null,
+        UpdateCheckCoordinator? updates = null)
     {
         _localization = localization;
         _settings = settings;
         _store = store;
         _themeController = themeController;
         _links = links;
+        Updates = new UpdateStatusViewModel(
+            localization,
+            settings,
+            store,
+            updates ?? new UpdateCheckCoordinator(new UnavailableReleaseSource(), () => DateTimeOffset.UtcNow, ProductVersion.Current),
+            links,
+            SetStatus,
+            new AvaloniaUiInvoker());
         RecentCustomerTags = new ObservableCollection<string>(settings.RecentCustomerTags);
         Languages =
         [
@@ -73,6 +83,11 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     public SessionSetupViewModel Session { get; }
+
+    public UpdateStatusViewModel Updates { get; }
+
+    public void BeginAutomaticUpdateCheck(CancellationToken cancellationToken)
+        => Updates.BeginAutomaticCheck(cancellationToken);
 
     public ObservableCollection<string> RecentCustomerTags { get; }
 

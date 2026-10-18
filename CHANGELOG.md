@@ -11,6 +11,7 @@ Version 1.0.0 has not been released.
 
 ### Added
 
+- Checkpoint 2.2 update check: a manual or once-daily request to the official GitHub Releases API. A newer stable release is shown in the window. The application does not download, install, or restart itself.
 - Checkpoint 2.1 interface: vertical navigation, System/Light/Dark themes, an About page, and dependency checks for PowerShell 7 and GNOME Terminal.
 - Checkpoint 2 recording flow: Start Session launches an independent GNOME Terminal running PowerShell 7 with `Start-Transcript`.
 - Exclusive transcript allocation, a fixed bootstrap script, and English and Polish launch status messages.
@@ -33,6 +34,7 @@ Version 1.0.0 has not been released.
 
 ### Dodano
 
+- Sprawdzanie aktualizacji etapu 2.2: ręczne albo codzienne zapytanie do oficjalnego API wydań GitHub. Nowsze stabilne wydanie jest pokazywane w oknie. Aplikacja nie pobiera, nie instaluje i nie uruchamia się ponownie.
 - Interfejs etapu 2.1: pionowa nawigacja, motywy systemowy, jasny i ciemny, strona O programie oraz sprawdzenie zależności programu PowerShell 7 i GNOME Terminal.
 - Przepływ rejestrowania etapu 2: Uruchom sesję otwiera niezależny GNOME Terminal z programem PowerShell 7 i `Start-Transcript`.
 - Wyłączną rezerwację pliku transkrypcji, stały skrypt startowy oraz angielskie i polskie komunikaty uruchomienia.

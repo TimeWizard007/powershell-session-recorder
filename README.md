@@ -8,7 +8,7 @@ There is no backend server, database server, cloud account, or Windows service.
 
 ## Status
 
-**Checkpoint 2.1 — recording on Ubuntu, with a light/dark interface.** Start Session opens an independent GNOME Terminal running `pwsh` with `Start-Transcript` already active. The theme, About page, and dependency checks are in this checkpoint. Version 1.0.0 has not been released. See [CHANGELOG.md](CHANGELOG.md) and [Checkpoint 2](docs/en/checkpoint-2.md).
+**Checkpoint 2.2 — recording on Ubuntu, with a GitHub release check.** Start Session opens an independent GNOME Terminal running `pwsh` with `Start-Transcript` already active. The application can ask GitHub whether a newer stable release exists. It does not download or install updates. Version 1.0.0 has not been released. See [CHANGELOG.md](CHANGELOG.md) and [Checkpoint 2.2](docs/en/checkpoint-2.2.md).
 
 ## Supported operating systems
 
@@ -39,6 +39,7 @@ Checkpoint 2 records a PowerShell 7 session on Ubuntu through GNOME Terminal. Wi
 - Local JSON settings
 - An empty History page. Transcript files are still written to the log directory
 - **Start Session**, when the form is valid and `pwsh` and GNOME Terminal are available
+- A notify-only check for a newer stable GitHub release. Automatic checks run at most once every 24 hours and can be turned off. Nothing is downloaded or installed
 
 ## Limitations
 

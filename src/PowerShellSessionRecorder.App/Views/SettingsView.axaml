@@ -56,5 +56,34 @@
                    IsVisible="{Binding WindowsPowerShellWasAdjusted}" />
       </StackPanel>
     </Border>
+
+    <Border Classes="card">
+      <StackPanel Spacing="16">
+        <TextBlock Classes="section" Text="{loc:Tr SectionUpdates}" />
+        <CheckBox IsChecked="{Binding Updates.CheckForUpdatesAutomatically, Mode=TwoWay}"
+                  Content="{loc:Tr UpdatesAutomatic}" />
+        <TextBlock Classes="hint" Text="{loc:Tr UpdatesAutomaticHelp}" />
+
+        <Button HorizontalAlignment="Left"
+                Content="{loc:Tr UpdatesCheckNow}"
+                Command="{Binding Updates.CheckForUpdatesNowCommand}" />
+        <TextBlock Classes="hint"
+                   Text="{Binding Updates.UpdateCheckMessage}"
+                   IsVisible="{Binding Updates.HasUpdateCheckMessage}" />
+
+        <StackPanel Spacing="4">
+          <TextBlock Classes="label" Text="{loc:Tr UpdatesCurrentVersion}" />
+          <TextBlock Foreground="{DynamicResource AppText}" Text="{Binding Updates.CurrentVersion}" />
+        </StackPanel>
+        <StackPanel Spacing="4">
+          <TextBlock Classes="label" Text="{loc:Tr UpdatesLatestVersion}" />
+          <TextBlock Foreground="{DynamicResource AppText}" Text="{Binding Updates.LatestVersionText}" TextWrapping="Wrap" />
+        </StackPanel>
+        <StackPanel Spacing="4">
+          <TextBlock Classes="label" Text="{loc:Tr UpdatesLastCheck}" />
+          <TextBlock Foreground="{DynamicResource AppText}" Text="{Binding Updates.LastCheckText}" TextWrapping="Wrap" />
+        </StackPanel>
+      </StackPanel>
+    </Border>
   </StackPanel>
 </UserControl>

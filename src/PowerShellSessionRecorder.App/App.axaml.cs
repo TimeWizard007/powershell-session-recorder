@@ -4,6 +4,7 @@ using Avalonia.Markup.Xaml;
 using PowerShellSessionRecorder.App.Localization;
 using PowerShellSessionRecorder.App.Services;
 using PowerShellSessionRecorder.App.Services.Recording;
+using PowerShellSessionRecorder.App.Services.Updates;
 using PowerShellSessionRecorder.App.ViewModels;
 using PowerShellSessionRecorder.App.Views;
 using PowerShellSessionRecorder.Core;
@@ -37,21 +38,32 @@ public partial class App : Application
             new BootstrapFileStore(BootstrapPaths.GetDirectory()));
         var themes = new AvaloniaThemeController();
         themes.Apply(settings.Theme);
+        var updates = new UpdateCheckCoordinator(
+            new GitHubReleaseClient(GitHubReleaseClient.CreateClient(ProductVersion.Current)),
+            () => DateTimeOffset.UtcNow,
+            ProductVersion.Current);
         var mainViewModel = new MainWindowViewModel(
             localization,
             settings,
             store,
             recording,
             themes,
-            new ExternalLinkOpener());
+            new ExternalLinkOpener(),
+            updates);
+        var updateCancellation = new CancellationTokenSource();
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.ShutdownRequested += (_, _) => mainViewModel.Flush();
+            desktop.ShutdownRequested += (_, _) =>
+            {
+                updateCancellation.Cancel();
+                mainViewModel.Flush();
+            };
             desktop.MainWindow = new MainWindow
             {
                 DataContext = mainViewModel
             };
+            mainViewModel.BeginAutomaticUpdateCheck(updateCancellation.Token);
         }
 
         base.OnFrameworkInitializationCompleted();

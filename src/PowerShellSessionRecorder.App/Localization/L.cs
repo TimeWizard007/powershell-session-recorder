@@ -111,4 +111,27 @@ public static class L
     public const string AboutOpenRepository = "AboutOpenRepository";
     public const string LanguageEnglish = "LanguageEnglish";
     public const string LanguagePolish = "LanguagePolish";
+    public const string SectionUpdates = "SectionUpdates";
+    public const string UpdatesAutomatic = "UpdatesAutomatic";
+    public const string UpdatesAutomaticHelp = "UpdatesAutomaticHelp";
+    public const string UpdatesCheckNow = "UpdatesCheckNow";
+    public const string UpdatesChecking = "UpdatesChecking";
+    public const string UpdatesCurrentVersion = "UpdatesCurrentVersion";
+    public const string UpdatesLatestVersion = "UpdatesLatestVersion";
+    public const string UpdatesLatestUnknown = "UpdatesLatestUnknown";
+    public const string UpdatesLastCheck = "UpdatesLastCheck";
+    public const string UpdatesLastCheckNever = "UpdatesLastCheckNever";
+    public const string UpdatesNoPublishedReleases = "UpdatesNoPublishedReleases";
+    public const string UpdatesUpToDate = "UpdatesUpToDate";
+    public const string UpdatesAvailableStatus = "UpdatesAvailableStatus";
+    public const string UpdatesOffline = "UpdatesOffline";
+    public const string UpdatesTimedOut = "UpdatesTimedOut";
+    public const string UpdatesRateLimited = "UpdatesRateLimited";
+    public const string UpdatesInvalidResponse = "UpdatesInvalidResponse";
+    public const string UpdatesInvalidRelease = "UpdatesInvalidRelease";
+    public const string UpdatesCanceled = "UpdatesCanceled";
+    public const string UpdateNoticeTitle = "UpdateNoticeTitle";
+    public const string UpdateNoticeBody = "UpdateNoticeBody";
+    public const string UpdateNoticeViewRelease = "UpdateNoticeViewRelease";
+    public const string UpdateNoticeLater = "UpdateNoticeLater";
 }

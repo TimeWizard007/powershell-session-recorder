@@ -46,10 +46,14 @@ public class JsonSettingsStoreTests
 
         Assert.Equal(
             [
+                "checkForUpdatesAutomatically",
                 "includeDateAndTime",
                 "language",
+                "lastKnownReleaseUrl",
+                "lastKnownStableVersion",
                 "lastLogDirectory",
                 "lastPowerShellVersion",
+                "lastUpdateCheckUtc",
                 "recentCustomerTags",
                 "saveSessionInHistory",
                 "schemaVersion",

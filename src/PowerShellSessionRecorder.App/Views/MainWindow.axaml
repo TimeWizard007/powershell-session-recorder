@@ -60,7 +60,34 @@
       </DockPanel>
     </Border>
 
-    <ScrollViewer Grid.Column="1"
+    <Grid Grid.Column="1" RowDefinitions="Auto,*">
+    <Border Grid.Row="0"
+            Classes="notice"
+            Margin="32,20,32,0"
+            IsVisible="{Binding Updates.ShowNotice}"
+            AutomationProperties.Name="{loc:Tr UpdateNoticeTitle}">
+      <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12">
+        <StackPanel Spacing="4" VerticalAlignment="Center">
+          <TextBlock FontWeight="SemiBold"
+                     Foreground="{DynamicResource AppText}"
+                     Text="{loc:Tr UpdateNoticeTitle}"
+                     TextWrapping="Wrap" />
+          <TextBlock Foreground="{DynamicResource AppText}"
+                     Text="{Binding Updates.UpdateNoticeBody}"
+                     TextWrapping="Wrap" />
+        </StackPanel>
+        <Button Grid.Column="1"
+                VerticalAlignment="Center"
+                Content="{loc:Tr UpdateNoticeViewRelease}"
+                Command="{Binding Updates.ViewReleaseCommand}"
+                IsVisible="{Binding Updates.HasReleasePage}" />
+        <Button Grid.Column="2"
+                VerticalAlignment="Center"
+                Content="{loc:Tr UpdateNoticeLater}"
+                Command="{Binding Updates.DismissUpdateCommand}" />
+      </Grid>
+    </Border>
+    <ScrollViewer Grid.Row="1"
                   Background="{DynamicResource AppBackground}"
                   HorizontalScrollBarVisibility="Disabled"
                   Padding="32,28">
@@ -79,5 +106,6 @@
         </Border>
       </Panel>
     </ScrollViewer>
+    </Grid>
   </Grid>
 </Window>

@@ -1,3 +1,5 @@
+using PowerShellSessionRecorder.Core.Updates;
+
 namespace PowerShellSessionRecorder.Core;
 
 /// <summary>
@@ -23,6 +25,14 @@ public sealed class ApplicationSettings
     public bool SaveSessionInHistory { get; set; } = true;
 
     public AppTheme Theme { get; set; } = AppTheme.System;
+
+    public bool CheckForUpdatesAutomatically { get; set; } = true;
+
+    public DateTimeOffset? LastUpdateCheckUtc { get; set; }
+
+    public string LastKnownStableVersion { get; set; } = "";
+
+    public string LastKnownReleaseUrl { get; set; } = "";
 
     public List<string> RecentCustomerTags { get; set; } = [];
 
@@ -67,6 +77,23 @@ public sealed class ApplicationSettings
         if (!Enum.IsDefined(Theme))
         {
             Theme = AppTheme.System;
+            changed = true;
+        }
+
+        var stableVersion = (LastKnownStableVersion ?? "").Trim();
+        if (!string.Equals(LastKnownStableVersion, stableVersion, StringComparison.Ordinal))
+        {
+            LastKnownStableVersion = stableVersion;
+            changed = true;
+        }
+
+        var releaseUrl = (LastKnownReleaseUrl ?? "").Trim();
+        if (releaseUrl.Length > 0 && !ReleasePageLink.IsTrusted(releaseUrl))
+            releaseUrl = "";
+
+        if (!string.Equals(LastKnownReleaseUrl, releaseUrl, StringComparison.Ordinal))
+        {
+            LastKnownReleaseUrl = releaseUrl;
             changed = true;
         }
 

@@ -2,7 +2,7 @@
 
 [Polski](#bezpieczeństwo)
 
-PowerShell Session Recorder is a local desktop application. It does not open network connections of its own and does not elevate privileges.
+PowerShell Session Recorder is a local desktop application. It does not elevate privileges. The only network request it makes for itself is an optional HTTPS read of the latest stable GitHub release for this repository. That request sends the application version in the User-Agent and does not send customer TAGs, session names, transcripts, log paths, or other settings. The response is not executed, and release files are not downloaded.
 
 ## Transcripts
 
@@ -34,7 +34,7 @@ Include the affected version or commit, the operating system, and a description 
 
 ## Bezpieczeństwo
 
-Rejestrator sesji PowerShell jest lokalną aplikacją pulpitową. Nie otwiera własnych połączeń sieciowych i nie podnosi uprawnień.
+Rejestrator sesji PowerShell jest lokalną aplikacją pulpitową. Nie podnosi uprawnień. Jedynym własnym żądaniem sieciowym jest opcjonalny odczyt HTTPS najnowszego stabilnego wydania tego repozytorium w serwisie GitHub. Żądanie wysyła wersję aplikacji w nagłówku User-Agent i nie wysyła TAG-ów klientów, nazw sesji, transkrypcji, ścieżek dziennika ani innych ustawień. Odpowiedź nie jest wykonywana, a pliki wydania nie są pobierane.
 
 ### Transkrypcje
 
