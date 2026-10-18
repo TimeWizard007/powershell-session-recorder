@@ -1,8 +1,7 @@
 namespace PowerShellSessionRecorder.Core;
 
 /// <summary>
-/// Draft of a recorded PowerShell session. Checkpoint 1 stores and previews this
-/// configuration; it does not launch PowerShell.
+/// Configuration for one recorded PowerShell session.
 /// </summary>
 public sealed class SessionConfiguration
 {

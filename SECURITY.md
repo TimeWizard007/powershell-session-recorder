@@ -2,7 +2,17 @@
 
 [Polski](#bezpieczeństwo)
 
-PowerShell Session Recorder is a local desktop application. Checkpoint 1 does not open network connections of its own, does not launch PowerShell, and does not elevate privileges.
+PowerShell Session Recorder is a local desktop application. It does not open network connections of its own and does not elevate privileges.
+
+## Transcripts
+
+`Start-Transcript` records the text the PowerShell host displays, including commands and their output. A password, token, or other secret typed or printed in the recorded console can be written to the transcript file. Treat transcript files as sensitive.
+
+The bootstrap script is stored outside the log directory, in `$XDG_RUNTIME_DIR/powershell-session-recorder` when that directory is available, otherwise under `~/.local/share/powershell-session-recorder/bootstrap`. On Unix the application limits that directory to the current user and each script to owner read and write. The script is a fixed file. Customer TAGs, session names, and paths are passed as separate process arguments. The application does not use `Invoke-Expression` to build the launch command, and it does not change the PowerShell profile, the registry, or system policy.
+
+A normal `exit` runs `Stop-Transcript`. If the terminal or process is killed, PowerShell may not write the transcript footer. Commands that were already flushed can still be present.
+
+The reserved transcript file is limited to the current user on Unix when it is created. The bootstrap sets that mode again after `Start-Transcript` starts, so a transcript created under the process umask is not left group-readable. The selected log directory itself is not chmod'd.
 
 ## Data stored on the computer
 
@@ -24,7 +34,17 @@ Include the affected version or commit, the operating system, and a description 
 
 ## Bezpieczeństwo
 
-Rejestrator sesji PowerShell jest lokalną aplikacją pulpitową. Etap 1 nie otwiera własnych połączeń sieciowych, nie uruchamia programu PowerShell i nie podnosi uprawnień.
+Rejestrator sesji PowerShell jest lokalną aplikacją pulpitową. Nie otwiera własnych połączeń sieciowych i nie podnosi uprawnień.
+
+### Transkrypcje
+
+`Start-Transcript` zapisuje tekst wyświetlany przez host programu PowerShell, w tym polecenia i ich wyniki. Hasło, token albo inna dana poufna wpisana lub wypisana w rejestrowanej konsoli może trafić do pliku transkrypcji. Pliki transkrypcji należy traktować jako dane wrażliwe.
+
+Skrypt startowy jest przechowywany poza katalogiem dziennika, w `$XDG_RUNTIME_DIR/powershell-session-recorder`, gdy ten katalog jest dostępny, a w przeciwnym razie w `~/.local/share/powershell-session-recorder/bootstrap`. W systemach uniksowych aplikacja ogranicza ten katalog do bieżącego użytkownika, a każdy skrypt do odczytu i zapisu właściciela. Skrypt jest stałym plikiem. TAG-i klientów, nazwy sesji i ścieżki są przekazywane jako osobne argumenty procesu. Aplikacja nie używa `Invoke-Expression` do zbudowania polecenia uruchomienia i nie zmienia profilu programu PowerShell, rejestru ani zasad systemu.
+
+Zwykłe polecenie `exit` wywołuje `Stop-Transcript`. Jeśli terminal albo proces zostanie zabity, program PowerShell może nie zapisać stopki transkrypcji. Polecenia, które zostały już zrzucone na dysk, mogą nadal być w pliku.
+
+Zarezerwowany plik transkrypcji jest w systemach uniksowych ograniczony do bieżącego użytkownika w chwili utworzenia. Skrypt startowy ustawia te uprawnienia ponownie po uruchomieniu `Start-Transcript`, więc transkrypcja utworzona zgodnie z maską procesu nie pozostaje czytelna dla grupy. Wybrany katalog dziennika nie ma zmienianych uprawnień.
 
 ### Dane przechowywane na komputerze
 

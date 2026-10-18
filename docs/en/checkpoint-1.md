@@ -2,7 +2,7 @@
 
 [Polski](../pl/etap-1.md)
 
-Checkpoint 1 is the foundation of PowerShell Session Recorder. The solution builds, the Avalonia window opens, and an administrator can prepare a session description. The application does not record PowerShell yet.
+Checkpoint 1 is the foundation of PowerShell Session Recorder. The solution builds, the Avalonia window opens, and an administrator can prepare a session description. Checkpoint 1 itself does not record PowerShell. Recording a PowerShell 7 session is described in [Checkpoint 2](checkpoint-2.md).
 
 ## In scope
 

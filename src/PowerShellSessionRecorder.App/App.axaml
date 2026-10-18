@@ -1,76 +1,142 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="PowerShellSessionRecorder.App.App"
-             RequestedThemeVariant="Light">
+             RequestedThemeVariant="Default">
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Light">
+          <SolidColorBrush x:Key="AppBackground" Color="#F3F5F8" />
+          <SolidColorBrush x:Key="AppSurface" Color="#FFFFFF" />
+          <SolidColorBrush x:Key="AppNav" Color="#F8FAFC" />
+          <SolidColorBrush x:Key="AppNavSelected" Color="#E4F0FB" />
+          <SolidColorBrush x:Key="AppBorder" Color="#D5DEE8" />
+          <SolidColorBrush x:Key="AppText" Color="#152232" />
+          <SolidColorBrush x:Key="AppMuted" Color="#5C6B7A" />
+          <SolidColorBrush x:Key="AppAccent" Color="#1D4E89" />
+          <SolidColorBrush x:Key="AppOnAccent" Color="#FFFFFF" />
+          <SolidColorBrush x:Key="AppError" Color="#9B2C2C" />
+          <SolidColorBrush x:Key="AppNotice" Color="#E8F3FC" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Dark">
+          <SolidColorBrush x:Key="AppBackground" Color="#12161C" />
+          <SolidColorBrush x:Key="AppSurface" Color="#1C232C" />
+          <SolidColorBrush x:Key="AppNav" Color="#171C23" />
+          <SolidColorBrush x:Key="AppNavSelected" Color="#243044" />
+          <SolidColorBrush x:Key="AppBorder" Color="#313A46" />
+          <SolidColorBrush x:Key="AppText" Color="#E8EEF4" />
+          <SolidColorBrush x:Key="AppMuted" Color="#A8B3C0" />
+          <SolidColorBrush x:Key="AppAccent" Color="#8EBCF5" />
+          <SolidColorBrush x:Key="AppOnAccent" Color="#0E1620" />
+          <SolidColorBrush x:Key="AppError" Color="#F0A8A8" />
+          <SolidColorBrush x:Key="AppNotice" Color="#243044" />
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
+    </ResourceDictionary>
+  </Application.Resources>
+
   <Application.Styles>
     <FluentTheme />
 
     <Style Selector="TextBlock.section">
-      <Setter Property="FontSize" Value="18" />
+      <Setter Property="FontSize" Value="20" />
       <Setter Property="FontWeight" Value="SemiBold" />
-      <Setter Property="Foreground" Value="#152232" />
+      <Setter Property="Foreground" Value="{DynamicResource AppText}" />
       <Setter Property="Margin" Value="0,0,0,4" />
     </Style>
     <Style Selector="TextBlock.label">
       <Setter Property="FontSize" Value="13" />
       <Setter Property="FontWeight" Value="SemiBold" />
-      <Setter Property="Foreground" Value="#243140" />
+      <Setter Property="Foreground" Value="{DynamicResource AppText}" />
       <Setter Property="Margin" Value="0,0,0,6" />
     </Style>
     <Style Selector="TextBlock.hint">
-      <Setter Property="FontSize" Value="12" />
-      <Setter Property="Foreground" Value="#5C6B7A" />
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="Foreground" Value="{DynamicResource AppMuted}" />
       <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
     <Style Selector="TextBlock.error">
-      <Setter Property="FontSize" Value="12" />
-      <Setter Property="Foreground" Value="#9B2C2C" />
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="Foreground" Value="{DynamicResource AppError}" />
       <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
     <Style Selector="TextBlock.preview-label">
       <Setter Property="FontSize" Value="12" />
       <Setter Property="FontWeight" Value="SemiBold" />
-      <Setter Property="Foreground" Value="#5C6B7A" />
+      <Setter Property="Foreground" Value="{DynamicResource AppMuted}" />
     </Style>
     <Style Selector="TextBlock.preview-value">
       <Setter Property="FontSize" Value="14" />
-      <Setter Property="Foreground" Value="#152232" />
+      <Setter Property="Foreground" Value="{DynamicResource AppText}" />
       <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
     <Style Selector="Border.card">
-      <Setter Property="Background" Value="#FFFFFF" />
-      <Setter Property="BorderBrush" Value="#D7DEE7" />
+      <Setter Property="Background" Value="{DynamicResource AppSurface}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AppBorder}" />
       <Setter Property="BorderThickness" Value="1" />
       <Setter Property="CornerRadius" Value="12" />
-      <Setter Property="Padding" Value="20" />
+      <Setter Property="Padding" Value="24" />
+    </Style>
+    <Style Selector="Border.notice">
+      <Setter Property="Background" Value="{DynamicResource AppNotice}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AppBorder}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Padding" Value="16" />
     </Style>
     <Style Selector="Button.nav">
       <Setter Property="Background" Value="Transparent" />
-      <Setter Property="Foreground" Value="#E8EEF5" />
+      <Setter Property="Foreground" Value="{DynamicResource AppText}" />
       <Setter Property="HorizontalAlignment" Value="Stretch" />
       <Setter Property="HorizontalContentAlignment" Value="Left" />
-      <Setter Property="Padding" Value="12,10" />
+      <Setter Property="Padding" Value="14,11" />
       <Setter Property="CornerRadius" Value="8" />
-      <Setter Property="Margin" Value="12,4,12,0" />
       <Setter Property="FontSize" Value="14" />
       <Setter Property="BorderThickness" Value="0" />
     </Style>
-    <Style Selector="Button.nav:pointerover">
-      <Setter Property="Background" Value="#1C3F66" />
+    <Style Selector="Button.nav /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="CornerRadius" Value="8" />
+    </Style>
+    <Style Selector="Button.nav:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AppNavSelected}" />
     </Style>
     <Style Selector="Button.nav.selected">
-      <Setter Property="Background" Value="#1D4E89" />
-      <Setter Property="Foreground" Value="#FFFFFF" />
+      <Setter Property="Foreground" Value="{DynamicResource AppAccent}" />
       <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
+    <Style Selector="Button.nav.selected /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AppNavSelected}" />
+    </Style>
     <Style Selector="Button.nav.selected:pointerover">
-      <Setter Property="Background" Value="#245C9E" />
+      <Setter Property="Foreground" Value="{DynamicResource AppAccent}" />
+    </Style>
+    <Style Selector="Button.nav.selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AppNavSelected}" />
     </Style>
     <Style Selector="Button.primary">
+      <Setter Property="Background" Value="{DynamicResource AppAccent}" />
+      <Setter Property="Foreground" Value="{DynamicResource AppOnAccent}" />
       <Setter Property="MinWidth" Value="168" />
-      <Setter Property="MinHeight" Value="40" />
-      <Setter Property="Padding" Value="16,8" />
+      <Setter Property="MinHeight" Value="42" />
+      <Setter Property="Padding" Value="18,10" />
       <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="Button.primary /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AppAccent}" />
+      <Setter Property="CornerRadius" Value="8" />
+    </Style>
+    <Style Selector="Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AppAccent}" />
+    </Style>
+    <Style Selector="Button.primary:disabled">
+      <Setter Property="Opacity" Value="0.45" />
+    </Style>
+    <Style Selector="Button.primary:disabled /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AppAccent}" />
+      <Setter Property="Opacity" Value="0.45" />
     </Style>
   </Application.Styles>
 </Application>

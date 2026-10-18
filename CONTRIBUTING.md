@@ -2,7 +2,7 @@
 
 [Polski](#współtworzenie)
 
-Thank you for helping with PowerShell Session Recorder. The project is at Checkpoint 1. Please keep changes focused and do not add session launching, elevation, or transcript writing until that work is scheduled.
+Thank you for helping with PowerShell Session Recorder. The project is at Checkpoint 2. Please keep changes focused. Do not add Windows PowerShell 5.1 launching, elevation, or a history list until that work is scheduled.
 
 ## Development setup
 
@@ -45,7 +45,7 @@ Do not store passwords, tokens, or customer secrets in settings or in the reposi
 
 ## Współtworzenie
 
-Dziękujemy za pomoc przy Rejestratorze sesji PowerShell. Projekt jest na etapie 1. Zmiany powinny pozostać skupione na bieżącym zakresie. Nie dodawaj uruchamiania sesji, podnoszenia uprawnień ani zapisu transkrypcji, dopóki ta praca nie zostanie zaplanowana.
+Dziękujemy za pomoc przy Rejestratorze sesji PowerShell. Projekt jest na etapie 2. Zmiany powinny pozostać skupione na bieżącym zakresie. Nie dodawaj uruchamiania Windows PowerShell 5.1, podnoszenia uprawnień ani listy historii, dopóki ta praca nie zostanie zaplanowana.
 
 ### Środowisko
 

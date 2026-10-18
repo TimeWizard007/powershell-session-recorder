@@ -8,7 +8,7 @@ Aplikacja nie wymaga serwera zaplecza, serwera bazy danych, konta w chmurze ani 
 
 ## Stan projektu
 
-**Etap 1 — fundament aplikacji.** Ta wersja nie uruchamia programu PowerShell i nie rejestruje sesji. Wersja 1.0.0 nie została wydana. Szczegóły zawiera [CHANGELOG.md](CHANGELOG.md).
+**Etap 2.1 — rejestrowanie w Ubuntu oraz jasny i ciemny interfejs.** Przycisk Uruchom sesję otwiera niezależny GNOME Terminal z programem `pwsh` i już działającym `Start-Transcript`. Motyw, strona O programie i sprawdzenie zależności są w tym etapie. Wersja 1.0.0 nie została wydana. Szczegóły zawierają [CHANGELOG.md](CHANGELOG.md) i [etap 2](docs/pl/etap-2.md).
 
 ## Obsługiwane systemy operacyjne
 
@@ -18,15 +18,15 @@ Aplikacja jest przeznaczona dla:
 - Ubuntu Linux
 - macOS
 
-Etap 1 kompiluje się i uruchamia jako aplikacja pulpitowa w systemie Ubuntu. Windows PowerShell 5.1 można wybrać tylko wtedy, gdy aplikacja działa w systemie Windows.
+Etap 2 rejestruje sesję programu PowerShell 7 w Ubuntu przez GNOME Terminal. Windows PowerShell 5.1 można wybrać tylko wtedy, gdy aplikacja działa w systemie Windows, i nie jest uruchamiany.
 
 ## Technologia
 
 - C# i .NET 10 (LTS)
 - Avalonia UI 12 z motywem Fluent
 - MVVM z pakietem CommunityToolkit.Mvvm
-- PowerShell 7 w systemach Windows, Linux i macOS (kolejne etapy)
-- Windows PowerShell 5.1 tylko w systemie Windows (kolejne etapy)
+- PowerShell 7. Rejestrowanie jest zaimplementowane dla Ubuntu z GNOME Terminal
+- Windows PowerShell 5.1 tylko w systemie Windows (jeszcze nie jest uruchamiany)
 - JSON dla ustawień lokalnych i, w przyszłości, historii sesji
 
 ## Co działa teraz
@@ -37,17 +37,18 @@ Etap 1 kompiluje się i uruchamia jako aplikacja pulpitowa w systemie Ubuntu. Wi
 - Wybór lokalnego folderu
 - Język angielski (`en-US`) i polski (`pl-PL`); wybór jest zapisywany dla bieżącego użytkownika
 - Lokalne ustawienia JSON
-- Pusta strona Historia. Nie zawiera przykładowych sesji
-- Wyłączona akcja **Uruchom sesję**, ponieważ silnik rejestrowania nie wchodzi w skład tego etapu
+- Pusta strona Historia. Pliki transkrypcji i tak są zapisywane w katalogu dziennika
+- Przycisk **Uruchom sesję**, gdy formularz jest poprawny oraz dostępne są `pwsh` i GNOME Terminal
 
 ## Ograniczenia
 
-- Program PowerShell nie jest uruchamiany
-- Transkrypcje nie są tworzone
-- Uprawnienia nie są podnoszone
-- Pole administratora nie jest zapisywane
-- Historia nie jest rejestrowana
-- Nazwa pliku w podglądzie jest propozycją. Unikalność zostanie ponownie wymuszona przy utworzeniu sesji w kolejnym etapie
+- Windows PowerShell 5.1 nie jest uruchamiany
+- Uprawnienia nie są podnoszone. Pole administratora nie jest zapisywane, a sesji nie można uruchomić, gdy jest zaznaczone
+- Strona Historia nie wyświetla sesji
+- `Start-Transcript` zapisuje wyjście hosta. Dane poufne wpisane lub wyświetlone w konsoli mogą trafić do transkrypcji
+- Nagłe przerwanie procesu może pominąć stopkę transkrypcji
+- Sprawdzono tylko GNOME Terminal 3.52 w Ubuntu 24.04. Nie twierdzimy, że inne emulatory terminala działają
+- Nazwa pliku w podglądzie używa przykładowego identyfikatora. Uruchomienie sesji rezerwuje nowy plik i nie nadpisuje istniejącej transkrypcji
 
 ## Wymagania
 
@@ -67,7 +68,7 @@ Okno wyboru folderu korzysta z portalu pulpitu. Zwykły pulpit Ubuntu już go za
 sudo apt-get install -y xdg-desktop-portal xdg-desktop-portal-gtk
 ```
 
-PowerShell 7 nie jest wymagany do zbudowania ani otwarcia tego etapu. Będzie potrzebny, gdy pojawi się rejestrowanie. Instrukcja instalacji: [Instalacja programu PowerShell w Ubuntu](https://learn.microsoft.com/powershell/scripting/install/install-ubuntu).
+Do uruchomienia rejestrowanej sesji potrzebne są PowerShell 7 i GNOME Terminal. Instrukcja instalacji: [Instalacja programu PowerShell w Ubuntu](https://learn.microsoft.com/powershell/scripting/install/install-ubuntu).
 
 ## Kompilacja
 
@@ -95,7 +96,7 @@ dotnet test PowerShellSessionRecorder.sln
 
 ## Planowane funkcje
 
-Kolejne etapy uruchomią rejestrowaną sesję programu PowerShell, zapiszą transkrypcję w wybranym folderze, uwzględnią zapisaną opcję historii i obsłużą podnoszenie uprawnień tam, gdzie pozwala na to system operacyjny.
+Kolejne etapy mogą wyświetlić listę zarejestrowanych sesji, uruchomić Windows PowerShell 5.1 i obsłużyć podnoszenie uprawnień tam, gdzie pozwala na to system operacyjny.
 
 ## Położenie ustawień
 
@@ -109,7 +110,8 @@ Plik przechowuje język interfejsu, ostatni katalog dziennika, ostatnią wersję
 
 ## Dokumentacja
 
-- [Stan rozwoju](docs/pl/etap-1.md)
+- [Etap 2](docs/pl/etap-2.md)
+- [Etap 1](docs/pl/etap-1.md)
 - [Współtworzenie](CONTRIBUTING.md)
 - [Bezpieczeństwo](SECURITY.md)
 - [Dziennik zmian](CHANGELOG.md)

@@ -22,6 +22,8 @@ public sealed class ApplicationSettings
 
     public bool SaveSessionInHistory { get; set; } = true;
 
+    public AppTheme Theme { get; set; } = AppTheme.System;
+
     public List<string> RecentCustomerTags { get; set; } = [];
 
     public static string CanonicalLanguage(string? language)
@@ -59,6 +61,12 @@ public sealed class ApplicationSettings
         if (!Enum.IsDefined(LastPowerShellVersion))
         {
             LastPowerShellVersion = PowerShellVersion.PowerShell7;
+            changed = true;
+        }
+
+        if (!Enum.IsDefined(Theme))
+        {
+            Theme = AppTheme.System;
             changed = true;
         }
 

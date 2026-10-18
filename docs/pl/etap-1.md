@@ -2,7 +2,7 @@
 
 [English](../en/checkpoint-1.md)
 
-Etap 1 jest fundamentem Rejestratora sesji PowerShell. Rozwiązanie się kompiluje, okno Avalonia się otwiera, a administrator może przygotować opis sesji. Aplikacja nie rejestruje jeszcze programu PowerShell.
+Etap 1 jest fundamentem Rejestratora sesji PowerShell. Rozwiązanie się kompiluje, okno Avalonia się otwiera, a administrator może przygotować opis sesji. Sam etap 1 nie rejestruje programu PowerShell. Rejestrowanie sesji programu PowerShell 7 opisuje [etap 2](etap-2.md).
 
 ## W zakresie
 

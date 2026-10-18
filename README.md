@@ -8,7 +8,7 @@ There is no backend server, database server, cloud account, or Windows service.
 
 ## Status
 
-**Checkpoint 1 — application foundation.** This version does not launch PowerShell and does not record sessions. Version 1.0.0 has not been released. See [CHANGELOG.md](CHANGELOG.md).
+**Checkpoint 2.1 — recording on Ubuntu, with a light/dark interface.** Start Session opens an independent GNOME Terminal running `pwsh` with `Start-Transcript` already active. The theme, About page, and dependency checks are in this checkpoint. Version 1.0.0 has not been released. See [CHANGELOG.md](CHANGELOG.md) and [Checkpoint 2](docs/en/checkpoint-2.md).
 
 ## Supported operating systems
 
@@ -18,15 +18,15 @@ The application is intended for:
 - Ubuntu Linux
 - macOS
 
-Checkpoint 1 builds and runs as a desktop application on Ubuntu. Windows PowerShell 5.1 can be selected only when the application is running on Windows.
+Checkpoint 2 records a PowerShell 7 session on Ubuntu through GNOME Terminal. Windows PowerShell 5.1 can be selected only when the application is running on Windows, and it is not launched.
 
 ## Technology
 
 - C# and .NET 10 (LTS)
 - Avalonia UI 12 with the Fluent theme
 - MVVM with CommunityToolkit.Mvvm
-- PowerShell 7 on Windows, Linux, and macOS (used by later checkpoints)
-- Windows PowerShell 5.1 on Windows only (used by later checkpoints)
+- PowerShell 7. Recording is implemented for Ubuntu with GNOME Terminal
+- Windows PowerShell 5.1 on Windows only (not launched yet)
 - JSON for local settings and, later, session history
 
 ## What works now
@@ -37,17 +37,18 @@ Checkpoint 1 builds and runs as a desktop application on Ubuntu. Windows PowerSh
 - Local folder selection
 - English (`en-US`) and Polish (`pl-PL`), with the choice saved for the current user
 - Local JSON settings
-- An empty History page. It does not show sample sessions
-- A disabled **Start Session** action, because the recording engine is not part of this checkpoint
+- An empty History page. Transcript files are still written to the log directory
+- **Start Session**, when the form is valid and `pwsh` and GNOME Terminal are available
 
 ## Limitations
 
-- PowerShell is not started
-- Transcripts are not created
-- Privilege elevation is not performed
-- The administrator checkbox is not saved
-- History is not recorded
-- The filename shown in the preview is a proposal. Uniqueness is enforced again when a session is created in a later checkpoint
+- Windows PowerShell 5.1 is not launched
+- Privilege elevation is not performed. The administrator checkbox is not saved, and a session cannot start while it is checked
+- The History page does not list sessions
+- `Start-Transcript` records host output. Secrets typed or displayed in the console can be stored in the transcript
+- Abrupt termination can omit the transcript footer
+- Only GNOME Terminal 3.52 on Ubuntu 24.04 was tested. Other terminal emulators are not claimed to work
+- The filename shown in the preview uses an example identifier. Starting a session reserves a new file and does not overwrite an existing transcript
 
 ## Prerequisites
 
@@ -67,7 +68,7 @@ The folder picker uses the desktop portal. A normal Ubuntu desktop already provi
 sudo apt-get install -y xdg-desktop-portal xdg-desktop-portal-gtk
 ```
 
-PowerShell 7 is not required to build or open this checkpoint. It will be required when recording is implemented. Installation instructions: [Install PowerShell on Ubuntu](https://learn.microsoft.com/powershell/scripting/install/install-ubuntu).
+PowerShell 7 and GNOME Terminal are required to start a recorded session. Installation instructions: [Install PowerShell on Ubuntu](https://learn.microsoft.com/powershell/scripting/install/install-ubuntu).
 
 ## Build
 
@@ -95,7 +96,7 @@ dotnet test PowerShellSessionRecorder.sln
 
 ## Planned functionality
 
-Later checkpoints will launch a recorded PowerShell session, write a transcript into the selected folder, honor the saved history option, and support elevation where the operating system allows it.
+Later checkpoints can list recorded sessions, launch Windows PowerShell 5.1, and support elevation where the operating system allows it.
 
 ## Settings locations
 
@@ -109,7 +110,8 @@ The file stores the interface language, the last log directory, the last PowerSh
 
 ## Documentation
 
-- [Development status](docs/en/checkpoint-1.md)
+- [Checkpoint 2](docs/en/checkpoint-2.md)
+- [Checkpoint 1](docs/en/checkpoint-1.md)
 - [Contributing](CONTRIBUTING.md)
 - [Security](SECURITY.md)
 - [Changelog](CHANGELOG.md)

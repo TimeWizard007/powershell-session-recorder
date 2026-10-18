@@ -20,14 +20,6 @@
                      IsVisible="{Binding HasCustomerTagError}" />
         </StackPanel>
 
-        <StackPanel Spacing="4" IsVisible="{Binding HasRecentTags}">
-          <TextBlock Classes="label" Text="{loc:Tr FieldRecentTags}" />
-          <ComboBox ItemsSource="{Binding RecentCustomerTags}"
-                    SelectedItem="{Binding SelectedRecentTag, Mode=TwoWay}"
-                    PlaceholderText="{loc:Tr PlaceholderRecentTag}"
-                    HorizontalAlignment="Stretch" />
-        </StackPanel>
-
         <StackPanel Spacing="4">
           <TextBlock Classes="label" Text="{loc:Tr FieldSessionName}" />
           <TextBox Text="{Binding SessionName, Mode=TwoWay}"
@@ -43,15 +35,23 @@
             <TextBox Grid.Column="0"
                      Text="{Binding LogDirectory, Mode=TwoWay}"
                      PlaceholderText="{loc:Tr TooltipBrowse}" />
-            <Button Grid.Column="1"
-                    MinWidth="120"
-                    Content="{loc:Tr ButtonBrowse}"
-                    Command="{Binding BrowseLogDirectoryCommand}"
-                    ToolTip.Tip="{loc:Tr TooltipBrowse}" />
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+              <Button MinWidth="120"
+                      Content="{loc:Tr ButtonBrowse}"
+                      Command="{Binding BrowseLogDirectoryCommand}"
+                      ToolTip.Tip="{loc:Tr TooltipBrowse}" />
+              <Button MinWidth="120"
+                      Content="{loc:Tr NavOpenLogFolder}"
+                      Command="{Binding OpenLogFolderCommand}"
+                      ToolTip.Tip="{loc:Tr TooltipOpenLogFolder}" />
+            </StackPanel>
           </Grid>
           <TextBlock Classes="error"
-                     Text="{Binding LogDirectoryWarning}"
-                     IsVisible="{Binding HasLogDirectoryWarning}" />
+                     Text="{Binding LogDirectoryError}"
+                     IsVisible="{Binding HasLogDirectoryError}" />
+          <TextBlock Classes="hint"
+                     Text="{Binding LogDirectoryHint}"
+                     IsVisible="{Binding HasLogDirectoryHint}" />
         </StackPanel>
 
         <StackPanel Spacing="4">
@@ -119,13 +119,42 @@
       </StackPanel>
     </Border>
 
-    <StackPanel Spacing="8">
-      <!-- Disabled until a later checkpoint implements session recording. -->
+    <StackPanel Spacing="12">
       <Button Classes="primary"
+              HorizontalAlignment="Left"
               Content="{loc:Tr NavStartSession}"
-              IsEnabled="False"
-              ToolTip.Tip="{loc:Tr TooltipStartSessionDisabled}" />
-      <TextBlock Classes="hint" Text="{loc:Tr StartSessionDisabledReason}" />
+              IsEnabled="{Binding CanStartSession}"
+              Command="{Binding StartSessionCommand}"
+              ToolTip.Tip="{Binding StartSessionTooltip}" />
+      <TextBlock Classes="hint" Text="{Binding StartSessionHint}" />
+      <TextBlock Classes="hint"
+                 Foreground="{DynamicResource AppText}"
+                 Text="{Binding ActivityMessage}"
+                 IsVisible="{Binding HasActivityMessage}" />
+
+      <Border Classes="notice" IsVisible="{Binding ShowDependencyNotice}">
+        <StackPanel Spacing="10">
+          <StackPanel Spacing="4" IsVisible="{Binding ShowUnsupportedPlatform}">
+            <TextBlock FontWeight="SemiBold" Foreground="{DynamicResource AppText}" Text="{loc:Tr DependencyUnsupportedPlatform}" TextWrapping="Wrap" />
+          </StackPanel>
+          <StackPanel Spacing="4" IsVisible="{Binding ShowPowerShellMissing}">
+            <TextBlock FontWeight="SemiBold" Foreground="{DynamicResource AppText}" Text="{loc:Tr DependencyPowerShellMissing}" TextWrapping="Wrap" />
+            <TextBlock Classes="hint" Text="{loc:Tr DependencyPowerShellInstall}" />
+            <Button HorizontalAlignment="Left"
+                    Content="{loc:Tr ButtonOpenPowerShellDocs}"
+                    Command="{Binding OpenPowerShellInstallDocsCommand}" />
+          </StackPanel>
+          <StackPanel Spacing="4" IsVisible="{Binding ShowTerminalMissing}">
+            <TextBlock FontWeight="SemiBold" Foreground="{DynamicResource AppText}" Text="{loc:Tr DependencyTerminalMissing}" TextWrapping="Wrap" />
+            <TextBlock Classes="hint" Text="{loc:Tr DependencyTerminalInstall}" />
+            <TextBox Text="{Binding UbuntuTerminalInstallCommand}" IsReadOnly="True" />
+          </StackPanel>
+          <Button HorizontalAlignment="Left"
+                  Content="{loc:Tr ButtonRefreshDependencies}"
+                  Command="{Binding RefreshDependenciesCommand}"
+                  IsVisible="{Binding ShowDependencyRefresh}" />
+        </StackPanel>
+      </Border>
     </StackPanel>
   </StackPanel>
 </UserControl>

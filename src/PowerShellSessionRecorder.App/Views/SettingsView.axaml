@@ -5,52 +5,56 @@
              x:Class="PowerShellSessionRecorder.App.Views.SettingsView"
              x:DataType="vm:MainWindowViewModel"
              x:CompileBindings="True">
-  <Border Classes="card" MaxWidth="860" HorizontalAlignment="Left">
-    <StackPanel Spacing="14">
-      <TextBlock Classes="section" Text="{loc:Tr SectionSettings}" />
+  <StackPanel MaxWidth="760" HorizontalAlignment="Left" Spacing="16">
+    <Border Classes="card">
+      <StackPanel Spacing="16">
+        <TextBlock Classes="section" Text="{loc:Tr SectionSettings}" />
 
-      <StackPanel Spacing="4">
-        <TextBlock Classes="label" Text="{loc:Tr SettingsLanguage}" />
-        <ComboBox ItemsSource="{Binding Languages}"
-                  SelectedItem="{Binding SelectedLanguage, Mode=TwoWay}"
-                  MinWidth="220"
-                  HorizontalAlignment="Left">
-          <ComboBox.ItemTemplate>
-            <DataTemplate x:DataType="vm:LanguageOption">
-              <TextBlock Text="{Binding DisplayName}" />
-            </DataTemplate>
-          </ComboBox.ItemTemplate>
-        </ComboBox>
-        <TextBlock Classes="hint" Text="{loc:Tr SettingsLanguageHelp}" />
-      </StackPanel>
+        <StackPanel Spacing="4">
+          <TextBlock Classes="label" Text="{loc:Tr SettingsLanguage}" />
+          <ComboBox ItemsSource="{Binding Languages}"
+                    SelectedItem="{Binding SelectedLanguage, Mode=TwoWay}"
+                    MinWidth="240"
+                    HorizontalAlignment="Left">
+            <ComboBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:LanguageOption">
+                <TextBlock Text="{Binding DisplayName}" />
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+          <TextBlock Classes="hint" Text="{loc:Tr SettingsLanguageHelp}" />
+        </StackPanel>
 
-      <StackPanel Spacing="4">
-        <TextBlock Classes="label" Text="{loc:Tr SettingsFile}" />
-        <TextBox Text="{Binding SettingsFilePath}" IsReadOnly="True" />
-      </StackPanel>
+        <StackPanel Spacing="4">
+          <TextBlock Classes="label" Text="{loc:Tr SettingsTheme}" />
+          <ComboBox ItemsSource="{Binding Themes}"
+                    SelectedItem="{Binding SelectedTheme, Mode=TwoWay}"
+                    MinWidth="240"
+                    HorizontalAlignment="Left">
+            <ComboBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:ThemeOption">
+                <TextBlock Text="{Binding DisplayName}" />
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+          <TextBlock Classes="hint" Text="{loc:Tr SettingsThemeHelp}" />
+        </StackPanel>
 
-      <TextBlock Classes="hint" Text="{loc:Tr SettingsAutoSave}" />
-      <TextBlock Classes="hint" Text="{loc:Tr SettingsNoSecrets}" />
+        <StackPanel Spacing="4">
+          <TextBlock Classes="label" Text="{loc:Tr SettingsFile}" />
+          <TextBox Text="{Binding SettingsFilePath}" IsReadOnly="True" />
+        </StackPanel>
 
-      <TextBlock Classes="hint"
-                 Text="{loc:Tr SettingsWindowsPowerShellAdjusted}"
-                 IsVisible="{Binding WindowsPowerShellWasAdjusted}" />
-
-      <StackPanel Spacing="6">
-        <TextBlock Classes="label" Text="{loc:Tr SettingsRecentTags}" />
+        <TextBlock Classes="hint" Text="{loc:Tr SettingsAutoSave}" />
+        <TextBlock Classes="hint" Text="{loc:Tr SettingsNoSecrets}" />
         <TextBlock Classes="hint"
-                   Text="{loc:Tr SettingsRecentTagsEmpty}"
-                   IsVisible="{Binding ShowEmptyRecentTags}" />
-        <ItemsControl x:CompileBindings="False"
-                      ItemsSource="{Binding RecentCustomerTags}"
-                      IsVisible="{Binding HasRecentTags}">
-          <ItemsControl.ItemTemplate>
-            <DataTemplate>
-              <TextBlock Margin="0,0,0,4" Text="{Binding}" />
-            </DataTemplate>
-          </ItemsControl.ItemTemplate>
-        </ItemsControl>
+                   Text="{Binding StatusMessage}"
+                   IsVisible="{Binding HasStatusMessage}" />
+
+        <TextBlock Classes="hint"
+                   Text="{loc:Tr SettingsWindowsPowerShellAdjusted}"
+                   IsVisible="{Binding WindowsPowerShellWasAdjusted}" />
       </StackPanel>
-    </StackPanel>
-  </Border>
+    </Border>
+  </StackPanel>
 </UserControl>

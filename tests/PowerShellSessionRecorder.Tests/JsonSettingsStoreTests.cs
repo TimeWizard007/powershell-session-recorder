@@ -52,7 +52,8 @@ public class JsonSettingsStoreTests
                 "lastPowerShellVersion",
                 "recentCustomerTags",
                 "saveSessionInHistory",
-                "schemaVersion"
+                "schemaVersion",
+                "theme"
             ],
             names);
         Assert.DoesNotContain("password", File.ReadAllText(store.FilePath), StringComparison.OrdinalIgnoreCase);

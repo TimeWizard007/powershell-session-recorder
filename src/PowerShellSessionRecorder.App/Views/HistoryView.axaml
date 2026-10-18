@@ -2,10 +2,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:loc="using:PowerShellSessionRecorder.App.Localization"
              x:Class="PowerShellSessionRecorder.App.Views.HistoryView">
-  <Border Classes="card" MaxWidth="860" HorizontalAlignment="Left">
-    <StackPanel Spacing="8">
+  <Border Classes="card" MaxWidth="760" HorizontalAlignment="Left">
+    <StackPanel Spacing="10">
       <TextBlock Classes="section" Text="{loc:Tr SectionHistory}" />
-      <TextBlock FontSize="16" FontWeight="SemiBold" Foreground="#152232" Text="{loc:Tr HistoryEmptyTitle}" />
+      <TextBlock FontSize="16"
+                 FontWeight="SemiBold"
+                 Foreground="{DynamicResource AppText}"
+                 Text="{loc:Tr HistoryEmptyTitle}" />
       <TextBlock Classes="hint" FontSize="14" Text="{loc:Tr HistoryEmptyBody}" />
     </StackPanel>
   </Border>

@@ -3,6 +3,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using PowerShellSessionRecorder.App.Localization;
 using PowerShellSessionRecorder.App.Services;
+using PowerShellSessionRecorder.App.Services.Recording;
 using PowerShellSessionRecorder.App.ViewModels;
 using PowerShellSessionRecorder.App.Views;
 using PowerShellSessionRecorder.Core;
@@ -29,7 +30,20 @@ public partial class App : Application
         }
 
         LocalizationService.SetCurrent(localization);
-        var mainViewModel = new MainWindowViewModel(localization, settings, store);
+        var recording = new SessionRecordingService(
+            new SystemExecutableProbe(),
+            new SystemProcessRunner(),
+            new FileTranscriptWatcher(),
+            new BootstrapFileStore(BootstrapPaths.GetDirectory()));
+        var themes = new AvaloniaThemeController();
+        themes.Apply(settings.Theme);
+        var mainViewModel = new MainWindowViewModel(
+            localization,
+            settings,
+            store,
+            recording,
+            themes,
+            new ExternalLinkOpener());
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {

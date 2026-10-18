@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PowerShellSessionRecorder.App.Localization;
 using PowerShellSessionRecorder.App.Services;
+using PowerShellSessionRecorder.App.Services.Recording;
 using PowerShellSessionRecorder.Core;
 
 namespace PowerShellSessionRecorder.App.ViewModels;
@@ -13,16 +14,24 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly LocalizationService _localization;
     private readonly ApplicationSettings _settings;
     private readonly JsonSettingsStore _store;
+    private readonly IThemeController? _themeController;
+    private readonly IExternalLinkOpener? _links;
     private bool _suspendLanguage;
+    private bool _suspendTheme;
 
     public MainWindowViewModel(
         LocalizationService localization,
         ApplicationSettings settings,
-        JsonSettingsStore store)
+        JsonSettingsStore store,
+        ISessionRecordingService? recordingService = null,
+        IThemeController? themeController = null,
+        IExternalLinkOpener? links = null)
     {
         _localization = localization;
         _settings = settings;
         _store = store;
+        _themeController = themeController;
+        _links = links;
         RecentCustomerTags = new ObservableCollection<string>(settings.RecentCustomerTags);
         Languages =
         [
@@ -38,15 +47,27 @@ public partial class MainWindowViewModel : ViewModelBase
             TrySave();
         }
 
-        Session = new SessionSetupViewModel(localization, settings, store, RecentCustomerTags, SetStatus);
+        Themes =
+        [
+            new ThemeOption(AppTheme.System, L.ThemeSystem, localization),
+            new ThemeOption(AppTheme.Light, L.ThemeLight, localization),
+            new ThemeOption(AppTheme.Dark, L.ThemeDark, localization)
+        ];
+        Session = new SessionSetupViewModel(localization, settings, store, RecentCustomerTags, SetStatus, recordingService, links);
         _suspendLanguage = true;
         SelectedLanguage = Languages.First(language => language.Code == localization.Language);
         _suspendLanguage = false;
+        _suspendTheme = true;
+        SelectedTheme = Themes.First(theme => theme.Theme == settings.Theme);
+        _suspendTheme = false;
+        _themeController?.Apply(settings.Theme);
 
         localization.LanguageChanged += (_, _) =>
         {
             foreach (var language in Languages)
                 language.Refresh();
+            foreach (var theme in Themes)
+                theme.Refresh();
         };
         RecentCustomerTags.CollectionChanged += OnRecentTagsChanged;
     }
@@ -56,6 +77,12 @@ public partial class MainWindowViewModel : ViewModelBase
     public ObservableCollection<string> RecentCustomerTags { get; }
 
     public IReadOnlyList<LanguageOption> Languages { get; }
+
+    public IReadOnlyList<ThemeOption> Themes { get; }
+
+    public string ApplicationVersion => ProductVersion.Current;
+
+    public string RepositoryUrl => RecordingPlatform.RepositoryUrl;
 
     public string SettingsFilePath => _store.FilePath;
 
@@ -77,7 +104,13 @@ public partial class MainWindowViewModel : ViewModelBase
     private bool _isSettingsPage;
 
     [ObservableProperty]
+    private bool _isAboutPage;
+
+    [ObservableProperty]
     private LanguageOption? _selectedLanguage;
+
+    [ObservableProperty]
+    private ThemeOption? _selectedTheme;
 
     [ObservableProperty]
     private string _statusMessage = "";
@@ -102,14 +135,40 @@ public partial class MainWindowViewModel : ViewModelBase
         StatusMessage = _localization.Get(L.StatusLanguageChanged);
     }
 
-    [RelayCommand]
-    private void ShowSession() => SelectPage(session: true, history: false, settings: false);
+    partial void OnSelectedThemeChanged(ThemeOption? value)
+    {
+        if (_suspendTheme || value is null)
+            return;
+
+        if (_settings.Theme == value.Theme)
+            return;
+
+        _settings.Theme = value.Theme;
+        _themeController?.Apply(value.Theme);
+        if (!TrySave())
+            return;
+
+        StatusMessage = _localization.Get(L.StatusThemeChanged);
+    }
 
     [RelayCommand]
-    private void ShowHistory() => SelectPage(session: false, history: true, settings: false);
+    private void ShowSession() => SelectPage(session: true, history: false, settings: false, about: false);
 
     [RelayCommand]
-    private void ShowSettings() => SelectPage(session: false, history: false, settings: true);
+    private void ShowHistory() => SelectPage(session: false, history: true, settings: false, about: false);
+
+    [RelayCommand]
+    private void ShowSettings() => SelectPage(session: false, history: false, settings: true, about: false);
+
+    [RelayCommand]
+    private void ShowAbout() => SelectPage(session: false, history: false, settings: false, about: true);
+
+    [RelayCommand]
+    private void OpenRepository()
+    {
+        if (_links?.TryOpen(RecordingPlatform.RepositoryUrl) != true)
+            StatusMessage = _localization.Get(L.StatusLinkFailed);
+    }
 
     [RelayCommand]
     private void OpenLogFolder()
@@ -124,11 +183,12 @@ public partial class MainWindowViewModel : ViewModelBase
         };
     }
 
-    private void SelectPage(bool session, bool history, bool settings)
+    private void SelectPage(bool session, bool history, bool settings, bool about)
     {
         IsSessionPage = session;
         IsHistoryPage = history;
         IsSettingsPage = settings;
+        IsAboutPage = about;
     }
 
     private void SetStatus(string message) => StatusMessage = message;
