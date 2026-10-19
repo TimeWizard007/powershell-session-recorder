@@ -8,7 +8,7 @@ There is no backend server, database server, cloud account, or Windows service.
 
 ## Status
 
-**Checkpoint 2.2 — recording on Ubuntu, with a GitHub release check.** Start Session opens an independent GNOME Terminal running `pwsh` with `Start-Transcript` already active. The application can ask GitHub whether a newer stable release exists. It does not download or install updates. Version 1.0.0 has not been released. See [CHANGELOG.md](CHANGELOG.md) and [Checkpoint 2.2](docs/en/checkpoint-2.2.md).
+**Checkpoint 3 — persistent session history.** Start Session still opens an independent GNOME Terminal running `pwsh` with `Start-Transcript` already active. A confirmed session can be listed in History. The application can also ask GitHub whether a newer stable release exists. It does not download or install updates. Version 1.0.0 has not been released. See [CHANGELOG.md](CHANGELOG.md) and [Checkpoint 3](docs/en/checkpoint-3.md).
 
 ## Supported operating systems
 
@@ -27,7 +27,7 @@ Checkpoint 2 records a PowerShell 7 session on Ubuntu through GNOME Terminal. Wi
 - MVVM with CommunityToolkit.Mvvm
 - PowerShell 7. Recording is implemented for Ubuntu with GNOME Terminal
 - Windows PowerShell 5.1 on Windows only (not launched yet)
-- JSON for local settings and, later, session history
+- JSON for local settings and session history
 
 ## What works now
 
@@ -37,7 +37,7 @@ Checkpoint 2 records a PowerShell 7 session on Ubuntu through GNOME Terminal. Wi
 - Local folder selection
 - English (`en-US`) and Polish (`pl-PL`), with the choice saved for the current user
 - Local JSON settings
-- An empty History page. Transcript files are still written to the log directory
+- A History page for sessions recorded with **Save session in history** checked. Older transcript files are not imported
 - **Start Session**, when the form is valid and `pwsh` and GNOME Terminal are available
 - A notify-only check for a newer stable GitHub release. Automatic checks run at most once every 24 hours and can be turned off. Nothing is downloaded or installed
 
@@ -45,7 +45,8 @@ Checkpoint 2 records a PowerShell 7 session on Ubuntu through GNOME Terminal. Wi
 
 - Windows PowerShell 5.1 is not launched
 - Privilege elevation is not performed. The administrator checkbox is not saved, and a session cannot start while it is checked
-- The History page does not list sessions
+- History does not show a live Active state. A session is marked Finished only when the transcript footer is present
+- Transcripts recorded with **Save session in history** unchecked, and transcripts created before this feature, are not added to History
 - `Start-Transcript` records host output. Secrets typed or displayed in the console can be stored in the transcript
 - Abrupt termination can omit the transcript footer
 - Only GNOME Terminal 3.52 on Ubuntu 24.04 was tested. Other terminal emulators are not claimed to work
@@ -97,7 +98,7 @@ dotnet test PowerShellSessionRecorder.sln
 
 ## Planned functionality
 
-Later checkpoints can list recorded sessions, launch Windows PowerShell 5.1, and support elevation where the operating system allows it.
+Later checkpoints can launch Windows PowerShell 5.1 and support elevation where the operating system allows it.
 
 ## Settings locations
 
@@ -107,10 +108,13 @@ Later checkpoints can list recorded sessions, launch Windows PowerShell 5.1, and
 | Windows | `%APPDATA%\PowerShellSessionRecorder\settings.json` |
 | macOS | `~/Library/Application Support/PowerShellSessionRecorder/settings.json` |
 
-The file stores the interface language, the last log directory, the last PowerShell version, the timestamp and history options, and recent customer TAGs. It does not store passwords or customer secrets. A file that cannot be parsed is left in place, copied once to `settings.invalid.json`, and replaced in memory by defaults.
+The settings file stores the interface language, the last log directory, the last PowerShell version, the timestamp and history options, the theme, and the update-check preference. It does not store passwords or customer secrets. A file that cannot be parsed is left in place, copied once to `settings.invalid.json`, and replaced in memory by defaults.
+
+Session history is a separate `history.json` file in that same directory. It stores metadata for sessions that were confirmed with **Save session in history** checked. It does not store transcript contents. See [Checkpoint 3](docs/en/checkpoint-3.md).
 
 ## Documentation
 
+- [Checkpoint 3](docs/en/checkpoint-3.md)
 - [Checkpoint 2](docs/en/checkpoint-2.md)
 - [Checkpoint 1](docs/en/checkpoint-1.md)
 - [Contributing](CONTRIBUTING.md)

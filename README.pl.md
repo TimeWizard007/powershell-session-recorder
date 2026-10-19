@@ -8,7 +8,7 @@ Aplikacja nie wymaga serwera zaplecza, serwera bazy danych, konta w chmurze ani 
 
 ## Stan projektu
 
-**Etap 2.2 — rejestrowanie w Ubuntu oraz sprawdzenie wydań w serwisie GitHub.** Przycisk Uruchom sesję otwiera niezależny GNOME Terminal z programem `pwsh` i już działającym `Start-Transcript`. Aplikacja może zapytać GitHub, czy jest nowsze stabilne wydanie. Nie pobiera ani nie instaluje aktualizacji. Wersja 1.0.0 nie została wydana. Szczegóły zawierają [CHANGELOG.md](CHANGELOG.md) i [etap 2.2](docs/pl/etap-2.2.md).
+**Etap 3 — trwała historia sesji.** Przycisk Uruchom sesję nadal otwiera niezależny GNOME Terminal z programem `pwsh` i już działającym `Start-Transcript`. Potwierdzona sesja może pojawić się w Historii. Aplikacja może też zapytać GitHub, czy jest nowsze stabilne wydanie. Nie pobiera ani nie instaluje aktualizacji. Wersja 1.0.0 nie została wydana. Szczegóły zawierają [CHANGELOG.md](CHANGELOG.md) i [etap 3](docs/pl/etap-3.md).
 
 ## Obsługiwane systemy operacyjne
 
@@ -27,7 +27,7 @@ Etap 2 rejestruje sesję programu PowerShell 7 w Ubuntu przez GNOME Terminal. Wi
 - MVVM z pakietem CommunityToolkit.Mvvm
 - PowerShell 7. Rejestrowanie jest zaimplementowane dla Ubuntu z GNOME Terminal
 - Windows PowerShell 5.1 tylko w systemie Windows (jeszcze nie jest uruchamiany)
-- JSON dla ustawień lokalnych i, w przyszłości, historii sesji
+- JSON dla ustawień lokalnych i historii sesji
 
 ## Co działa teraz
 
@@ -37,7 +37,7 @@ Etap 2 rejestruje sesję programu PowerShell 7 w Ubuntu przez GNOME Terminal. Wi
 - Wybór lokalnego folderu
 - Język angielski (`en-US`) i polski (`pl-PL`); wybór jest zapisywany dla bieżącego użytkownika
 - Lokalne ustawienia JSON
-- Pusta strona Historia. Pliki transkrypcji i tak są zapisywane w katalogu dziennika
+- Strona Historia dla sesji zarejestrowanych z zaznaczoną opcją **Zapisz sesję w historii**. Starsze pliki transkrypcji nie są importowane
 - Przycisk **Uruchom sesję**, gdy formularz jest poprawny oraz dostępne są `pwsh` i GNOME Terminal
 - Samo powiadomienie o nowszym stabilnym wydaniu w serwisie GitHub. Automatyczne sprawdzenie działa najwyżej raz na 24 godziny i można je wyłączyć. Nic nie jest pobierane ani instalowane
 
@@ -45,7 +45,8 @@ Etap 2 rejestruje sesję programu PowerShell 7 w Ubuntu przez GNOME Terminal. Wi
 
 - Windows PowerShell 5.1 nie jest uruchamiany
 - Uprawnienia nie są podnoszone. Pole administratora nie jest zapisywane, a sesji nie można uruchomić, gdy jest zaznaczone
-- Strona Historia nie wyświetla sesji
+- Historia nie pokazuje stanu Aktywna. Sesja jest oznaczana jako zakończona dopiero wtedy, gdy transkrypcja ma stopkę
+- Transkrypcje zarejestrowane bez zaznaczonej opcji **Zapisz sesję w historii** oraz transkrypcje sprzed tej funkcji nie trafiają do Historii
 - `Start-Transcript` zapisuje wyjście hosta. Dane poufne wpisane lub wyświetlone w konsoli mogą trafić do transkrypcji
 - Nagłe przerwanie procesu może pominąć stopkę transkrypcji
 - Sprawdzono tylko GNOME Terminal 3.52 w Ubuntu 24.04. Nie twierdzimy, że inne emulatory terminala działają
@@ -97,7 +98,7 @@ dotnet test PowerShellSessionRecorder.sln
 
 ## Planowane funkcje
 
-Kolejne etapy mogą wyświetlić listę zarejestrowanych sesji, uruchomić Windows PowerShell 5.1 i obsłużyć podnoszenie uprawnień tam, gdzie pozwala na to system operacyjny.
+Kolejne etapy mogą uruchomić Windows PowerShell 5.1 i obsłużyć podnoszenie uprawnień tam, gdzie pozwala na to system operacyjny.
 
 ## Położenie ustawień
 
@@ -107,10 +108,13 @@ Kolejne etapy mogą wyświetlić listę zarejestrowanych sesji, uruchomić Windo
 | Windows | `%APPDATA%\PowerShellSessionRecorder\settings.json` |
 | macOS | `~/Library/Application Support/PowerShellSessionRecorder/settings.json` |
 
-Plik przechowuje język interfejsu, ostatni katalog dziennika, ostatnią wersję programu PowerShell, opcje daty i historii oraz ostatnie TAG-i klientów. Nie przechowuje haseł ani poufnych danych klientów. Plik, którego nie można odczytać, pozostaje na miejscu, jest jednorazowo kopiowany do `settings.invalid.json`, a aplikacja używa ustawień domyślnych.
+Plik ustawień przechowuje język interfejsu, ostatni katalog dziennika, ostatnią wersję programu PowerShell, opcje daty i historii, motyw oraz preferencję sprawdzania aktualizacji. Nie przechowuje haseł ani poufnych danych klientów. Plik, którego nie można odczytać, pozostaje na miejscu, jest jednorazowo kopiowany do `settings.invalid.json`, a aplikacja używa ustawień domyślnych.
+
+Historia sesji to osobny plik `history.json` w tym samym katalogu. Zawiera metadane sesji potwierdzonych przy zaznaczonej opcji **Zapisz sesję w historii**. Nie zawiera treści transkrypcji. Szczegóły opisuje [etap 3](docs/pl/etap-3.md).
 
 ## Dokumentacja
 
+- [Etap 3](docs/pl/etap-3.md)
 - [Etap 2](docs/pl/etap-2.md)
 - [Etap 1](docs/pl/etap-1.md)
 - [Współtworzenie](CONTRIBUTING.md)

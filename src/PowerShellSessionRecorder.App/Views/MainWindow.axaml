@@ -87,16 +87,14 @@
                 Command="{Binding Updates.DismissUpdateCommand}" />
       </Grid>
     </Border>
-    <ScrollViewer Grid.Row="1"
-                  Background="{DynamicResource AppBackground}"
+    <Grid Grid.Row="1">
+    <ScrollViewer Background="{DynamicResource AppBackground}"
                   HorizontalScrollBarVisibility="Disabled"
+                  IsVisible="{Binding !IsHistoryPage}"
                   Padding="32,28">
       <Panel>
         <Border IsVisible="{Binding IsSessionPage}">
           <views:SessionSetupView DataContext="{Binding Session}" />
-        </Border>
-        <Border IsVisible="{Binding IsHistoryPage}">
-          <views:HistoryView />
         </Border>
         <Border IsVisible="{Binding IsSettingsPage}">
           <views:SettingsView />
@@ -106,6 +104,10 @@
         </Border>
       </Panel>
     </ScrollViewer>
+    <Border IsVisible="{Binding IsHistoryPage}">
+      <views:HistoryView DataContext="{Binding History}" Margin="32,28" />
+    </Border>
+    </Grid>
     </Grid>
   </Grid>
 </Window>

@@ -11,6 +11,7 @@ Version 1.0.0 has not been released.
 
 ### Added
 
+- Checkpoint 3 session history: a local `history.json` index of confirmed sessions, with search, filters, and actions to open the transcript, open its folder, or copy its path.
 - Checkpoint 2.2 update check: a manual or once-daily request to the official GitHub Releases API. A newer stable release is shown in the window. The application does not download, install, or restart itself.
 - Checkpoint 2.1 interface: vertical navigation, System/Light/Dark themes, an About page, and dependency checks for PowerShell 7 and GNOME Terminal.
 - Checkpoint 2 recording flow: Start Session launches an independent GNOME Terminal running PowerShell 7 with `Start-Transcript`.
@@ -26,7 +27,7 @@ Version 1.0.0 has not been released.
 ### Limitations
 
 - Windows PowerShell 5.1 and privilege elevation are not implemented.
-- The History page does not list transcript files.
+- History lists only sessions recorded with **Save session in history** checked after this feature. It does not import older transcripts and does not show a live Active state.
 - Only GNOME Terminal on Ubuntu was tested.
 - Abrupt termination can leave a transcript without its footer.
 
@@ -34,6 +35,7 @@ Version 1.0.0 has not been released.
 
 ### Dodano
 
+- Historia sesji etapu 3: lokalny indeks `history.json` potwierdzonych sesji, z wyszukiwaniem, filtrami oraz otwarciem transkrypcji, otwarciem folderu i kopiowaniem ścieżki.
 - Sprawdzanie aktualizacji etapu 2.2: ręczne albo codzienne zapytanie do oficjalnego API wydań GitHub. Nowsze stabilne wydanie jest pokazywane w oknie. Aplikacja nie pobiera, nie instaluje i nie uruchamia się ponownie.
 - Interfejs etapu 2.1: pionowa nawigacja, motywy systemowy, jasny i ciemny, strona O programie oraz sprawdzenie zależności programu PowerShell 7 i GNOME Terminal.
 - Przepływ rejestrowania etapu 2: Uruchom sesję otwiera niezależny GNOME Terminal z programem PowerShell 7 i `Start-Transcript`.
@@ -49,6 +51,6 @@ Version 1.0.0 has not been released.
 ### Ograniczenia
 
 - Windows PowerShell 5.1 i podnoszenie uprawnień nie są zaimplementowane.
-- Strona Historia nie wyświetla plików transkrypcji.
+- Historia pokazuje tylko sesje zarejestrowane z zaznaczoną opcją **Zapisz sesję w historii** po wprowadzeniu tej funkcji. Nie importuje starszych transkrypcji i nie pokazuje stanu Aktywna.
 - Sprawdzono tylko GNOME Terminal w systemie Ubuntu.
 - Nagłe przerwanie procesu może zostawić transkrypcję bez stopki.

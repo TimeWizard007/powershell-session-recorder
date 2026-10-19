@@ -1,15 +1,153 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PowerShellSessionRecorder.App.ViewModels"
              xmlns:loc="using:PowerShellSessionRecorder.App.Localization"
-             x:Class="PowerShellSessionRecorder.App.Views.HistoryView">
-  <Border Classes="card" MaxWidth="760" HorizontalAlignment="Left">
-    <StackPanel Spacing="10">
+             x:Class="PowerShellSessionRecorder.App.Views.HistoryView"
+             x:DataType="vm:HistoryViewModel"
+             x:CompileBindings="True">
+  <DockPanel>
+    <StackPanel DockPanel.Dock="Top" Spacing="12">
       <TextBlock Classes="section" Text="{loc:Tr SectionHistory}" />
-      <TextBlock FontSize="16"
-                 FontWeight="SemiBold"
-                 Foreground="{DynamicResource AppText}"
-                 Text="{loc:Tr HistoryEmptyTitle}" />
-      <TextBlock Classes="hint" FontSize="14" Text="{loc:Tr HistoryEmptyBody}" />
+      <TextBlock Classes="hint" Text="{loc:Tr HistoryStatusHelp}" />
+      <TextBlock Classes="error"
+                 Text="{Binding StoreWarning}"
+                 IsVisible="{Binding HasStoreWarning}" />
+      <TextBlock Foreground="{DynamicResource AppText}"
+                 Text="{Binding ActionMessage}"
+                 TextWrapping="Wrap"
+                 IsVisible="{Binding HasActionMessage}" />
+      <Grid ColumnDefinitions="2*,*,Auto,Auto,Auto,Auto" ColumnSpacing="8">
+        <StackPanel Spacing="4">
+          <TextBlock Classes="label" Text="{loc:Tr HistorySearch}" />
+          <TextBox Text="{Binding SearchText}" PlaceholderText="{loc:Tr HistorySearch}" />
+        </StackPanel>
+        <StackPanel Grid.Column="1" Spacing="4">
+          <TextBlock Classes="label" Text="{loc:Tr HistoryTagFilter}" />
+          <ComboBox ItemsSource="{Binding TagFilters}"
+                    SelectedItem="{Binding SelectedTag}"
+                    HorizontalAlignment="Stretch"
+                    MinWidth="140">
+            <ComboBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:TagFilterOption">
+                <TextBlock Text="{Binding Display}" />
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+        </StackPanel>
+        <StackPanel Grid.Column="2" Spacing="4">
+          <TextBlock Classes="label" Text="{loc:Tr HistoryFromDate}" />
+          <CalendarDatePicker SelectedDate="{Binding FromDate}" />
+        </StackPanel>
+        <StackPanel Grid.Column="3" Spacing="4">
+          <TextBlock Classes="label" Text="{loc:Tr HistoryToDate}" />
+          <CalendarDatePicker SelectedDate="{Binding ToDate}" />
+        </StackPanel>
+        <Button Grid.Column="4"
+                MinWidth="120"
+                VerticalAlignment="Bottom"
+                Content="{loc:Tr HistoryClearFilters}"
+                Command="{Binding ClearFiltersCommand}" />
+        <Button Grid.Column="5"
+                MinWidth="110"
+                VerticalAlignment="Bottom"
+                Content="{loc:Tr HistoryRefresh}"
+                Command="{Binding RefreshCommand}" />
+      </Grid>
     </StackPanel>
-  </Border>
+
+    <Border Classes="card" Margin="0,16,0,0" IsVisible="{Binding ShowEmpty}">
+      <StackPanel Spacing="8">
+        <TextBlock FontSize="16"
+                   FontWeight="SemiBold"
+                   Foreground="{DynamicResource AppText}"
+                   Text="{loc:Tr HistoryEmptyTitle}" />
+        <TextBlock Classes="hint" FontSize="14" Text="{loc:Tr HistoryEmptyBody}" />
+      </StackPanel>
+    </Border>
+
+    <Border Classes="card" Margin="0,16,0,0" IsVisible="{Binding ShowNoMatches}">
+      <StackPanel Spacing="8">
+        <TextBlock FontSize="16"
+                   FontWeight="SemiBold"
+                   Foreground="{DynamicResource AppText}"
+                   Text="{loc:Tr HistoryNoMatchesTitle}" />
+        <TextBlock Classes="hint" FontSize="14" Text="{loc:Tr HistoryNoMatchesBody}" />
+      </StackPanel>
+    </Border>
+
+    <ListBox Margin="0,16,0,0"
+             Padding="0"
+             Background="Transparent"
+             BorderThickness="0"
+             IsVisible="{Binding ShowList}"
+             ItemsSource="{Binding Entries}"
+             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+      <ListBox.Styles>
+        <Style Selector="ListBoxItem">
+          <Setter Property="Padding" Value="0,0,0,10" />
+          <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        </Style>
+      </ListBox.Styles>
+      <ListBox.ItemTemplate>
+        <DataTemplate x:DataType="vm:HistoryEntryViewModel">
+          <Border Classes="card" Padding="16">
+            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
+              <TextBlock FontSize="16"
+                         FontWeight="SemiBold"
+                         Foreground="{DynamicResource AppText}"
+                         Text="{Binding CustomerTag}" />
+              <TextBlock Grid.Column="1"
+                         Classes="hint"
+                         Text="{Binding PowerShellText}" />
+              <TextBlock Grid.Row="1"
+                         Margin="0,4,0,0"
+                         Foreground="{DynamicResource AppText}"
+                         Text="{Binding SessionName}"
+                         TextWrapping="Wrap" />
+              <TextBlock Grid.Row="1"
+                         Grid.Column="1"
+                         Margin="16,4,0,0"
+                         Classes="hint"
+                         IsVisible="{Binding !StatusIsMissing}"
+                         Text="{Binding StatusText}" />
+              <TextBlock Grid.Row="1"
+                         Grid.Column="1"
+                         Margin="16,4,0,0"
+                         Classes="error"
+                         IsVisible="{Binding StatusIsMissing}"
+                         Text="{Binding StatusText}" />
+              <TextBlock Grid.Row="2"
+                         Grid.ColumnSpan="2"
+                         Margin="0,8,0,0"
+                         Classes="hint"
+                         Text="{Binding StartedLocalText}" />
+              <TextBlock Grid.Row="3"
+                         Grid.ColumnSpan="2"
+                         Classes="hint"
+                         IsVisible="{Binding HasEnded}"
+                         Text="{Binding EndedLocalText}" />
+              <StackPanel Grid.Row="4" Grid.ColumnSpan="2" Margin="0,8,0,0" Spacing="2">
+                <TextBlock Foreground="{DynamicResource AppText}"
+                           Text="{Binding TranscriptFileName}"
+                           TextWrapping="Wrap" />
+                <TextBlock Classes="hint"
+                           Text="{Binding TranscriptPath}"
+                           TextTrimming="CharacterEllipsis"
+                           ToolTip.Tip="{Binding TranscriptPath}" />
+              </StackPanel>
+              <StackPanel Grid.Row="5"
+                          Grid.ColumnSpan="2"
+                          Margin="0,12,0,0"
+                          Orientation="Horizontal"
+                          Spacing="8">
+                <Button Content="{loc:Tr HistoryOpenTranscript}" Command="{Binding OpenTranscriptCommand}" />
+                <Button Content="{loc:Tr HistoryOpenFolder}" Command="{Binding OpenFolderCommand}" />
+                <Button Content="{loc:Tr HistoryCopyPath}" Command="{Binding CopyPathCommand}" />
+              </StackPanel>
+            </Grid>
+          </Border>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+  </DockPanel>
 </UserControl>

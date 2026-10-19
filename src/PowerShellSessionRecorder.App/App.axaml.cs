@@ -42,6 +42,7 @@ public partial class App : Application
             new GitHubReleaseClient(GitHubReleaseClient.CreateClient(ProductVersion.Current)),
             () => DateTimeOffset.UtcNow,
             ProductVersion.Current);
+        var history = new JsonHistoryStore(JsonHistoryStore.GetFilePath(store.FilePath));
         var mainViewModel = new MainWindowViewModel(
             localization,
             settings,
@@ -49,7 +50,10 @@ public partial class App : Application
             recording,
             themes,
             new ExternalLinkOpener(),
-            updates);
+            updates,
+            history,
+            new TranscriptLocationOpener(),
+            new AvaloniaTextClipboard());
         var updateCancellation = new CancellationTokenSource();
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)

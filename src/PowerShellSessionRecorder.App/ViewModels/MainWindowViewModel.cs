@@ -27,13 +27,20 @@ public partial class MainWindowViewModel : ViewModelBase
         ISessionRecordingService? recordingService = null,
         IThemeController? themeController = null,
         IExternalLinkOpener? links = null,
-        UpdateCheckCoordinator? updates = null)
+        UpdateCheckCoordinator? updates = null,
+        ISessionHistoryStore? history = null,
+        ITranscriptLocationOpener? transcriptOpener = null,
+        ITextClipboard? clipboard = null)
     {
         _localization = localization;
         _settings = settings;
         _store = store;
         _themeController = themeController;
         _links = links;
+        history ??= new JsonHistoryStore(JsonHistoryStore.GetFilePath(store.FilePath));
+        transcriptOpener ??= new TranscriptLocationOpener();
+        clipboard ??= new AvaloniaTextClipboard();
+        History = new HistoryViewModel(localization, history, transcriptOpener, clipboard, SetStatus);
         Updates = new UpdateStatusViewModel(
             localization,
             settings,
@@ -63,7 +70,16 @@ public partial class MainWindowViewModel : ViewModelBase
             new ThemeOption(AppTheme.Light, L.ThemeLight, localization),
             new ThemeOption(AppTheme.Dark, L.ThemeDark, localization)
         ];
-        Session = new SessionSetupViewModel(localization, settings, store, RecentCustomerTags, SetStatus, recordingService, links);
+        Session = new SessionSetupViewModel(
+            localization,
+            settings,
+            store,
+            RecentCustomerTags,
+            SetStatus,
+            recordingService,
+            links,
+            history,
+            () => History.Refresh());
         _suspendLanguage = true;
         SelectedLanguage = Languages.First(language => language.Code == localization.Language);
         _suspendLanguage = false;
@@ -83,6 +99,8 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     public SessionSetupViewModel Session { get; }
+
+    public HistoryViewModel History { get; }
 
     public UpdateStatusViewModel Updates { get; }
 
@@ -170,7 +188,11 @@ public partial class MainWindowViewModel : ViewModelBase
     private void ShowSession() => SelectPage(session: true, history: false, settings: false, about: false);
 
     [RelayCommand]
-    private void ShowHistory() => SelectPage(session: false, history: true, settings: false, about: false);
+    private void ShowHistory()
+    {
+        History.Refresh();
+        SelectPage(session: false, history: true, settings: false, about: false);
+    }
 
     [RelayCommand]
     private void ShowSettings() => SelectPage(session: false, history: false, settings: true, about: false);

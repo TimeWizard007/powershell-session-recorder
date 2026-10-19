@@ -17,6 +17,9 @@ public partial class SessionSetupViewModel : ViewModelBase
     private readonly Action<string> _setStatus;
     private readonly ISessionRecordingService? _recordingService;
     private readonly IExternalLinkOpener? _links;
+    private readonly ISessionHistoryStore? _history;
+    private readonly Action? _historyChanged;
+    private readonly Func<DateTimeOffset> _utcNow;
     private readonly string _previewUniqueId = Guid.NewGuid().ToString("N")[..8].ToUpperInvariant();
     private IFolderPicker? _folderPicker;
     private bool _suspendPersistence;
@@ -28,7 +31,10 @@ public partial class SessionSetupViewModel : ViewModelBase
         ObservableCollection<string> recentCustomerTags,
         Action<string> setStatus,
         ISessionRecordingService? recordingService = null,
-        IExternalLinkOpener? links = null)
+        IExternalLinkOpener? links = null,
+        ISessionHistoryStore? history = null,
+        Action? historyChanged = null,
+        Func<DateTimeOffset>? utcNow = null)
     {
         _localization = localization;
         _settings = settings;
@@ -36,6 +42,9 @@ public partial class SessionSetupViewModel : ViewModelBase
         _setStatus = setStatus;
         _recordingService = recordingService;
         _links = links;
+        _history = history;
+        _historyChanged = historyChanged;
+        _utcNow = utcNow ?? (() => DateTimeOffset.UtcNow);
         RecentCustomerTags = recentCustomerTags;
         // Generated property setters invoke change callbacks immediately. The choice list
         // must exist before hydration, because those callbacks refresh the preview.
@@ -248,8 +257,9 @@ public partial class SessionSetupViewModel : ViewModelBase
         Report(_localization.Get(L.StatusRecordingInProgress));
         try
         {
-            var result = await _recordingService.StartAsync(ToConfiguration(), _localization.Language, cancellationToken);
-            Report(Describe(result));
+            var configuration = ToConfiguration();
+            var result = await _recordingService.StartAsync(configuration, _localization.Language, cancellationToken);
+            Report(Describe(result) + RememberConfirmedSession(result, configuration));
         }
         catch (Exception)
         {
@@ -458,6 +468,26 @@ public partial class SessionSetupViewModel : ViewModelBase
 
     private SessionValidationResult CurrentValidation()
         => SessionConfigurationValidator.Validate(ToConfiguration());
+
+    private string RememberConfirmedSession(SessionRecordingResult result, SessionConfiguration configuration)
+    {
+        if (result.Status != SessionRecordingStatus.Started || string.IsNullOrWhiteSpace(result.TranscriptPath))
+            return "";
+
+        if (!configuration.SaveSessionInHistory || _history is null)
+            return "";
+
+        try
+        {
+            _history.Append(SessionHistoryEntry.CreateConfirmed(configuration, result.TranscriptPath, _utcNow()));
+            _historyChanged?.Invoke();
+            return "";
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or InvalidOperationException or ArgumentException)
+        {
+            return " " + _localization.Get(L.StatusHistoryWriteFailed);
+        }
+    }
 
     private string Describe(SessionRecordingResult result)
         => result.Status switch
