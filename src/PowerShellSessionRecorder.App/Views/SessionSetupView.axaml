@@ -12,13 +12,111 @@
 
         <StackPanel Spacing="4">
           <TextBlock Classes="label" Text="{loc:Tr FieldCustomerTag}" />
-          <TextBox Text="{Binding CustomerTag, Mode=TwoWay}"
-                   PlaceholderText="{loc:Tr PlaceholderCustomerTag}"
-                   LostFocus="OnCustomerTagLostFocus" />
+          <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+            <ComboBox ItemsSource="{Binding Customers.Choices}"
+                      SelectedItem="{Binding Customers.SelectedCustomer}"
+                      PlaceholderText="{loc:Tr CustomerSelectPlaceholder}"
+                      HorizontalAlignment="Stretch">
+              <ComboBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:CustomerChoice">
+                  <TextBlock Text="{Binding Label}" />
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+            <Button Grid.Column="1"
+                    MinWidth="140"
+                    Content="{loc:Tr CustomerAdd}"
+                    Command="{Binding Customers.BeginAddCommand}" />
+            <Button Grid.Column="2"
+                    MinWidth="160"
+                    Content="{loc:Tr CustomerManage}"
+                    Command="{Binding Customers.ToggleManageCommand}"
+                    IsVisible="{Binding !Customers.IsManaging}" />
+            <Button Grid.Column="2"
+                    MinWidth="160"
+                    Content="{loc:Tr CustomerHide}"
+                    Command="{Binding Customers.ToggleManageCommand}"
+                    IsVisible="{Binding Customers.IsManaging}" />
+          </Grid>
+          <TextBlock Foreground="{DynamicResource AppText}"
+                     Text="{Binding Customers.SelectedTagText}"
+                     TextWrapping="Wrap" />
           <TextBlock Classes="error"
                      Text="{Binding CustomerTagError}"
                      IsVisible="{Binding HasCustomerTagError}" />
+          <TextBlock Classes="error"
+                     Text="{Binding Customers.CatalogWarning}"
+                     IsVisible="{Binding Customers.HasCatalogWarning}" />
+          <TextBlock Foreground="{DynamicResource AppText}"
+                     Text="{Binding Customers.StatusMessage}"
+                     TextWrapping="Wrap"
+                     IsVisible="{Binding Customers.HasStatusMessage}" />
         </StackPanel>
+
+        <Border Classes="card" IsVisible="{Binding Customers.IsAdding}">
+          <StackPanel Spacing="8">
+            <TextBlock Classes="label" Text="{loc:Tr CustomerAdd}" />
+            <TextBox Text="{Binding Customers.NewTag}" PlaceholderText="{loc:Tr PlaceholderCustomerTag}" />
+            <TextBlock Classes="label" Text="{loc:Tr CustomerDisplayName}" />
+            <TextBox Text="{Binding Customers.NewDisplayName}" PlaceholderText="{loc:Tr CustomerDisplayNameHint}" />
+            <TextBlock Classes="hint" Text="{loc:Tr CustomerDisplayNameHint}" TextWrapping="Wrap" />
+            <TextBlock Classes="error" Text="{Binding Customers.FormError}" IsVisible="{Binding Customers.HasFormError}" />
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <Button Content="{loc:Tr CustomerSave}" Command="{Binding Customers.SaveNewCommand}" />
+              <Button Content="{loc:Tr CustomerCancel}" Command="{Binding Customers.CancelAddCommand}" />
+            </StackPanel>
+          </StackPanel>
+        </Border>
+
+        <Border Classes="card" IsVisible="{Binding Customers.ShowEmpty}">
+          <StackPanel Spacing="8">
+            <TextBlock FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource AppText}" Text="{loc:Tr CustomerEmptyTitle}" />
+            <TextBlock Classes="hint" Text="{loc:Tr CustomerEmptyBody}" TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+
+        <Border Classes="card" IsVisible="{Binding Customers.IsManaging}">
+          <StackPanel Spacing="10">
+            <TextBlock Classes="label" Text="{loc:Tr CustomerSearch}" />
+            <TextBox Text="{Binding Customers.SearchText}" PlaceholderText="{loc:Tr CustomerSearch}" />
+            <TextBlock Classes="hint" Text="{loc:Tr CustomerNoMatches}" IsVisible="{Binding Customers.ShowNoMatches}" TextWrapping="Wrap" />
+            <ItemsControl ItemsSource="{Binding Customers.VisibleCustomers}" IsVisible="{Binding Customers.ShowCustomerList}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:CustomerChoice">
+                  <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" Margin="0,0,0,8">
+                    <TextBlock VerticalAlignment="Center" Foreground="{DynamicResource AppText}" Text="{Binding Label}" TextWrapping="Wrap" />
+                    <Button Grid.Column="1" Content="{loc:Tr CustomerEdit}" Command="{Binding EditCommand}" />
+                    <Button Grid.Column="2" Content="{loc:Tr CustomerRemove}" Command="{Binding RemoveCommand}" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <Border IsVisible="{Binding Customers.IsEditing}">
+              <StackPanel Spacing="8">
+                <TextBlock Classes="label" Text="{loc:Tr CustomerEdit}" />
+                <TextBox Text="{Binding Customers.EditTag}" />
+                <TextBlock Classes="label" Text="{loc:Tr CustomerDisplayName}" />
+                <TextBox Text="{Binding Customers.EditDisplayName}" />
+                <TextBlock Classes="hint" Text="{loc:Tr CustomerDisplayNameHint}" TextWrapping="Wrap" />
+                <TextBlock Classes="error" Text="{Binding Customers.FormError}" IsVisible="{Binding Customers.HasFormError}" />
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Button Content="{loc:Tr CustomerSave}" Command="{Binding Customers.SaveEditCommand}" />
+                  <Button Content="{loc:Tr CustomerCancel}" Command="{Binding Customers.CancelEditCommand}" />
+                </StackPanel>
+              </StackPanel>
+            </Border>
+            <Border IsVisible="{Binding Customers.HasPendingRemoval}">
+              <StackPanel Spacing="8">
+                <TextBlock FontWeight="SemiBold" Foreground="{DynamicResource AppText}" Text="{loc:Tr CustomerRemoveTitle}" />
+                <TextBlock Classes="hint" Text="{Binding Customers.PendingRemovalBody}" TextWrapping="Wrap" />
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Button Content="{loc:Tr CustomerConfirmRemove}" Command="{Binding Customers.ConfirmRemoveCommand}" />
+                  <Button Content="{loc:Tr CustomerCancel}" Command="{Binding Customers.CancelRemoveCommand}" />
+                </StackPanel>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </Border>
 
         <StackPanel Spacing="4">
           <TextBlock Classes="label" Text="{loc:Tr FieldSessionName}" />

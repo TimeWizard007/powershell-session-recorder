@@ -52,11 +52,21 @@ public sealed class JsonHistoryStore : ISessionHistoryStore
     {
         lock (_gate)
         {
-            if (!File.Exists(FilePath))
-                return HistoryCatalog.Missing();
+            try
+            {
+                if (!TryPrepareForRead())
+                    return HistoryCatalog.Unreadable();
 
-            using var fileLock = AcquireFileLock();
-            return ReadUnlocked();
+                if (!File.Exists(FilePath))
+                    return HistoryCatalog.Missing();
+
+                using var fileLock = AcquireFileLock();
+                return ReadUnlocked();
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            {
+                return HistoryCatalog.Unreadable();
+            }
         }
     }
 
@@ -68,6 +78,7 @@ public sealed class JsonHistoryStore : ISessionHistoryStore
 
         lock (_gate)
         {
+            PrepareForWrite();
             using var fileLock = AcquireFileLock();
             var catalog = ReadUnlocked();
             if (catalog.Kind is HistoryLoadKind.Unreadable or HistoryLoadKind.UnsupportedSchema)
@@ -92,6 +103,7 @@ public sealed class JsonHistoryStore : ISessionHistoryStore
 
         lock (_gate)
         {
+            PrepareForWrite();
             using var fileLock = AcquireFileLock();
             var catalog = ReadUnlocked();
             if (catalog.Kind != HistoryLoadKind.Loaded)
@@ -115,8 +127,74 @@ public sealed class JsonHistoryStore : ISessionHistoryStore
         }
     }
 
+    public int Remove(IReadOnlyCollection<string> ids)
+    {
+        ArgumentNullException.ThrowIfNull(ids);
+        var wanted = new HashSet<string>(ids.Where(id => !string.IsNullOrWhiteSpace(id)), StringComparer.OrdinalIgnoreCase);
+        if (wanted.Count == 0)
+            return 0;
+
+        lock (_gate)
+        {
+            PrepareForWrite();
+            using var fileLock = AcquireFileLock();
+            var catalog = ReadUnlocked();
+            if (catalog.Kind is HistoryLoadKind.Unreadable or HistoryLoadKind.UnsupportedSchema)
+                throw new IOException("History file could not be updated.");
+
+            var remaining = catalog.Sessions
+                .Where(entry => !wanted.Contains(entry.Id))
+                .ToList();
+            var removed = catalog.Sessions.Count - remaining.Count;
+            if (removed == 0)
+                return 0;
+
+            WriteDocument(new SessionHistoryDocument
+            {
+                SchemaVersion = CurrentSchemaVersion,
+                Sessions = remaining
+            });
+            return removed;
+        }
+    }
+
+    private bool TryPrepareForRead()
+    {
+        try
+        {
+            var directory = Path.GetDirectoryName(FilePath);
+            if (!string.IsNullOrWhiteSpace(directory) && Directory.Exists(directory))
+            {
+                UnixPrivateMetadata.RejectSymbolicLink(directory);
+                UnixPrivateMetadata.TryRestrictDirectory(directory);
+            }
+
+            UnixPrivateMetadata.RejectSymbolicLink(FilePath);
+            if (File.Exists(FilePath))
+                UnixPrivateMetadata.TryRestrictRegularFile(FilePath);
+            return true;
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            return false;
+        }
+    }
+
+    private void PrepareForWrite()
+    {
+        var directory = Path.GetDirectoryName(FilePath);
+        if (string.IsNullOrWhiteSpace(directory))
+            throw new IOException("History file path does not include a directory.");
+
+        UnixPrivateMetadata.PrepareOwnerDirectory(directory);
+        UnixPrivateMetadata.RejectSymbolicLink(FilePath);
+    }
+
     private HistoryCatalog ReadUnlocked()
     {
+        if (UnixPrivateMetadata.IsSymbolicLink(FilePath))
+            return HistoryCatalog.Unreadable();
+
         if (!File.Exists(FilePath))
             return HistoryCatalog.Missing();
 
@@ -189,11 +267,12 @@ public sealed class JsonHistoryStore : ISessionHistoryStore
             var destination = Path.Combine(
                 directory,
                 $"history.invalid-{DateTimeOffset.UtcNow:yyyyMMddHHmmssfff}-{attempt}.json");
-            if (File.Exists(destination))
+            if (File.Exists(destination) || UnixPrivateMetadata.IsSymbolicLink(destination))
                 continue;
 
+            UnixPrivateMetadata.RejectSymbolicLink(FilePath);
             File.Move(FilePath, destination);
-            RestrictToCurrentUser(destination);
+            UnixPrivateMetadata.TryRestrictRegularFile(destination);
             LastQuarantinePath = destination;
             return;
         }
@@ -207,23 +286,24 @@ public sealed class JsonHistoryStore : ISessionHistoryStore
         if (string.IsNullOrWhiteSpace(directory))
             throw new InvalidOperationException("History file path does not include a directory.");
 
-        Directory.CreateDirectory(directory);
-        var temporary = FilePath + ".tmp";
-        if (Directory.Exists(temporary))
+        UnixPrivateMetadata.PrepareOwnerDirectory(directory);
+        UnixPrivateMetadata.RejectSymbolicLink(FilePath);
+        var legacyTemporary = FilePath + ".tmp";
+        if (Directory.Exists(legacyTemporary))
             throw new IOException("The history temporary path is not a file.");
 
+        var temporary = UnixPrivateMetadata.CreateUniqueTemporaryPath(FilePath);
         var json = JsonSerializer.Serialize(document, SerializerOptions) + Environment.NewLine;
-        File.WriteAllText(temporary, json, Utf8);
-        RestrictToCurrentUser(temporary);
         try
         {
+            UnixPrivateMetadata.WriteNewPrivateFile(temporary, Utf8.GetBytes(json));
             File.Move(temporary, FilePath, overwrite: true);
         }
         catch
         {
             try
             {
-                if (File.Exists(temporary))
+                if (File.Exists(temporary) && !UnixPrivateMetadata.IsSymbolicLink(temporary))
                     File.Delete(temporary);
             }
             catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
@@ -233,7 +313,7 @@ public sealed class JsonHistoryStore : ISessionHistoryStore
             throw;
         }
 
-        RestrictToCurrentUser(FilePath);
+        UnixPrivateMetadata.TryRestrictRegularFile(FilePath);
     }
 
     private FileStream AcquireFileLock()
@@ -242,8 +322,9 @@ public sealed class JsonHistoryStore : ISessionHistoryStore
         if (string.IsNullOrWhiteSpace(directory))
             throw new InvalidOperationException("History file path does not include a directory.");
 
-        Directory.CreateDirectory(directory);
+        UnixPrivateMetadata.PrepareOwnerDirectory(directory);
         var lockPath = FilePath + ".lock";
+        UnixPrivateMetadata.RejectSymbolicLink(lockPath);
         var stream = new FileStream(lockPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
         try
         {
@@ -253,7 +334,7 @@ public sealed class JsonHistoryStore : ISessionHistoryStore
                 stream.Flush();
             }
 
-            RestrictToCurrentUser(lockPath);
+            UnixPrivateMetadata.TryRestrictRegularFile(lockPath);
             if (OperatingSystem.IsWindows() || OperatingSystem.IsLinux())
                 stream.Lock(0, 1);
             return stream;
@@ -262,18 +343,6 @@ public sealed class JsonHistoryStore : ISessionHistoryStore
         {
             stream.Dispose();
             throw;
-        }
-    }
-
-    private static void RestrictToCurrentUser(string path)
-    {
-        try
-        {
-            if (!OperatingSystem.IsWindows())
-                File.SetUnixFileMode(path, UnixFileMode.UserRead | UnixFileMode.UserWrite);
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or PlatformNotSupportedException)
-        {
         }
     }
 }

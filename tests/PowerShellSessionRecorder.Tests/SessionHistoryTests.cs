@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.Json;
 using PowerShellSessionRecorder.App.Localization;
 using PowerShellSessionRecorder.App.Services;
 using PowerShellSessionRecorder.App.Services.Recording;
@@ -365,10 +366,27 @@ public class SessionHistoryTests
         Assert.Equal("Odmowa dostępu do transkrypcji.", statuses.Last());
     }
 
-    [Fact]
-    public void StatusLabels_DoNotClaimTheSessionIsActive()
+    [Theory]
+    [InlineData("en-US", "Recording started (current state unknown)", "Finished", "Unknown", "Transcript missing")]
+    [InlineData("pl-PL", "Nagrywanie uruchomione (obecny stan nieznany)", "Zakończona", "Nieznany", "Brak transkrypcji")]
+    public void StatusLabels_DistinguishEveryState(string language, string confirmed, string finished, string unknown, string missing)
     {
         var localization = new LocalizationService(LocalizationDirectory());
+        localization.SetLanguage(language);
+
+        Assert.Equal(confirmed, localization.Get(L.HistoryStatusRecordingConfirmed));
+        Assert.Equal(finished, localization.Get(L.HistoryStatusFinished));
+        Assert.Equal(unknown, localization.Get(L.HistoryStatusUnknown));
+        Assert.Equal(missing, localization.Get(L.HistoryStatusMissing));
+        Assert.NotEqual(confirmed, finished);
+        Assert.NotEqual(confirmed, unknown);
+        Assert.NotEqual(confirmed, missing);
+        var hint = localization.Get(L.HistoryStatusRecordingConfirmedHint);
+        if (language == "pl-PL")
+            Assert.Contains("nie oznacza", hint, StringComparison.Ordinal);
+        else
+            Assert.Contains("does not mean", hint, StringComparison.OrdinalIgnoreCase);
+
         foreach (var key in new[]
                  {
                      L.HistoryStatusRecordingConfirmed,
@@ -377,10 +395,11 @@ public class SessionHistoryTests
                      L.HistoryStatusMissing
                  })
         {
-            Assert.DoesNotContain("Active", localization.Get(key), StringComparison.Ordinal);
-            localization.SetLanguage("pl-PL");
-            Assert.DoesNotContain("Aktyw", localization.Get(key), StringComparison.OrdinalIgnoreCase);
-            localization.SetLanguage("en-US");
+            var label = localization.Get(key);
+            Assert.DoesNotContain("Active", label, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("Running", label, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("Recording Now", label, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("Aktyw", label, StringComparison.OrdinalIgnoreCase);
         }
     }
 
@@ -390,12 +409,61 @@ public class SessionHistoryTests
         var localization = new LocalizationService(LocalizationDirectory());
         localization.SetLanguage("pl-PL");
 
-        Assert.Equal("Potwierdzono rejestrowanie przy uruchomieniu", localization.Get(L.HistoryStatusRecordingConfirmed));
+        Assert.Equal("Nagrywanie uruchomione (obecny stan nieznany)", localization.Get(L.HistoryStatusRecordingConfirmed));
         Assert.Equal("Zakończona", localization.Get(L.HistoryStatusFinished));
         Assert.Equal("Brak transkrypcji", localization.Get(L.HistoryStatusMissing));
         Assert.Contains("nie są importowane", localization.Get(L.HistoryEmptyBody), StringComparison.Ordinal);
         Assert.Contains("Brak pasujących sesji", localization.Get(L.HistoryNoMatchesTitle), StringComparison.Ordinal);
         Assert.DoesNotContain("Active", localization.Get(L.HistoryStatusRecordingConfirmed), StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Theory]
+    [InlineData("en-US")]
+    [InlineData("pl-PL")]
+    public void HistoryRows_ShowEachStatusWithoutInventingAnEndTime(string language)
+    {
+        using var directory = new TempDirectory();
+        var confirmed = Path.Combine(directory.Path, "confirmed.txt");
+        var finished = Path.Combine(directory.Path, "finished.txt");
+        var unfinishedFooter = Path.Combine(directory.Path, "footer.txt");
+        var unreadable = Path.Combine(directory.Path, "unreadable.txt");
+        File.WriteAllText(confirmed, "PowerShell transcript start\n");
+        File.WriteAllText(finished, "PowerShell transcript end\nEnd time: 20261018184000\n");
+        File.WriteAllText(unfinishedFooter, "PowerShell transcript end\nEnd time:\n");
+        File.WriteAllText(unreadable, "PowerShell transcript start\n");
+        if (OperatingSystem.IsLinux())
+            File.SetUnixFileMode(unreadable, UnixFileMode.None);
+        var store = new JsonHistoryStore(Path.Combine(directory.Path, "history.json"));
+        store.Append(Entry("HOWE", "Confirmed", confirmed, DateTimeOffset.UnixEpoch));
+        store.Append(Entry("HOWE", "Finished", finished, DateTimeOffset.UnixEpoch.AddMinutes(1)));
+        store.Append(Entry("HOWE", "Footer", unfinishedFooter, DateTimeOffset.UnixEpoch.AddMinutes(2)));
+        store.Append(Entry("HOWE", "Missing", Path.Combine(directory.Path, "missing.txt"), DateTimeOffset.UnixEpoch.AddMinutes(3)));
+        store.Append(Entry("HOWE", "Unknown", unreadable, DateTimeOffset.UnixEpoch.AddMinutes(4)));
+        var localization = new LocalizationService(LocalizationDirectory());
+        localization.SetLanguage(language);
+        var viewModel = CreateHistory(store, localization: localization);
+        var rows = viewModel.Entries.ToDictionary(row => row.SessionName);
+
+        Assert.Equal(localization.Get(L.HistoryStatusRecordingConfirmed), rows["Confirmed"].StatusText);
+        Assert.Equal(localization.Get(L.HistoryStatusRecordingConfirmedHint), rows["Confirmed"].StatusToolTip);
+        Assert.False(rows["Confirmed"].HasEnded);
+        Assert.Equal(localization.Get(L.HistoryStatusFinished), rows["Finished"].StatusText);
+        Assert.Null(rows["Finished"].StatusToolTip);
+        Assert.True(rows["Finished"].HasEnded);
+        Assert.Equal(localization.Get(L.HistoryStatusFinished), rows["Footer"].StatusText);
+        Assert.False(rows["Footer"].HasEnded);
+        Assert.Equal(localization.Get(L.HistoryStatusMissing), rows["Missing"].StatusText);
+        if (OperatingSystem.IsLinux())
+            Assert.Equal(localization.Get(L.HistoryStatusUnknown), rows["Unknown"].StatusText);
+        Assert.Equal(SessionHistoryStatus.RecordingConfirmed, store.Load().Sessions.Single(entry => entry.SessionName == "Footer").RecordingStatus);
+        Assert.Null(store.Load().Sessions.Single(entry => entry.SessionName == "Footer").EndedUtc);
+        using var document = JsonDocument.Parse(File.ReadAllText(store.FilePath));
+        Assert.Equal(1, document.RootElement.GetProperty("schemaVersion").GetInt32());
+        Assert.Contains(
+            document.RootElement.GetProperty("sessions").EnumerateArray(),
+            session => session.GetProperty("recordingStatus").GetString() == "RecordingConfirmed");
+        if (OperatingSystem.IsLinux())
+            File.SetUnixFileMode(unreadable, UnixFileMode.UserRead | UnixFileMode.UserWrite);
     }
 
     [Fact]
@@ -410,6 +478,118 @@ public class SessionHistoryTests
 
         AssertOwnerOnly(store.FilePath);
         AssertOwnerOnly(store.FilePath + ".lock");
+        AssertOwnerDirectory(directory.Path);
+        AssertOwnerFile(store.FilePath);
+        Assert.DoesNotContain(Directory.GetFiles(directory.Path), path => path.EndsWith(".tmp", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Quarantine_IsOwnerOnlyAndLeavesTheOriginalBytes()
+    {
+        if (!OperatingSystem.IsLinux())
+            return;
+
+        using var directory = new TempDirectory();
+        var path = Path.Combine(directory.Path, "history.json");
+        File.WriteAllText(path, "{ not json");
+        File.SetUnixFileMode(
+            path,
+            UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.GroupRead | UnixFileMode.OtherRead);
+        var store = new JsonHistoryStore(path);
+
+        Assert.Equal(HistoryLoadKind.Quarantined, store.Load().Kind);
+
+        Assert.NotNull(store.LastQuarantinePath);
+        Assert.Equal("{ not json", File.ReadAllText(store.LastQuarantinePath));
+        AssertOwnerFile(store.LastQuarantinePath);
+        Assert.StartsWith("history.invalid-", Path.GetFileName(store.LastQuarantinePath), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void PermissiveHistoryDirectory_IsTightenedWithoutDeletingEntries()
+    {
+        if (!OperatingSystem.IsLinux())
+            return;
+
+        using var directory = new TempDirectory();
+        var marker = Path.Combine(directory.Path, "marker.txt");
+        File.WriteAllText(marker, "keep");
+        File.SetUnixFileMode(
+            directory.Path,
+            UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute
+            | UnixFileMode.GroupRead | UnixFileMode.GroupExecute
+            | UnixFileMode.OtherRead | UnixFileMode.OtherExecute);
+        var store = new JsonHistoryStore(Path.Combine(directory.Path, "history.json"));
+        store.Append(Entry("HOWE", "Kept", Path.Combine(directory.Path, "kept.txt"), DateTimeOffset.UnixEpoch));
+        var reloaded = new JsonHistoryStore(store.FilePath).Load();
+
+        Assert.Equal("Kept", Assert.Single(reloaded.Sessions).SessionName);
+        Assert.Equal("keep", File.ReadAllText(marker));
+        AssertOwnerDirectory(directory.Path);
+        AssertOwnerFile(store.FilePath);
+    }
+
+    [Fact]
+    public void SymlinkedHistory_IsNotFollowedOrReplaced()
+    {
+        if (!OperatingSystem.IsLinux())
+            return;
+
+        using var directory = new TempDirectory();
+        var secret = Path.Combine(directory.Path, "secret.json");
+        File.WriteAllText(secret, "do-not-touch");
+        var link = Path.Combine(directory.Path, "history.json");
+        File.CreateSymbolicLink(link, secret);
+        var store = new JsonHistoryStore(link);
+
+        Assert.Equal(HistoryLoadKind.Unreadable, store.Load().Kind);
+        Assert.Throws<IOException>(() =>
+            store.Append(Entry("HOWE", "Nope", Path.Combine(directory.Path, "nope.txt"), DateTimeOffset.UnixEpoch)));
+
+        Assert.Equal("do-not-touch", File.ReadAllText(secret));
+        Assert.NotNull(File.ResolveLinkTarget(link, returnFinalTarget: false));
+    }
+
+    [Fact]
+    public void SymlinkedHistoryDirectory_IsNotUsed()
+    {
+        if (!OperatingSystem.IsLinux())
+            return;
+
+        using var directory = new TempDirectory();
+        var real = Path.Combine(directory.Path, "real");
+        Directory.CreateDirectory(real);
+        var link = Path.Combine(directory.Path, "link");
+        Directory.CreateSymbolicLink(link, real);
+        var store = new JsonHistoryStore(Path.Combine(link, "history.json"));
+
+        Assert.Equal(HistoryLoadKind.Unreadable, store.Load().Kind);
+        Assert.Throws<IOException>(() =>
+            store.Append(Entry("HOWE", "Nope", Path.Combine(directory.Path, "nope.txt"), DateTimeOffset.UnixEpoch)));
+
+        Assert.False(File.Exists(Path.Combine(real, "history.json")));
+    }
+
+    [Fact]
+    public void SymlinkedLock_DoesNotReplaceHistory()
+    {
+        if (!OperatingSystem.IsLinux())
+            return;
+
+        using var directory = new TempDirectory();
+        var store = new JsonHistoryStore(Path.Combine(directory.Path, "history.json"));
+        store.Append(Entry("HOWE", "Kept", Path.Combine(directory.Path, "kept.txt"), DateTimeOffset.UnixEpoch));
+        File.Delete(store.FilePath + ".lock");
+        var secret = Path.Combine(directory.Path, "secret.txt");
+        File.WriteAllText(secret, "do-not-touch");
+        File.CreateSymbolicLink(store.FilePath + ".lock", secret);
+
+        Assert.Throws<IOException>(() =>
+            store.Append(Entry("HOWE", "New", Path.Combine(directory.Path, "new.txt"), DateTimeOffset.UnixEpoch.AddMinutes(1))));
+
+        Assert.Equal("do-not-touch", File.ReadAllText(secret));
+        File.Delete(store.FilePath + ".lock");
+        Assert.Equal("Kept", Assert.Single(new JsonHistoryStore(store.FilePath).Load().Sessions).SessionName);
     }
 
     [Fact]
@@ -526,6 +706,24 @@ public class SessionHistoryTests
 
         var expected = started.ToLocalTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
         Assert.Equal(expected, Assert.Single(viewModel.Entries).StartedLocalText);
+    }
+
+    private static void AssertOwnerFile(string path)
+    {
+        if (!OperatingSystem.IsLinux())
+            return;
+
+        Assert.Equal(UnixFileMode.UserRead | UnixFileMode.UserWrite, File.GetUnixFileMode(path));
+    }
+
+    private static void AssertOwnerDirectory(string path)
+    {
+        if (!OperatingSystem.IsLinux())
+            return;
+
+        Assert.Equal(
+            UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute,
+            File.GetUnixFileMode(path));
     }
 
     private static void AssertOwnerOnly(string path)
@@ -655,6 +853,8 @@ public class SessionHistoryTests
         public void Append(SessionHistoryEntry entry) => throw new IOException("History store is not writable.");
 
         public void RecordCompletion(string id, DateTimeOffset endedUtc) => throw new IOException("History store is not writable.");
+
+        public int Remove(IReadOnlyCollection<string> ids) => throw new IOException("History store is not writable.");
     }
 
     private sealed class FakeOpener : ITranscriptLocationOpener

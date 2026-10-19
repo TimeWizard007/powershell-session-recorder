@@ -70,6 +70,9 @@ public sealed class JsonSettingsStore
     {
         lock (_gate)
         {
+            if (!TryPrepareForRead())
+                return SettingsLoadResult.Invalid();
+
             if (!File.Exists(FilePath))
                 return SettingsLoadResult.Missing();
 
@@ -124,32 +127,65 @@ public sealed class JsonSettingsStore
         if (string.IsNullOrWhiteSpace(directory))
             throw new InvalidOperationException("Settings file path does not include a directory.");
 
-        Directory.CreateDirectory(directory);
+        UnixPrivateMetadata.PrepareOwnerDirectory(directory);
+        UnixPrivateMetadata.RejectSymbolicLink(FilePath);
         var json = JsonSerializer.Serialize(settings, SerializerOptions) + Environment.NewLine;
-        var temporary = FilePath + ".tmp";
-        File.WriteAllText(temporary, json, Utf8);
-
+        var temporary = UnixPrivateMetadata.CreateUniqueTemporaryPath(FilePath);
         try
         {
-            if (!OperatingSystem.IsWindows())
-                File.SetUnixFileMode(temporary, UnixFileMode.UserRead | UnixFileMode.UserWrite);
+            UnixPrivateMetadata.WriteNewPrivateFile(temporary, Utf8.GetBytes(json));
+            File.Move(temporary, FilePath, overwrite: true);
+            UnixPrivateMetadata.TryRestrictRegularFile(FilePath);
         }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or PlatformNotSupportedException)
+        catch
         {
-            // The settings file is still written when Unix permissions cannot be applied.
-        }
+            try
+            {
+                if (File.Exists(temporary) && !UnixPrivateMetadata.IsSymbolicLink(temporary))
+                    File.Delete(temporary);
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            {
+            }
 
-        File.Move(temporary, FilePath, overwrite: true);
+            throw;
+        }
+    }
+
+    private bool TryPrepareForRead()
+    {
+        try
+        {
+            var directory = Path.GetDirectoryName(FilePath);
+            if (!string.IsNullOrWhiteSpace(directory) && Directory.Exists(directory))
+            {
+                UnixPrivateMetadata.RejectSymbolicLink(directory);
+                UnixPrivateMetadata.TryRestrictDirectory(directory);
+            }
+
+            UnixPrivateMetadata.RejectSymbolicLink(FilePath);
+            if (File.Exists(FilePath))
+                UnixPrivateMetadata.TryRestrictRegularFile(FilePath);
+            return true;
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            return false;
+        }
     }
 
     private void PreserveInvalidCopy()
     {
         try
         {
-            if (File.Exists(InvalidBackupPath) || !File.Exists(FilePath))
+            if (UnixPrivateMetadata.IsSymbolicLink(InvalidBackupPath)
+                || UnixPrivateMetadata.IsSymbolicLink(FilePath)
+                || File.Exists(InvalidBackupPath)
+                || !File.Exists(FilePath))
                 return;
 
-            File.Copy(FilePath, InvalidBackupPath);
+            File.Copy(FilePath, InvalidBackupPath, overwrite: false);
+            UnixPrivateMetadata.TryRestrictRegularFile(InvalidBackupPath);
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {

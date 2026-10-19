@@ -16,7 +16,7 @@ Historia to plik `history.json` w tym samym katalogu użytkownika co `settings.j
 - zweryfikowany stan rejestrowania
 - opcjonalny czas zakończenia, dopiero po odczytaniu stopki transkrypcji
 
-Treść transkrypcji nie jest zapisywana w `history.json`. W systemach uniksowych uprawnienia pliku to odczyt i zapis właściciela (`0600`). Zapis trafia do pliku tymczasowego w tym samym katalogu, a potem zastępuje `history.json`. W Linuksie i Windows plik blokady szereguje procesy zapisujące. Awaria przed podmianą zostawia poprzedni plik `history.json`.
+Treść transkrypcji nie jest zapisywana w `history.json`. W systemach uniksowych uprawnienia pliku to odczyt i zapis właściciela (`0600`). Zapis trafia do pliku tymczasowego w tym samym katalogu, a potem zastępuje `history.json`. W Linuksie i Windows plik blokady szereguje procesy zapisujące. Awaria przed podmianą zostawia poprzedni plik `history.json`. Etap 4 ogranicza też katalog konfiguracji do właściciela.
 
 Plik, który nie jest poprawnym JSON-em albo zawiera niepoprawną sesję, jest zmieniany na `history.invalid-<znacznik-czasu>-<n>.json`. Ta kopia nie jest nadpisywana. `schemaVersion` nowszy niż 1 pozostaje niezmieniony i nie jest zapisywany od nowa. Aplikacja nie usuwa plików transkrypcji, gdy odczytuje albo aktualizuje historię.
 
@@ -38,7 +38,7 @@ Strona nie pokazuje stanu Aktywna i nie traktuje braku czasu zakończenia jako d
 
 | Etykieta | Znaczenie |
 | --- | --- |
-| Potwierdzono rejestrowanie przy uruchomieniu | Nagłówek transkrypcji był widoczny w chwili startu sesji. Nie oznacza to, że sesja nadal działa. |
+| Nagrywanie uruchomione (obecny stan nieznany) | Nagłówek transkrypcji został sprawdzony przy uruchomieniu. Zapisana wartość to nadal `RecordingConfirmed`. Nie oznacza to, że proces nadal działa. |
 | Zakończona | Koniec pliku transkrypcji zawiera `PowerShell transcript end`. `End time:` jest odczytywany jako czas lokalny i zapisywany w UTC, gdy da się go odczytać. Stopka bez użytecznego czasu i tak oznacza stan Zakończona. |
 | Nieznany | Ścieżka jest niepoprawna albo pliku nie udało się odczytać. |
 | Brak transkrypcji | Pliku transkrypcji nie ma już pod zapisaną ścieżką. Wpis historii zostaje. |

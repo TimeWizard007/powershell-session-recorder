@@ -11,6 +11,7 @@
         MinWidth="960"
         MinHeight="640"
         WindowStartupLocation="CenterScreen"
+        Icon="/Assets/app-icon.png"
         Background="{DynamicResource AppBackground}"
         Title="{loc:Tr AppTitle}">
   <Grid ColumnDefinitions="248,*">

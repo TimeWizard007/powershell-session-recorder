@@ -38,17 +38,24 @@ public sealed class TranscriptStatusProbe : ITranscriptStatusProbe
 
         try
         {
-            var tail = ReadTail(fullPath);
-            var marker = tail.IndexOf(EndMarker, StringComparison.OrdinalIgnoreCase);
-            if (marker < 0)
-                return new TranscriptObservation(SessionHistoryStatus.RecordingConfirmed, null);
-
-            return new TranscriptObservation(SessionHistoryStatus.Finished, TryParseEndTime(tail[marker..]));
+            return ObserveTail(ReadTail(fullPath));
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
             return new TranscriptObservation(SessionHistoryStatus.Unknown, null);
         }
+    }
+
+    public static TranscriptObservation ObserveTail(string? tail)
+    {
+        if (string.IsNullOrEmpty(tail))
+            return new TranscriptObservation(SessionHistoryStatus.RecordingConfirmed, null);
+
+        var marker = tail.IndexOf(EndMarker, StringComparison.OrdinalIgnoreCase);
+        if (marker < 0)
+            return new TranscriptObservation(SessionHistoryStatus.RecordingConfirmed, null);
+
+        return new TranscriptObservation(SessionHistoryStatus.Finished, TryParseEndTime(tail[marker..]));
     }
 
     private static string ReadTail(string path)

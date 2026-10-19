@@ -16,7 +16,7 @@ History is `history.json` in the same per-user directory as `settings.json`. The
 - a verified recording status
 - an optional end time, only after a transcript footer has been read
 
-The transcript text is not stored in `history.json`. On Unix the file mode is owner read and write (`0600`). A write goes to a temporary file in the same directory and then replaces `history.json`. On Linux and Windows a lock file serializes writers. A crash before the replace leaves the previous `history.json` in place.
+The transcript text is not stored in `history.json`. On Unix the file mode is owner read and write (`0600`). A write goes to a temporary file in the same directory and then replaces `history.json`. On Linux and Windows a lock file serializes writers. A crash before the replace leaves the previous `history.json` in place. Checkpoint 4 also limits the configuration directory to the owner.
 
 A file that is not valid JSON, or that contains an invalid session, is renamed to `history.invalid-<timestamp>-<n>.json`. That copy is not overwritten. A `schemaVersion` newer than 1 is left unchanged and is not rewritten. The application does not delete transcript files when it reads or updates history.
 
@@ -38,7 +38,7 @@ The page does not show an Active state, and it does not treat a missing end time
 
 | Label | Meaning |
 | --- | --- |
-| Recording confirmed at launch | The transcript header was seen when the session started. This does not mean the session is still running. |
+| Recording started (current state unknown) | The transcript header was verified when the session started. The stored value remains `RecordingConfirmed`. This does not mean the process is still running. |
 | Finished | The end of the transcript file contains `PowerShell transcript end`. `End time:` is read as local time and stored in UTC when it can be parsed. A footer without a usable time is still Finished. |
 | Unknown | The path is not valid, or the file could not be read. |
 | Transcript missing | The transcript file is no longer at the stored path. The history entry is kept. |

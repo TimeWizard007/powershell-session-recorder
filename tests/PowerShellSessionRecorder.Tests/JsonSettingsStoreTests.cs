@@ -234,6 +234,89 @@ public class JsonSettingsStoreTests
             windowsApplicationData: null));
     }
 
+    [Fact]
+    public void LinuxSettings_StayOwnerOnlyAcrossSaveAndLoad()
+    {
+        if (!OperatingSystem.IsLinux())
+            return;
+
+        using var directory = new TempDirectory();
+        var store = Store(directory);
+        store.Save(new ApplicationSettings { Language = "pl-PL" });
+        var bytes = File.ReadAllBytes(store.FilePath);
+        File.SetUnixFileMode(
+            store.FilePath,
+            UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.GroupRead | UnixFileMode.OtherRead);
+        File.SetUnixFileMode(
+            directory.DirectoryPath,
+            UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute
+            | UnixFileMode.GroupRead | UnixFileMode.GroupExecute
+            | UnixFileMode.OtherRead | UnixFileMode.OtherExecute);
+
+        var loaded = store.LoadDetailed();
+
+        Assert.Equal(SettingsLoadStatus.Loaded, loaded.Status);
+        Assert.Equal("pl-PL", loaded.Settings.Language);
+        Assert.Equal(bytes, File.ReadAllBytes(store.FilePath));
+        AssertOwnerFile(store.FilePath);
+        AssertOwnerDirectory(directory.DirectoryPath);
+        Assert.DoesNotContain(Directory.GetFiles(directory.DirectoryPath), path => path.EndsWith(".tmp", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void InvalidSettingsBackup_IsOwnerOnly()
+    {
+        if (!OperatingSystem.IsLinux())
+            return;
+
+        using var directory = new TempDirectory();
+        var store = Store(directory);
+        File.WriteAllText(store.FilePath, "{");
+        File.SetUnixFileMode(
+            store.FilePath,
+            UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.GroupRead | UnixFileMode.OtherRead);
+
+        Assert.Equal(SettingsLoadStatus.Invalid, store.LoadDetailed().Status);
+        Assert.Equal("{", File.ReadAllText(store.InvalidBackupPath));
+        AssertOwnerFile(store.FilePath);
+        AssertOwnerFile(store.InvalidBackupPath);
+    }
+
+    [Fact]
+    public void SymlinkedSettings_AreNotFollowed()
+    {
+        if (!OperatingSystem.IsLinux())
+            return;
+
+        using var directory = new TempDirectory();
+        var secret = Path.Combine(directory.DirectoryPath, "secret.json");
+        File.WriteAllText(secret, "do-not-touch");
+        var store = Store(directory);
+        File.CreateSymbolicLink(store.FilePath, secret);
+
+        Assert.Equal(SettingsLoadStatus.Invalid, store.LoadDetailed().Status);
+        Assert.Throws<IOException>(() => store.Save(new ApplicationSettings()));
+        Assert.Equal("do-not-touch", File.ReadAllText(secret));
+    }
+
+    private static void AssertOwnerFile(string path)
+    {
+        if (!OperatingSystem.IsLinux())
+            return;
+
+        Assert.Equal(UnixFileMode.UserRead | UnixFileMode.UserWrite, File.GetUnixFileMode(path));
+    }
+
+    private static void AssertOwnerDirectory(string path)
+    {
+        if (!OperatingSystem.IsLinux())
+            return;
+
+        Assert.Equal(
+            UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute,
+            File.GetUnixFileMode(path));
+    }
+
     private static JsonSettingsStore Store(TempDirectory directory)
         => new(Path.Combine(directory.DirectoryPath, "settings.json"));
 

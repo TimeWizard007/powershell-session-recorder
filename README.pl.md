@@ -8,7 +8,7 @@ Aplikacja nie wymaga serwera zaplecza, serwera bazy danych, konta w chmurze ani 
 
 ## Stan projektu
 
-**Etap 3 — trwała historia sesji.** Przycisk Uruchom sesję nadal otwiera niezależny GNOME Terminal z programem `pwsh` i już działającym `Start-Transcript`. Potwierdzona sesja może pojawić się w Historii. Aplikacja może też zapytać GitHub, czy jest nowsze stabilne wydanie. Nie pobiera ani nie instaluje aktualizacji. Wersja 1.0.0 nie została wydana. Szczegóły zawierają [CHANGELOG.md](CHANGELOG.md) i [etap 3](docs/pl/etap-3.md).
+**Etap 4 — pakiet Ubuntu.** Przycisk Uruchom sesję nadal otwiera niezależny GNOME Terminal z programem `pwsh` i już działającym `Start-Transcript`. Potwierdzona sesja może pojawić się w Historii. Etykieta potwierdzonego startu mówi, że obecny stan procesu jest nieznany. Z tej kopii repozytorium można zbudować pakiet `.deb` dla Ubuntu 24.04 amd64. Aplikacja może też zapytać GitHub, czy jest nowsze stabilne wydanie. Nie pobiera ani nie instaluje aktualizacji. Wersja 1.0.0 nie została wydana. Szczegóły zawierają [CHANGELOG.md](CHANGELOG.md), [instalację](docs/pl/instalacja.md) i [etap 4](docs/pl/etap-4.md).
 
 ## Obsługiwane systemy operacyjne
 
@@ -37,7 +37,8 @@ Etap 2 rejestruje sesję programu PowerShell 7 w Ubuntu przez GNOME Terminal. Wi
 - Wybór lokalnego folderu
 - Język angielski (`en-US`) i polski (`pl-PL`); wybór jest zapisywany dla bieżącego użytkownika
 - Lokalne ustawienia JSON
-- Strona Historia dla sesji zarejestrowanych z zaznaczoną opcją **Zapisz sesję w historii**. Starsze pliki transkrypcji nie są importowane
+- Zapisany katalog klientów. Nowa sesja nie ma wybranego TAG-u. TAG wybiera się z katalogu albo dodaje w formularzu sesji. Zmiana nazwy albo usunięcie klienta nie zmienia Historii ani plików transkrypcji
+- Strona Historia dla sesji zarejestrowanych z zaznaczoną opcją **Zapisz sesję w historii**. Starsze pliki transkrypcji nie są importowane. Wpis historii można usunąć osobno albo razem z plikiem transkrypcji, który ma stopkę zakończenia
 - Przycisk **Uruchom sesję**, gdy formularz jest poprawny oraz dostępne są `pwsh` i GNOME Terminal
 - Samo powiadomienie o nowszym stabilnym wydaniu w serwisie GitHub. Automatyczne sprawdzenie działa najwyżej raz na 24 godziny i można je wyłączyć. Nic nie jest pobierane ani instalowane
 
@@ -45,11 +46,13 @@ Etap 2 rejestruje sesję programu PowerShell 7 w Ubuntu przez GNOME Terminal. Wi
 
 - Windows PowerShell 5.1 nie jest uruchamiany
 - Uprawnienia nie są podnoszone. Pole administratora nie jest zapisywane, a sesji nie można uruchomić, gdy jest zaznaczone
-- Historia nie pokazuje stanu Aktywna. Sesja jest oznaczana jako zakończona dopiero wtedy, gdy transkrypcja ma stopkę
+- Historia nie pokazuje stanu Aktywna. Etykieta to „Nagrywanie uruchomione (obecny stan nieznany)”, dopóki transkrypcja nie ma stopki. Stan Zakończona nie wymyśla czasu zakończenia
 - Transkrypcje zarejestrowane bez zaznaczonej opcji **Zapisz sesję w historii** oraz transkrypcje sprzed tej funkcji nie trafiają do Historii
 - `Start-Transcript` zapisuje wyjście hosta. Dane poufne wpisane lub wyświetlone w konsoli mogą trafić do transkrypcji
-- Nagłe przerwanie procesu może pominąć stopkę transkrypcji
+- Nagłe przerwanie procesu może pominąć stopkę transkrypcji. Transkrypcję bez tej stopki można usunąć z Historii, ale plik zostaje
+- Stopka transkrypcji oznacza, że transkrypcja się zakończyła. Nie dowodzi, że każdy powiązany proces został zakończony. Aplikacja nie śledzi działającego procesu programu PowerShell, więc plik jest kasowany tylko wtedy, gdy ta stopka została odczytana z samego pliku
 - Sprawdzono tylko GNOME Terminal 3.52 w Ubuntu 24.04. Nie twierdzimy, że inne emulatory terminala działają
+- Pakiet `.deb` jest przeznaczony tylko dla Ubuntu 24.04 LTS x64. Innych dystrybucji i architektur nie sprawdzano
 - Nazwa pliku w podglądzie używa przykładowego identyfikatora. Uruchomienie sesji rezerwuje nowy plik i nie nadpisuje istniejącej transkrypcji
 
 ## Wymagania
@@ -80,7 +83,11 @@ W katalogu głównym repozytorium:
 dotnet build PowerShellSessionRecorder.sln
 ```
 
-## Uruchomienie w Ubuntu
+## Pakiet Ubuntu
+
+Instrukcja zbudowania i instalacji pakietu Ubuntu 24.04 amd64 jest w [instalacji](docs/pl/instalacja.md). Pakiet nie zawiera programu PowerShell 7 ani GNOME Terminal. Jego usunięcie nie kasuje transkrypcji, ustawień ani historii.
+
+## Uruchomienie w Ubuntu ze źródeł
 
 W katalogu głównym repozytorium, gdy dostępny jest ekran:
 
@@ -108,12 +115,15 @@ Kolejne etapy mogą uruchomić Windows PowerShell 5.1 i obsłużyć podnoszenie 
 | Windows | `%APPDATA%\PowerShellSessionRecorder\settings.json` |
 | macOS | `~/Library/Application Support/PowerShellSessionRecorder/settings.json` |
 
-Plik ustawień przechowuje język interfejsu, ostatni katalog dziennika, ostatnią wersję programu PowerShell, opcje daty i historii, motyw oraz preferencję sprawdzania aktualizacji. Nie przechowuje haseł ani poufnych danych klientów. Plik, którego nie można odczytać, pozostaje na miejscu, jest jednorazowo kopiowany do `settings.invalid.json`, a aplikacja używa ustawień domyślnych.
+Plik ustawień przechowuje język interfejsu, ostatni katalog dziennika, ostatnią wersję programu PowerShell, opcje daty i historii, motyw oraz preferencję sprawdzania aktualizacji. Nie przechowuje haseł ani poufnych danych klientów. W Linuksie katalog konfiguracji należy tylko do właściciela, a plik ustawień ma odczyt i zapis właściciela. Plik, którego nie można odczytać, pozostaje na miejscu, jest jednorazowo kopiowany do `settings.invalid.json`, a aplikacja używa ustawień domyślnych.
 
-Historia sesji to osobny plik `history.json` w tym samym katalogu. Zawiera metadane sesji potwierdzonych przy zaznaczonej opcji **Zapisz sesję w historii**. Nie zawiera treści transkrypcji. Szczegóły opisuje [etap 3](docs/pl/etap-3.md).
+Historia sesji to osobny plik `history.json` w tym samym katalogu. Zawiera metadane sesji potwierdzonych przy zaznaczonej opcji **Zapisz sesję w historii**. Nie zawiera treści transkrypcji. Zapisani klienci to osobny katalog `customers.json` w tym samym katalogu: stały identyfikator, TAG, opcjonalna nazwa wyświetlana i czas utworzenia. Katalog nie jest wypełniany z Historii, z ostatnich TAG-ów ani z nazw plików transkrypcji. Szczegóły opisują [etap 3](docs/pl/etap-3.md) i [etap 4.1](docs/pl/etap-4.1.md).
 
 ## Dokumentacja
 
+- [Instalacja](docs/pl/instalacja.md)
+- [Etap 4.1](docs/pl/etap-4.1.md)
+- [Etap 4](docs/pl/etap-4.md)
 - [Etap 3](docs/pl/etap-3.md)
 - [Etap 2](docs/pl/etap-2.md)
 - [Etap 1](docs/pl/etap-1.md)

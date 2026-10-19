@@ -1,0 +1,16 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=PowerShell Session Recorder
+Name[pl]=Rejestrator sesji PowerShell
+GenericName=Session recorder
+GenericName[pl]=Rejestrator sesji
+Comment=Record a local PowerShell 7 session
+Comment[pl]=Rejestruj lokalną sesję programu PowerShell 7
+Exec=/usr/bin/powershell-session-recorder
+Icon=powershell-session-recorder
+Terminal=false
+Categories=Utility;
+Keywords=PowerShell;transcript;session;
+StartupWMClass=PowerShellSessionRecorder
+DBusActivatable=false

@@ -34,7 +34,8 @@ public partial class SessionSetupViewModel : ViewModelBase
         IExternalLinkOpener? links = null,
         ISessionHistoryStore? history = null,
         Action? historyChanged = null,
-        Func<DateTimeOffset>? utcNow = null)
+        Func<DateTimeOffset>? utcNow = null,
+        ICustomerCatalog? customers = null)
     {
         _localization = localization;
         _settings = settings;
@@ -61,7 +62,14 @@ public partial class SessionSetupViewModel : ViewModelBase
 
         localization.LanguageChanged += (_, _) => NotifyPresentation();
         recentCustomerTags.CollectionChanged += OnRecentTagsChanged;
+        Customers = new CustomerDirectoryViewModel(
+            localization,
+            customers ?? new JsonCustomerCatalog(JsonCustomerCatalog.GetFilePath(store.FilePath)),
+            tag => CustomerTag = tag,
+            _utcNow);
     }
+
+    public CustomerDirectoryViewModel Customers { get; }
 
     public ObservableCollection<string> RecentCustomerTags { get; }
 
