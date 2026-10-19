@@ -83,4 +83,9 @@ chmod 644 "$pkg/DEBIAN/control" "$pkg/DEBIAN/md5sums"
 
 mkdir -p "$root/artifacts"
 dpkg-deb --root-owner-group --build "$pkg" "$root/artifacts/$filename"
+(
+  cd "$root/artifacts"
+  sha256sum "$filename" > "$filename.sha256"
+)
 echo "$root/artifacts/$filename"
+echo "$root/artifacts/$filename.sha256"

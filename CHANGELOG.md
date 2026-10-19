@@ -9,6 +9,10 @@ Version 1.0.0 has not been released.
 
 ## [Unreleased]
 
+## [0.1.0-beta.1] - 2026-10-19
+
+First public Ubuntu 24.04 amd64 beta. About and the GitHub update checker report `0.1.0-beta.1`. The Debian package version is `0.1.0~beta.1-1`. The checker reads the latest stable GitHub release and does not offer this beta, or any later beta, as an update. Release notes: [docs/en/release-notes-0.1.0-beta.1.md](docs/en/release-notes-0.1.0-beta.1.md).
+
 ### Added
 
 - Checkpoint 4.1 customer catalog: saved TAGs in `customers.json`, with add, edit, search, and removal that leaves History and transcript files unchanged. New Session does not select a customer until one is chosen or created.
@@ -37,6 +41,10 @@ Version 1.0.0 has not been released.
 - Abrupt termination can leave a transcript without its footer. That file can be dropped from History and is not deleted. A footer confirms transcript completion, not that every related process has exited.
 
 ## [Niewydane]
+
+## [0.1.0-beta.1] - 2026-10-19
+
+Pierwsza publiczna beta dla Ubuntu 24.04 amd64. Strona O programie i sprawdzanie aktualizacji GitHub podają `0.1.0-beta.1`. Wersja pakietu Debiana to `0.1.0~beta.1-1`. Sprawdzanie czyta najnowsze stabilne wydanie GitHub i nie proponuje tej bety ani późniejszej bety jako aktualizacji. Informacje o wydaniu: [docs/en/release-notes-0.1.0-beta.1.md](docs/en/release-notes-0.1.0-beta.1.md).
 
 ### Dodano
 

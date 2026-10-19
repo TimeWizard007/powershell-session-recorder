@@ -2,9 +2,13 @@
 
 [English](../en/installation.md)
 
-Ten pakiet jest przeznaczony tylko dla Ubuntu 24.04 LTS w wersji x64. Nie był sprawdzany na innych dystrybucjach ani architekturach.
+Ten pakiet jest przeznaczony tylko dla Ubuntu 24.04 LTS w wersji amd64. Nie był sprawdzany na innych dystrybucjach ani architekturach. Bieżąca publiczna beta ma wersję aplikacji `0.1.0-beta.1` i wersję pakietu Debiana `0.1.0~beta.1-1`. Informacje o tej becie są w [opisie wydania](../en/release-notes-0.1.0-beta.1.md).
 
-Plik `.deb` zawiera aplikację Avalonia i jej środowisko .NET. Nie zawiera programu PowerShell 7, GNOME Terminal, ustawień klienta, historii ani transkrypcji. Program działa jako użytkownik, który go uruchamia. Program uruchamiający nie używa `sudo`.
+Rejestrowana sesja wymaga programu PowerShell 7 i GNOME Terminal. Żaden z tych programów nie jest w pakiecie. PowerShell 7 nie znajduje się w domyślnych repozytoriach Ubuntu 24.04.
+
+Plik `.deb` zawiera aplikację Avalonia i jej środowisko .NET. Nie zawiera programu PowerShell 7, GNOME Terminal, ustawień, katalogu klientów, historii ani transkrypcji. Program działa jako użytkownik, który go uruchamia. Program uruchamiający nie używa `sudo`.
+
+Strona O programie pokazuje wersję informacyjną. Sprawdzanie aktualizacji podaje tę samą wersję i pyta GitHub o najnowsze stabilne wydanie. Etykieta beta nie jest proponowana jako aktualizacja. Zapytanie nie zawiera TAG-ów klientów, historii ani transkrypcji.
 
 ## Kompilacja pakietu
 
@@ -14,14 +18,21 @@ W czystej kopii repozytorium, przy zainstalowanym .NET SDK 10 i narzędziu `dpkg
 packaging/ubuntu/build-deb.sh
 ```
 
-Skrypt publikuje samodzielną kompilację `linux-x64` i zapisuje `artifacts/powershell-session-recorder_<wersja-debiana>_amd64.deb`. Wersja informacyjna aplikacji jest czytana z `PowerShellSessionRecorder.App.csproj`. Wersja przedpremierowa `0.1.0-checkpoint.4.1` staje się wersją Debiana `0.1.0~checkpoint.4.1-1`. Wcześniejszy etap `0.1.0-checkpoint.4` mapował się na `0.1.0~checkpoint.4-1`. Stabilna wersja `1.0.0` stałaby się `1.0.0-1`. Znak `~` sprawia, że pakiet etapu sortuje się przed stabilnym pakietem o tym samym rdzeniu wersji.
+Skrypt publikuje samodzielną kompilację `linux-x64` i zapisuje `artifacts/powershell-session-recorder_<wersja-debiana>_amd64.deb` oraz plik SHA-256 o tej samej nazwie z przyrostkiem `.sha256`. Oba pliki są ignorowane przez Git. Wersja informacyjna w `PowerShellSessionRecorder.App.csproj` jest źródłem prawdy. `0.1.0-beta.1` staje się wersją Debiana `0.1.0~beta.1-1`. Stabilna wersja `1.0.0` stałaby się `1.0.0-1`. Znak `~` sprawia, że pakiet bety sortuje się przed stabilnym pakietem o tym samym rdzeniu wersji. `<AssemblyVersion>` i `<FileVersion>` pozostają `0.1.0.0`, bo te pola są liczbowe.
 
-Przy kolejnej kompilacji zaktualizuj `<Version>`, `<AssemblyVersion>`, `<FileVersion>` i `<InformationalVersion>` w projekcie aplikacji, a potem uruchom skrypt ponownie.
+Po kompilacji sprawdź pakiet:
+
+```bash
+cd artifacts
+sha256sum -c powershell-session-recorder_0.1.0~beta.1-1_amd64.deb.sha256
+```
+
+Przy kolejnej kompilacji zaktualizuj `<InformationalVersion>` w projekcie aplikacji, a potem uruchom skrypt ponownie.
 
 ## Instalacja
 
 ```bash
-sudo apt install ./artifacts/powershell-session-recorder_0.1.0~checkpoint.4.1-1_amd64.deb
+sudo apt install ./artifacts/powershell-session-recorder_0.1.0~beta.1-1_amd64.deb
 ```
 
 `apt` instaluje biblioteki nazwane w pakiecie. Nie instaluje programu PowerShell 7. GNOME Terminal, `xdg-desktop-portal` i `xdg-desktop-portal-gtk` są tylko sugerowane. Na zwykłym pulpicie Ubuntu już są. Gdy ich brakuje, aplikacja i tak się otwiera i wyjaśnia, jak je zainstalować. Sama tych poleceń nie uruchamia.
@@ -52,7 +63,7 @@ sudo apt install ./artifacts/powershell-session-recorder_<nowsza-wersja>_amd64.d
 sudo apt remove powershell-session-recorder
 ```
 
-Polecenie `sudo apt purge powershell-session-recorder` usuwa te same pliki pakietu. Żadne z nich nie kasuje transkrypcji, `settings.json` ani `history.json`. Zostają one w wybranym katalogu dziennika oraz w `$XDG_CONFIG_HOME/powershell-session-recorder` albo `~/.config/powershell-session-recorder`. Działający już proces programu PowerShell działa dalej. Te dane usuń samodzielnie tylko wtedy, gdy tego chcesz.
+Polecenie `sudo apt purge powershell-session-recorder` usuwa te same pliki pakietu. Żadne z nich nie kasuje transkrypcji, `settings.json`, `history.json` ani `customers.json`. Zostają one w wybranym katalogu dziennika oraz w `$XDG_CONFIG_HOME/powershell-session-recorder` albo `~/.config/powershell-session-recorder`. Działający już proces programu PowerShell działa dalej. Te dane usuń samodzielnie tylko wtedy, gdy tego chcesz.
 
 ## Co jest instalowane
 

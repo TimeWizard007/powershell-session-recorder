@@ -8,7 +8,7 @@ Aplikacja nie wymaga serwera zaplecza, serwera bazy danych, konta w chmurze ani 
 
 ## Stan projektu
 
-**Etap 4 — pakiet Ubuntu.** Przycisk Uruchom sesję nadal otwiera niezależny GNOME Terminal z programem `pwsh` i już działającym `Start-Transcript`. Potwierdzona sesja może pojawić się w Historii. Etykieta potwierdzonego startu mówi, że obecny stan procesu jest nieznany. Z tej kopii repozytorium można zbudować pakiet `.deb` dla Ubuntu 24.04 amd64. Aplikacja może też zapytać GitHub, czy jest nowsze stabilne wydanie. Nie pobiera ani nie instaluje aktualizacji. Wersja 1.0.0 nie została wydana. Szczegóły zawierają [CHANGELOG.md](CHANGELOG.md), [instalację](docs/pl/instalacja.md) i [etap 4](docs/pl/etap-4.md).
+**Beta Ubuntu 0.1.0-beta.1.** Przycisk Uruchom sesję otwiera niezależny GNOME Terminal z programem `pwsh` i już działającym `Start-Transcript`. Potwierdzona sesja może pojawić się w Historii. Zapisany TAG klienta jest wybierany przed rozpoczęciem rejestrowania. Z tej kopii repozytorium można zbudować pakiet `.deb` dla Ubuntu 24.04 amd64. Strona O programie i sprawdzanie aktualizacji podają wersję `0.1.0-beta.1`. Sprawdzanie szuka tylko nowszego stabilnego wydania GitHub, więc ta beta i kolejne bety nie są proponowane jako aktualizacja. Nic nie jest pobierane ani instalowane. Wersja 1.0.0 nie została wydana. Szczegóły zawierają [informacje o wydaniu](docs/en/release-notes-0.1.0-beta.1.md), [CHANGELOG.md](CHANGELOG.md) i [instalację](docs/pl/instalacja.md).
 
 ## Obsługiwane systemy operacyjne
 
@@ -40,7 +40,7 @@ Etap 2 rejestruje sesję programu PowerShell 7 w Ubuntu przez GNOME Terminal. Wi
 - Zapisany katalog klientów. Nowa sesja nie ma wybranego TAG-u. TAG wybiera się z katalogu albo dodaje w formularzu sesji. Zmiana nazwy albo usunięcie klienta nie zmienia Historii ani plików transkrypcji
 - Strona Historia dla sesji zarejestrowanych z zaznaczoną opcją **Zapisz sesję w historii**. Starsze pliki transkrypcji nie są importowane. Wpis historii można usunąć osobno albo razem z plikiem transkrypcji, który ma stopkę zakończenia
 - Przycisk **Uruchom sesję**, gdy formularz jest poprawny oraz dostępne są `pwsh` i GNOME Terminal
-- Samo powiadomienie o nowszym stabilnym wydaniu w serwisie GitHub. Automatyczne sprawdzenie działa najwyżej raz na 24 godziny i można je wyłączyć. Nic nie jest pobierane ani instalowane
+- Samo powiadomienie o nowszym stabilnym wydaniu w serwisie GitHub. Automatyczne sprawdzenie działa najwyżej raz na 24 godziny i można je wyłączyć. Nic nie jest pobierane ani instalowane. Etykiety beta, w tym to wydanie `0.1.0-beta.1`, nie są traktowane jako dostępna aktualizacja
 
 ## Ograniczenia
 
@@ -52,7 +52,8 @@ Etap 2 rejestruje sesję programu PowerShell 7 w Ubuntu przez GNOME Terminal. Wi
 - Nagłe przerwanie procesu może pominąć stopkę transkrypcji. Transkrypcję bez tej stopki można usunąć z Historii, ale plik zostaje
 - Stopka transkrypcji oznacza, że transkrypcja się zakończyła. Nie dowodzi, że każdy powiązany proces został zakończony. Aplikacja nie śledzi działającego procesu programu PowerShell, więc plik jest kasowany tylko wtedy, gdy ta stopka została odczytana z samego pliku
 - Sprawdzono tylko GNOME Terminal 3.52 w Ubuntu 24.04. Nie twierdzimy, że inne emulatory terminala działają
-- Pakiet `.deb` jest przeznaczony tylko dla Ubuntu 24.04 LTS x64. Innych dystrybucji i architektur nie sprawdzano
+- Pakiet `.deb` jest przeznaczony tylko dla Ubuntu 24.04 LTS amd64. Do rejestrowania sesji potrzebne są PowerShell 7 i GNOME Terminal, a pakiet ich nie zawiera. Innych dystrybucji i architektur nie sprawdzano
+- Sprawdzanie aktualizacji pokazuje zainstalowaną wersję i porównuje ją z najnowszym stabilnym wydaniem GitHub. Nie śledzi wydań beta
 - Nazwa pliku w podglądzie używa przykładowego identyfikatora. Uruchomienie sesji rezerwuje nowy plik i nie nadpisuje istniejącej transkrypcji
 
 ## Wymagania
@@ -85,7 +86,7 @@ dotnet build PowerShellSessionRecorder.sln
 
 ## Pakiet Ubuntu
 
-Instrukcja zbudowania i instalacji pakietu Ubuntu 24.04 amd64 jest w [instalacji](docs/pl/instalacja.md). Pakiet nie zawiera programu PowerShell 7 ani GNOME Terminal. Jego usunięcie nie kasuje transkrypcji, ustawień ani historii.
+Instrukcja zbudowania i instalacji pakietu Ubuntu 24.04 amd64 jest w [instalacji](docs/pl/instalacja.md). Wersja pakietu tej bety to `0.1.0~beta.1-1`. Pakiet nie zawiera programu PowerShell 7 ani GNOME Terminal. Jego usunięcie nie kasuje transkrypcji, ustawień, historii ani katalogu klientów. Plik `.deb` i jego suma SHA-256 powstają w katalogu `artifacts/` i nie należą do drzewa źródeł.
 
 ## Uruchomienie w Ubuntu ze źródeł
 
@@ -121,6 +122,7 @@ Historia sesji to osobny plik `history.json` w tym samym katalogu. Zawiera metad
 
 ## Dokumentacja
 
+- [Informacje o wydaniu 0.1.0-beta.1](docs/en/release-notes-0.1.0-beta.1.md)
 - [Instalacja](docs/pl/instalacja.md)
 - [Etap 4.1](docs/pl/etap-4.1.md)
 - [Etap 4](docs/pl/etap-4.md)

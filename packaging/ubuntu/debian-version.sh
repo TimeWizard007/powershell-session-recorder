@@ -1,6 +1,6 @@
 #!/bin/sh
 # Map an informational version to a Debian package version.
-# 0.1.0-checkpoint.4.1 -> 0.1.0~checkpoint.4.1-1
+# 0.1.0-beta.1 -> 0.1.0~beta.1-1
 # 1.0.0 -> 1.0.0-1
 # Text after '+' is build metadata and is omitted.
 debian_version_from_informational() {

@@ -8,7 +8,7 @@ There is no backend server, database server, cloud account, or Windows service.
 
 ## Status
 
-**Checkpoint 4 — Ubuntu package.** Start Session still opens an independent GNOME Terminal running `pwsh` with `Start-Transcript` already active. A confirmed session can be listed in History. The history label for a confirmed start says that the current process state is unknown. An Ubuntu 24.04 amd64 `.deb` can be built from this checkout. The application can also ask GitHub whether a newer stable release exists. It does not download or install updates. Version 1.0.0 has not been released. See [CHANGELOG.md](CHANGELOG.md), [installation](docs/en/installation.md), and [Checkpoint 4](docs/en/checkpoint-4.md).
+**Ubuntu beta 0.1.0-beta.1.** Start Session opens an independent GNOME Terminal running `pwsh` with `Start-Transcript` already active. A confirmed session can be listed in History. Saved customer TAGs are chosen before recording starts. An Ubuntu 24.04 amd64 `.deb` can be built from this checkout. About and the update checker report `0.1.0-beta.1`. The checker looks only for a newer stable GitHub release, so this beta and later betas are not offered as updates. It does not download or install anything. Version 1.0.0 has not been released. See [release notes](docs/en/release-notes-0.1.0-beta.1.md), [CHANGELOG.md](CHANGELOG.md), and [installation](docs/en/installation.md).
 
 ## Supported operating systems
 
@@ -40,7 +40,7 @@ Checkpoint 2 records a PowerShell 7 session on Ubuntu through GNOME Terminal. Wi
 - A saved customer catalog. New Session starts with no TAG selected. A TAG is chosen from the catalog or added in the session form. Renaming or removing a saved customer does not change History or transcript files
 - A History page for sessions recorded with **Save session in history** checked. Older transcript files are not imported. A history entry can be removed on its own, or together with a transcript file that has a completion footer
 - **Start Session**, when the form is valid and `pwsh` and GNOME Terminal are available
-- A notify-only check for a newer stable GitHub release. Automatic checks run at most once every 24 hours and can be turned off. Nothing is downloaded or installed
+- A notify-only check for a newer stable GitHub release. Automatic checks run at most once every 24 hours and can be turned off. Nothing is downloaded or installed. Beta tags, including this `0.1.0-beta.1` release, are not treated as available updates
 
 ## Limitations
 
@@ -52,7 +52,8 @@ Checkpoint 2 records a PowerShell 7 session on Ubuntu through GNOME Terminal. Wi
 - Abrupt termination can omit the transcript footer. A transcript without that footer can be removed from History, but the file is kept
 - A transcript footer shows that the transcript finished. It does not prove that every related process has exited. The application does not track the live PowerShell process, so a file is deleted only when that footer has been read from the file itself
 - Only GNOME Terminal 3.52 on Ubuntu 24.04 was tested. Other terminal emulators are not claimed to work
-- The `.deb` targets Ubuntu 24.04 LTS x64 only. Other distributions and architectures were not tested
+- The `.deb` targets Ubuntu 24.04 LTS amd64 only. PowerShell 7 and GNOME Terminal are required to record a session and are not included in the package. Other distributions and architectures were not tested
+- The update checker reports the installed version and compares it with the latest stable GitHub release. It does not track beta releases
 - The filename shown in the preview uses an example identifier. Starting a session reserves a new file and does not overwrite an existing transcript
 
 ## Prerequisites
@@ -85,7 +86,7 @@ dotnet build PowerShellSessionRecorder.sln
 
 ## Ubuntu package
 
-Build and install instructions for the Ubuntu 24.04 amd64 package are in [Installation](docs/en/installation.md). The package does not include PowerShell 7 or GNOME Terminal. Removing it does not delete transcripts, settings, or history.
+Build and install instructions for the Ubuntu 24.04 amd64 package are in [Installation](docs/en/installation.md). This beta’s package version is `0.1.0~beta.1-1`. The package does not include PowerShell 7 or GNOME Terminal. Removing it does not delete transcripts, settings, history, or the customer catalog. The `.deb` and its SHA-256 file are build outputs under `artifacts/` and are not part of the source tree.
 
 ## Run on Ubuntu from source
 
@@ -121,6 +122,7 @@ Session history is a separate `history.json` file in that same directory. It sto
 
 ## Documentation
 
+- [Release notes 0.1.0-beta.1](docs/en/release-notes-0.1.0-beta.1.md)
 - [Installation](docs/en/installation.md)
 - [Checkpoint 4.1](docs/en/checkpoint-4.1.md)
 - [Checkpoint 4](docs/en/checkpoint-4.md)

@@ -12,6 +12,7 @@ public class PackagingTests
     [Theory]
     [InlineData("0.1.0-checkpoint.4", "0.1.0~checkpoint.4-1")]
     [InlineData("0.1.0-checkpoint.4.1", "0.1.0~checkpoint.4.1-1")]
+    [InlineData("0.1.0-beta.1", "0.1.0~beta.1-1")]
     [InlineData("0.1.0-checkpoint.4+local", "0.1.0~checkpoint.4-1")]
     [InlineData("1.0.0", "1.0.0-1")]
     [InlineData("1.2.3-rc.1", "1.2.3~rc.1-1")]
@@ -26,8 +27,8 @@ public class PackagingTests
             .Single()
             .Value;
 
-        Assert.Equal("0.1.0-checkpoint.4.1", informational);
-        Assert.Equal("0.1.0~checkpoint.4.1-1", DebianPackageVersion.FromInformational(informational));
+        Assert.Equal("0.1.0-beta.1", informational);
+        Assert.Equal("0.1.0~beta.1-1", DebianPackageVersion.FromInformational(informational));
         var assemblyVersion = typeof(ProductVersion).Assembly
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
             ?.InformationalVersion
@@ -43,7 +44,7 @@ public class PackagingTests
             return;
 
         var script = Path.Combine(RepositoryRoot(), "packaging/ubuntu/debian-version.sh");
-        foreach (var sample in new[] { "0.1.0-checkpoint.4", "0.1.0-checkpoint.4.1", "0.1.0-checkpoint.4+sha", "1.0.0", "1.2.3-rc.1" })
+        foreach (var sample in new[] { "0.1.0-checkpoint.4", "0.1.0-checkpoint.4.1", "0.1.0-beta.1", "0.1.0-checkpoint.4+sha", "1.0.0", "1.2.3-rc.1" })
         {
             var start = new ProcessStartInfo
             {
@@ -100,6 +101,7 @@ public class PackagingTests
         Assert.DoesNotContain("sudo", text, StringComparison.Ordinal);
         Assert.DoesNotContain("powershell", text.Split('\n').First(line => line.Contains("Depends:", StringComparison.Ordinal)), StringComparison.OrdinalIgnoreCase);
         Assert.Contains("usr/share/icons/hicolor", text, StringComparison.Ordinal);
+        Assert.Contains("sha256sum", text, StringComparison.Ordinal);
     }
 
     [Theory]

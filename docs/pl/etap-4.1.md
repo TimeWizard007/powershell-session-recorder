@@ -2,7 +2,7 @@
 
 Etap 4.1 dodaje zapisany katalog klientów i potwierdzone usuwanie wpisów historii. Rejestrowanie, wyszukiwanie historii, sprawdzanie aktualizacji, motywy i pakiet Ubuntu z wcześniejszych etapów pozostają.
 
-Wersja informacyjna to `0.1.0-checkpoint.4.1`. Wersja pakietu Debiana to `0.1.0~checkpoint.4.1-1`.
+Ten opis dotyczy etapu 4.1. Publiczna beta, która po nim nastąpiła, używa wersji informacyjnej `0.1.0-beta.1` i wersji pakietu Debiana `0.1.0~beta.1-1`. W czasie tego etapu wersja informacyjna to `0.1.0-checkpoint.4.1`, a wersja pakietu Debiana to `0.1.0~checkpoint.4.1-1`.
 
 ## Katalog klientów
 

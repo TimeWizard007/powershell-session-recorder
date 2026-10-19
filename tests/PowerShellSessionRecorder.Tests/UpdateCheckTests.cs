@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Net;
 using System.Net.Http;
 using PowerShellSessionRecorder.App.Localization;
+using PowerShellSessionRecorder.App.Services;
 using PowerShellSessionRecorder.App.Services.Updates;
 using PowerShellSessionRecorder.App.ViewModels;
 using PowerShellSessionRecorder.Core;
@@ -22,6 +23,9 @@ public class UpdateCheckTests
     [InlineData("1.0.0", "v1.1.0-rc.1", ReleaseRelation.RemotePrerelease)]
     [InlineData("0.1.0-checkpoint.2.1", "0.2.0", ReleaseRelation.NewerStable)]
     [InlineData("0.1.0-checkpoint.2.1", "v0.2.0", ReleaseRelation.NewerStable)]
+    [InlineData("0.1.0-beta.1", "0.2.0", ReleaseRelation.NewerStable)]
+    [InlineData("0.1.0-beta.1", "0.1.0", ReleaseRelation.NewerStable)]
+    [InlineData("0.1.0-beta.1", "0.1.0-beta.2", ReleaseRelation.RemotePrerelease)]
     [InlineData("0.1.0-checkpoint.2.1", "0.1.0", ReleaseRelation.NewerStable)]
     [InlineData("0.2.0-checkpoint.1", "0.1.0", ReleaseRelation.RemoteOlder)]
     [InlineData("0.1.0", "latest", ReleaseRelation.InvalidRemote)]
@@ -75,6 +79,21 @@ public class UpdateCheckTests
         Assert.Equal("0.1.0-checkpoint.2.2", outcome.CurrentVersion);
         Assert.Equal("v0.2.0", outcome.LatestStableVersion);
         Assert.DoesNotContain("browser_download_url", outcome.ReleasePageUrl, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void BetaProductVersion_IsReportedToGitHubAndIsNotAStableRelease()
+    {
+        Assert.Equal("0.1.0-beta.1", ProductVersion.Current);
+        Assert.Equal(ReleaseRelation.RemotePrerelease, ReleaseVersionComparison.Relate(ProductVersion.Current, "0.1.0-beta.2"));
+        using var client = GitHubReleaseClient.CreateClient(ProductVersion.Current);
+        Assert.Contains(
+            "PowerShellSessionRecorder/0.1.0-beta.1",
+            client.DefaultRequestHeaders.UserAgent.ToString(),
+            StringComparison.Ordinal);
+        Assert.Equal(
+            "https://api.github.com/repos/TimeWizard007/powershell-session-recorder/releases/latest",
+            GitHubReleaseClient.LatestReleaseUri.AbsoluteUri);
     }
 
     [Fact]

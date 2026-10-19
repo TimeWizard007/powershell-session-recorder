@@ -2,7 +2,7 @@
 
 Checkpoint 4.1 adds a saved customer catalog and a confirmed way to remove history entries. Recording, history search, the update check, themes, and the Ubuntu package from earlier checkpoints stay in place.
 
-The informational version is `0.1.0-checkpoint.4.1`. The Debian package version is `0.1.0~checkpoint.4.1-1`.
+This note describes Checkpoint 4.1. The public beta that followed it uses informational version `0.1.0-beta.1` and Debian package version `0.1.0~beta.1-1`. During this checkpoint the informational version was `0.1.0-checkpoint.4.1` and the Debian package version was `0.1.0~checkpoint.4.1-1`.
 
 ## Customer catalog
 
