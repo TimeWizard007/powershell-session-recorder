@@ -9,13 +9,16 @@ public enum SessionRecordingStatus
     Rejected,
     DirectoryFailed,
     AllocationFailed,
-    LaunchFailed
+    LaunchFailed,
+    ElevationCancelled
 }
 
 public sealed record SessionRuntimeCapabilities(
     bool PowerShell7Available,
     bool TerminalAvailable,
-    bool PlatformSupported = true);
+    bool PlatformSupported = true,
+    bool WindowsPowerShellAvailable = false,
+    bool ElevationAvailable = false);
 
 public sealed record SessionRecordingResult(SessionRecordingStatus Status, string? TranscriptPath);
 
@@ -41,6 +44,7 @@ public sealed class SessionRecordingService : ISessionRecordingService
     private readonly Func<DateTimeOffset> _clock;
     private readonly Func<string> _uniqueIdFactory;
     private readonly Func<string?> _workingDirectory;
+    private readonly IWindowsSessionLauncher _windowsLauncher;
 
     public SessionRecordingService(
         IExecutableProbe probe,
@@ -50,7 +54,8 @@ public sealed class SessionRecordingService : ISessionRecordingService
         TranscriptFileAllocator? allocator = null,
         Func<DateTimeOffset>? clock = null,
         Func<string>? uniqueIdFactory = null,
-        Func<string?>? workingDirectory = null)
+        Func<string?>? workingDirectory = null,
+        IWindowsSessionLauncher? windowsLauncher = null)
     {
         _probe = probe;
         _processRunner = processRunner;
@@ -60,12 +65,30 @@ public sealed class SessionRecordingService : ISessionRecordingService
         _clock = clock ?? (() => DateTimeOffset.Now);
         _uniqueIdFactory = uniqueIdFactory ?? (() => Guid.NewGuid().ToString("N")[..16].ToUpperInvariant());
         _workingDirectory = workingDirectory ?? DefaultWorkingDirectory;
+        _windowsLauncher = windowsLauncher ?? new WindowsConsoleLauncher();
     }
 
-    public SessionRuntimeCapabilities Capabilities => new(
-        _probe.FindExecutable(RecordingPlatform.PowerShellExecutable) is not null,
-        _probe.FindExecutable(GnomeTerminalCommand.ExecutableName) is not null,
-        RecordingPlatform.IsCurrentPlatformSupported());
+    public SessionRuntimeCapabilities Capabilities
+    {
+        get
+        {
+            if (OperatingSystem.IsWindows())
+            {
+                var engines = DiscoverWindowsEngines();
+                return new SessionRuntimeCapabilities(
+                    engines.Any(engine => engine.Version == PowerShellVersion.PowerShell7),
+                    true,
+                    true,
+                    engines.Any(engine => engine.Version == PowerShellVersion.WindowsPowerShell51),
+                    true);
+            }
+
+            return new SessionRuntimeCapabilities(
+                _probe.FindExecutable(RecordingPlatform.PowerShellExecutable) is not null,
+                _probe.FindExecutable(GnomeTerminalCommand.ExecutableName) is not null,
+                RecordingPlatform.IsCurrentPlatformSupported());
+        }
+    }
 
     public void RefreshDependencies() => _probe.Invalidate();
 
@@ -105,6 +128,9 @@ public sealed class SessionRecordingService : ISessionRecordingService
 
         try
         {
+            if (OperatingSystem.IsWindows())
+                return await StartWindowsAsync(configuration, language, transcriptPath, cancellationToken);
+
             var powerShell = _probe.FindExecutable(RecordingPlatform.PowerShellExecutable);
             var terminal = _probe.FindExecutable(GnomeTerminalCommand.ExecutableName);
             if (powerShell is null || terminal is null)
@@ -148,8 +174,46 @@ public sealed class SessionRecordingService : ISessionRecordingService
         }
     }
 
+    private async Task<SessionRecordingResult> StartWindowsAsync(
+        SessionConfiguration configuration,
+        string? language,
+        string transcriptPath,
+        CancellationToken cancellationToken)
+    {
+        var engine = DiscoverWindowsEngines().FirstOrDefault(item => item.Version == configuration.PowerShellVersion);
+        if (engine is null)
+        {
+            TranscriptFileAllocator.DeleteIfStillEmpty(transcriptPath);
+            return new SessionRecordingResult(SessionRecordingStatus.Rejected, null);
+        }
+
+        var bootstrapPath = _bootstrapFiles.WriteScript();
+        var inspection = WindowsPrivateMetadata.Inspect(engine.Path);
+        var starter = new WindowsSessionStarter(_windowsLauncher, _transcriptWatcher);
+        return await starter.StartAsync(
+            configuration,
+            language,
+            engine.Path,
+            inspection.ReparsePoint,
+            bootstrapPath,
+            transcriptPath,
+            _workingDirectory(),
+            cancellationToken);
+    }
+
+    private static IReadOnlyList<PowerShellEngineLocation> DiscoverWindowsEngines()
+        => PowerShellEngineDiscovery.DiscoverWindows(
+            Environment.GetEnvironmentVariable("PATH"),
+            Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+            Environment.GetEnvironmentVariable("SystemRoot") ?? Environment.GetFolderPath(Environment.SpecialFolder.Windows),
+            Environment.CurrentDirectory,
+            WindowsPrivateMetadata.Inspect);
+
     private bool CanAttempt(SessionConfiguration configuration)
     {
+        if (OperatingSystem.IsWindows())
+            return CanAttemptWindows(configuration);
+
         if (configuration.RunAsAdministrator)
             return false;
 
@@ -166,6 +230,20 @@ public sealed class SessionRecordingService : ISessionRecordingService
             return false;
 
         return Capabilities is { PlatformSupported: true, PowerShell7Available: true, TerminalAvailable: true };
+    }
+
+    private bool CanAttemptWindows(SessionConfiguration configuration)
+    {
+        if (string.IsNullOrWhiteSpace(configuration.LogDirectory))
+            return false;
+
+        if (File.Exists(configuration.LogDirectory) && !Directory.Exists(configuration.LogDirectory))
+            return false;
+
+        if (!SessionConfigurationValidator.Validate(configuration).IsValid)
+            return false;
+
+        return DiscoverWindowsEngines().Any(engine => engine.Version == configuration.PowerShellVersion);
     }
 
     private static string BuildTitle(string? customerTag)

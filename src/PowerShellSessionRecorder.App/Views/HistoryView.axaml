@@ -16,58 +16,57 @@
                  Text="{Binding ActionMessage}"
                  TextWrapping="Wrap"
                  IsVisible="{Binding HasActionMessage}" />
-      <Grid ColumnDefinitions="2*,*,Auto,Auto,Auto,Auto" ColumnSpacing="8">
-        <StackPanel Spacing="4">
+      <WrapPanel Orientation="Horizontal">
+        <StackPanel Width="220" Margin="0,0,8,8" Spacing="4">
           <TextBlock Classes="label" Text="{loc:Tr HistorySearch}" />
           <TextBox Text="{Binding SearchText}" PlaceholderText="{loc:Tr HistorySearch}" />
         </StackPanel>
-        <StackPanel Grid.Column="1" Spacing="4">
+        <StackPanel Width="180" Margin="0,0,8,8" Spacing="4">
           <TextBlock Classes="label" Text="{loc:Tr HistoryTagFilter}" />
           <ComboBox ItemsSource="{Binding TagFilters}"
                     SelectedItem="{Binding SelectedTag}"
-                    HorizontalAlignment="Stretch"
-                    MinWidth="140">
+                    HorizontalAlignment="Stretch">
             <ComboBox.ItemTemplate>
               <DataTemplate x:DataType="vm:TagFilterOption">
-                <TextBlock Text="{Binding Display}" />
+                <TextBlock Text="{Binding Display}" TextWrapping="Wrap" />
               </DataTemplate>
             </ComboBox.ItemTemplate>
           </ComboBox>
         </StackPanel>
-        <StackPanel Grid.Column="2" Spacing="4">
+        <StackPanel Width="160" Margin="0,0,8,8" Spacing="4">
           <TextBlock Classes="label" Text="{loc:Tr HistoryFromDate}" />
-          <CalendarDatePicker SelectedDate="{Binding FromDate}" />
+          <CalendarDatePicker SelectedDate="{Binding FromDate}" HorizontalAlignment="Stretch" />
         </StackPanel>
-        <StackPanel Grid.Column="3" Spacing="4">
+        <StackPanel Width="160" Margin="0,0,8,8" Spacing="4">
           <TextBlock Classes="label" Text="{loc:Tr HistoryToDate}" />
-          <CalendarDatePicker SelectedDate="{Binding ToDate}" />
+          <CalendarDatePicker SelectedDate="{Binding ToDate}" HorizontalAlignment="Stretch" />
         </StackPanel>
-        <Button Grid.Column="4"
-                MinWidth="120"
+        <Button MinHeight="42"
+                Margin="0,24,8,8"
                 VerticalAlignment="Bottom"
                 Content="{loc:Tr HistoryClearFilters}"
                 Command="{Binding ClearFiltersCommand}" />
-        <Button Grid.Column="5"
-                MinWidth="110"
+        <Button MinHeight="42"
+                Margin="0,24,8,8"
                 VerticalAlignment="Bottom"
                 Content="{loc:Tr HistoryRefresh}"
                 Command="{Binding RefreshCommand}" />
-      </Grid>
-      <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding ShowList}">
-        <Button Content="{loc:Tr HistorySelectAll}" Command="{Binding SelectAllShownCommand}" />
-        <Button Content="{loc:Tr HistoryClearSelection}" Command="{Binding ClearSelectionCommand}" />
-        <Button Content="{loc:Tr HistoryRemoveOnly}" Command="{Binding AskRemoveSelectedHistoryCommand}" />
-        <Button Content="{loc:Tr HistoryRemoveAndFile}" Command="{Binding AskRemoveSelectedFilesCommand}" />
-        <TextBlock VerticalAlignment="Center" Classes="hint" Text="{Binding SelectionCountText}" />
-      </StackPanel>
+      </WrapPanel>
+      <WrapPanel Orientation="Horizontal" IsVisible="{Binding ShowList}">
+        <Button MinHeight="42" Margin="0,0,8,8" Content="{loc:Tr HistorySelectAll}" Command="{Binding SelectAllShownCommand}" />
+        <Button MinHeight="42" Margin="0,0,8,8" Content="{loc:Tr HistoryClearSelection}" Command="{Binding ClearSelectionCommand}" />
+        <Button MinHeight="42" Margin="0,0,8,8" Content="{loc:Tr HistoryRemoveOnly}" Command="{Binding AskRemoveSelectedHistoryCommand}" />
+        <Button MinHeight="42" Margin="0,0,8,8" Content="{loc:Tr HistoryRemoveAndFile}" Command="{Binding AskRemoveSelectedFilesCommand}" />
+        <TextBlock Margin="0,8,8,8" VerticalAlignment="Center" Classes="hint" Text="{Binding SelectionCountText}" TextWrapping="Wrap" />
+      </WrapPanel>
       <Border Classes="card" IsVisible="{Binding HasPendingCleanup}">
         <StackPanel Spacing="8">
           <TextBlock FontWeight="SemiBold" Foreground="{DynamicResource AppText}" Text="{loc:Tr HistoryCleanupTitle}" />
           <TextBlock Classes="hint" Text="{Binding PendingCleanupSummary}" TextWrapping="Wrap" />
-          <StackPanel Orientation="Horizontal" Spacing="8">
-            <Button Content="{loc:Tr HistoryCleanupConfirm}" Command="{Binding ConfirmCleanupCommand}" />
-            <Button Content="{loc:Tr HistoryCleanupCancel}" Command="{Binding CancelCleanupCommand}" />
-          </StackPanel>
+          <WrapPanel Orientation="Horizontal">
+            <Button MinHeight="42" Margin="0,0,8,8" Content="{loc:Tr HistoryCleanupConfirm}" Command="{Binding ConfirmCleanupCommand}" />
+            <Button MinHeight="42" Margin="0,0,8,8" Content="{loc:Tr HistoryCleanupCancel}" Command="{Binding CancelCleanupCommand}" />
+          </WrapPanel>
         </StackPanel>
       </Border>
     </StackPanel>
@@ -163,19 +162,20 @@
                            TextTrimming="CharacterEllipsis"
                            ToolTip.Tip="{Binding TranscriptPath}" />
               </StackPanel>
-              <StackPanel Grid.Row="5"
-                          Grid.ColumnSpan="2"
-                          Margin="0,12,0,0"
-                          Orientation="Horizontal"
-                          Spacing="8">
-                <Button Content="{loc:Tr HistoryOpenTranscript}" Command="{Binding OpenTranscriptCommand}" />
-                <Button Content="{loc:Tr HistoryOpenFolder}" Command="{Binding OpenFolderCommand}" />
-                <Button Content="{loc:Tr HistoryCopyPath}" Command="{Binding CopyPathCommand}" />
-                <Button Content="{loc:Tr HistoryRemoveOnly}" Command="{Binding RemoveFromHistoryCommand}" />
-                <Button Content="{loc:Tr HistoryRemoveAndFile}"
+              <WrapPanel Grid.Row="5"
+                         Grid.ColumnSpan="2"
+                         Margin="0,12,0,0"
+                         Orientation="Horizontal">
+                <Button MinHeight="42" Margin="0,0,8,8" Content="{loc:Tr HistoryOpenTranscript}" Command="{Binding OpenTranscriptCommand}" />
+                <Button MinHeight="42" Margin="0,0,8,8" Content="{loc:Tr HistoryOpenFolder}" Command="{Binding OpenFolderCommand}" />
+                <Button MinHeight="42" Margin="0,0,8,8" Content="{loc:Tr HistoryCopyPath}" Command="{Binding CopyPathCommand}" />
+                <Button MinHeight="42" Margin="0,0,8,8" Content="{loc:Tr HistoryRemoveOnly}" Command="{Binding RemoveFromHistoryCommand}" />
+                <Button MinHeight="42"
+                        Margin="0,0,8,8"
+                        Content="{loc:Tr HistoryRemoveAndFile}"
                         Command="{Binding RemoveAndDeleteFileCommand}"
                         ToolTip.Tip="{Binding DeleteFileToolTip}" />
-              </StackPanel>
+              </WrapPanel>
               </Grid>
             </Grid>
           </Border>

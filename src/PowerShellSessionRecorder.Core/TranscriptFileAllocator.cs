@@ -58,6 +58,9 @@ public sealed class TranscriptFileAllocator
 
         try
         {
+            if (OperatingSystem.IsWindows() && WindowsPrivateMetadata.IsReparsePoint(path))
+                return;
+
             if (new FileInfo(path).Length == 0)
                 File.Delete(path);
         }
@@ -68,8 +71,15 @@ public sealed class TranscriptFileAllocator
 
     public static void RestrictToCurrentUser(string path)
     {
-        if (OperatingSystem.IsWindows() || string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+        if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
             return;
+
+        if (OperatingSystem.IsWindows())
+        {
+            if (!WindowsPrivateMetadata.IsReparsePoint(path))
+                WindowsPrivateMetadata.TryRestrictFile(path);
+            return;
+        }
 
         try
         {

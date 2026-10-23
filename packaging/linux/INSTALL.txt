@@ -1,0 +1,37 @@
+PowerShell Session Recorder — per-user Linux install
+Version: 0.1.0-beta.2
+
+This archive is a self-contained linux-x64 build. It does not need sudo and it
+does not change system directories. It was prepared for a desktop session on
+Ubuntu 24.04 LTS amd64. It was not tested on every Debian version or every
+desktop environment.
+
+Prerequisites:
+- Bash
+- GNU findutils
+- PowerShell 7 and GNOME Terminal, installed separately, to record a session
+
+Install:
+  tar -xzf powershell-session-recorder-0.1.0-beta.2-linux-x64.tar.gz
+  cd powershell-session-recorder-0.1.0-beta.2-linux-x64
+  ./install-user.sh
+
+Files are placed in ~/.local/opt/powershell-session-recorder.
+The desktop entry is ~/.local/share/applications/powershell-session-recorder-user.desktop.
+Its name is "PowerShell Session Recorder (per user)" so it is not the same
+launcher as a system-wide .deb. Its icon name is
+powershell-session-recorder-user under ~/.local/share/icons/hicolor.
+The installer does not replace /usr/bin/powershell-session-recorder.
+
+Upgrade by extracting the newer archive and running install-user.sh again.
+Settings, customers, history, and transcripts are left in their XDG locations.
+
+Remove:
+  ./uninstall-user.sh
+
+Uninstall deletes only files listed in this installation's manifest, plus that
+desktop entry. It does not remove settings.json, customers.json, history.json,
+or transcript files.
+
+The installer refuses symbolic links in the archive and at the destination.
+It does not follow symbolic links while copying or deleting.

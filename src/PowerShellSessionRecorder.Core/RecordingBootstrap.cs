@@ -10,7 +10,7 @@ public static class RecordingBootstrap
 
     public static string Script { get; } =
         """
-        #Requires -Version 7.0
+        #Requires -Version 5.1
         param(
             [Parameter(Mandatory = $true)]
             [string] $TranscriptPath,
@@ -19,7 +19,11 @@ public static class RecordingBootstrap
             [string] $BootstrapPath,
 
             [ValidateSet('en-US', 'pl-PL')]
-            [string] $Language = 'en-US'
+            [string] $Language = 'en-US',
+
+            [string] $WindowTitle = 'PowerShell Session Recorder',
+
+            [string] $WorkingDirectory = ''
         )
 
         $ErrorActionPreference = 'Stop'
@@ -66,9 +70,17 @@ public static class RecordingBootstrap
             Remove-Item -LiteralPath $BootstrapPath -Force -ErrorAction SilentlyContinue
         }
 
+        if (-not [string]::IsNullOrWhiteSpace($WorkingDirectory)) {
+            try { Set-Location -LiteralPath $WorkingDirectory } catch { }
+        }
+
+        if ($PSVersionTable.PSVersion.Major -lt 6 -or $IsWindows) {
+            try { $Host.UI.RawUI.WindowTitle = $WindowTitle } catch { }
+        }
+
         try {
             Start-Transcript -LiteralPath $TranscriptPath -Append -IncludeInvocationHeader | Out-Null
-            if (-not $IsWindows) {
+            if ($PSVersionTable.PSVersion.Major -ge 6 -and -not $IsWindows) {
                 [System.IO.File]::SetUnixFileMode(
                     $TranscriptPath,
                     [System.IO.UnixFileMode]::UserRead -bor [System.IO.UnixFileMode]::UserWrite)
@@ -132,6 +144,49 @@ public static class RecordingBootstrap
             "-BootstrapPath",
             bootstrapPath
         ];
+    }
+
+    public static IReadOnlyList<string> BuildWindowsArguments(
+        PowerShellVersion version,
+        string workingDirectory,
+        string bootstrapPath,
+        string transcriptPath,
+        string? language,
+        string windowTitle)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(workingDirectory);
+        ArgumentException.ThrowIfNullOrWhiteSpace(bootstrapPath);
+        ArgumentException.ThrowIfNullOrWhiteSpace(transcriptPath);
+        ArgumentException.ThrowIfNullOrWhiteSpace(windowTitle);
+
+        var arguments = new List<string>
+        {
+            "-NoLogo",
+            "-NoProfile",
+            "-NoExit",
+            "-ExecutionPolicy",
+            "Bypass"
+        };
+
+        if (version == PowerShellVersion.PowerShell7)
+        {
+            arguments.Add("-WorkingDirectory");
+            arguments.Add(workingDirectory);
+        }
+
+        arguments.Add("-File");
+        arguments.Add(bootstrapPath);
+        arguments.Add("-TranscriptPath");
+        arguments.Add(transcriptPath);
+        arguments.Add("-Language");
+        arguments.Add(NormalizeLanguage(language));
+        arguments.Add("-BootstrapPath");
+        arguments.Add(bootstrapPath);
+        arguments.Add("-WindowTitle");
+        arguments.Add(windowTitle);
+        arguments.Add("-WorkingDirectory");
+        arguments.Add(workingDirectory);
+        return arguments;
     }
 
     public static bool ContainsHeader(string? content)

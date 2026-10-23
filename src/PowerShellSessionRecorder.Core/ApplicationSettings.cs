@@ -28,6 +28,10 @@ public sealed class ApplicationSettings
 
     public bool CheckForUpdatesAutomatically { get; set; } = true;
 
+    public UpdateChannel UpdateChannel { get; set; } = UpdateChannel.Stable;
+
+    public UpdateChannel CachedUpdateChannel { get; set; } = UpdateChannel.Stable;
+
     public DateTimeOffset? LastUpdateCheckUtc { get; set; }
 
     public string LastKnownStableVersion { get; set; } = "";
@@ -77,6 +81,18 @@ public sealed class ApplicationSettings
         if (!Enum.IsDefined(Theme))
         {
             Theme = AppTheme.System;
+            changed = true;
+        }
+
+        if (!Enum.IsDefined(UpdateChannel))
+        {
+            UpdateChannel = UpdateChannel.Stable;
+            changed = true;
+        }
+
+        if (!Enum.IsDefined(CachedUpdateChannel))
+        {
+            CachedUpdateChannel = UpdateChannel;
             changed = true;
         }
 

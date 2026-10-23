@@ -12,32 +12,32 @@
 
         <StackPanel Spacing="4">
           <TextBlock Classes="label" Text="{loc:Tr FieldCustomerTag}" />
-          <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
-            <ComboBox ItemsSource="{Binding Customers.Choices}"
-                      SelectedItem="{Binding Customers.SelectedCustomer}"
-                      PlaceholderText="{loc:Tr CustomerSelectPlaceholder}"
-                      HorizontalAlignment="Stretch">
-              <ComboBox.ItemTemplate>
-                <DataTemplate x:DataType="vm:CustomerChoice">
-                  <TextBlock Text="{Binding Label}" />
-                </DataTemplate>
-              </ComboBox.ItemTemplate>
-            </ComboBox>
-            <Button Grid.Column="1"
-                    MinWidth="140"
+          <ComboBox ItemsSource="{Binding Customers.Choices}"
+                    SelectedItem="{Binding Customers.SelectedCustomer}"
+                    PlaceholderText="{loc:Tr CustomerSelectPlaceholder}"
+                    HorizontalAlignment="Stretch">
+            <ComboBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:CustomerChoice">
+                <TextBlock Text="{Binding Label}" TextWrapping="Wrap" />
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+          <WrapPanel Orientation="Horizontal" Margin="0,8,0,0">
+            <Button MinHeight="42"
+                    Margin="0,0,8,8"
                     Content="{loc:Tr CustomerAdd}"
                     Command="{Binding Customers.BeginAddCommand}" />
-            <Button Grid.Column="2"
-                    MinWidth="160"
+            <Button MinHeight="42"
+                    Margin="0,0,8,8"
                     Content="{loc:Tr CustomerManage}"
                     Command="{Binding Customers.ToggleManageCommand}"
                     IsVisible="{Binding !Customers.IsManaging}" />
-            <Button Grid.Column="2"
-                    MinWidth="160"
+            <Button MinHeight="42"
+                    Margin="0,0,8,8"
                     Content="{loc:Tr CustomerHide}"
                     Command="{Binding Customers.ToggleManageCommand}"
                     IsVisible="{Binding Customers.IsManaging}" />
-          </Grid>
+          </WrapPanel>
           <TextBlock Foreground="{DynamicResource AppText}"
                      Text="{Binding Customers.SelectedTagText}"
                      TextWrapping="Wrap" />
@@ -61,10 +61,10 @@
             <TextBox Text="{Binding Customers.NewDisplayName}" PlaceholderText="{loc:Tr CustomerDisplayNameHint}" />
             <TextBlock Classes="hint" Text="{loc:Tr CustomerDisplayNameHint}" TextWrapping="Wrap" />
             <TextBlock Classes="error" Text="{Binding Customers.FormError}" IsVisible="{Binding Customers.HasFormError}" />
-            <StackPanel Orientation="Horizontal" Spacing="8">
-              <Button Content="{loc:Tr CustomerSave}" Command="{Binding Customers.SaveNewCommand}" />
-              <Button Content="{loc:Tr CustomerCancel}" Command="{Binding Customers.CancelAddCommand}" />
-            </StackPanel>
+            <WrapPanel Orientation="Horizontal">
+              <Button MinHeight="42" Margin="0,0,8,8" Content="{loc:Tr CustomerSave}" Command="{Binding Customers.SaveNewCommand}" />
+              <Button MinHeight="42" Margin="0,0,8,8" Content="{loc:Tr CustomerCancel}" Command="{Binding Customers.CancelAddCommand}" />
+            </WrapPanel>
           </StackPanel>
         </Border>
 
@@ -83,11 +83,13 @@
             <ItemsControl ItemsSource="{Binding Customers.VisibleCustomers}" IsVisible="{Binding Customers.ShowCustomerList}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:CustomerChoice">
-                  <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" Margin="0,0,0,8">
+                  <StackPanel Margin="0,0,0,8" Spacing="8">
                     <TextBlock VerticalAlignment="Center" Foreground="{DynamicResource AppText}" Text="{Binding Label}" TextWrapping="Wrap" />
-                    <Button Grid.Column="1" Content="{loc:Tr CustomerEdit}" Command="{Binding EditCommand}" />
-                    <Button Grid.Column="2" Content="{loc:Tr CustomerRemove}" Command="{Binding RemoveCommand}" />
-                  </Grid>
+                    <WrapPanel Orientation="Horizontal">
+                      <Button MinHeight="42" Margin="0,0,8,8" Content="{loc:Tr CustomerEdit}" Command="{Binding EditCommand}" />
+                      <Button MinHeight="42" Margin="0,0,8,8" Content="{loc:Tr CustomerRemove}" Command="{Binding RemoveCommand}" />
+                    </WrapPanel>
+                  </StackPanel>
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>
@@ -99,20 +101,20 @@
                 <TextBox Text="{Binding Customers.EditDisplayName}" />
                 <TextBlock Classes="hint" Text="{loc:Tr CustomerDisplayNameHint}" TextWrapping="Wrap" />
                 <TextBlock Classes="error" Text="{Binding Customers.FormError}" IsVisible="{Binding Customers.HasFormError}" />
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                  <Button Content="{loc:Tr CustomerSave}" Command="{Binding Customers.SaveEditCommand}" />
-                  <Button Content="{loc:Tr CustomerCancel}" Command="{Binding Customers.CancelEditCommand}" />
-                </StackPanel>
+                <WrapPanel Orientation="Horizontal">
+                  <Button MinHeight="42" Margin="0,0,8,8" Content="{loc:Tr CustomerSave}" Command="{Binding Customers.SaveEditCommand}" />
+                  <Button MinHeight="42" Margin="0,0,8,8" Content="{loc:Tr CustomerCancel}" Command="{Binding Customers.CancelEditCommand}" />
+                </WrapPanel>
               </StackPanel>
             </Border>
             <Border IsVisible="{Binding Customers.HasPendingRemoval}">
               <StackPanel Spacing="8">
                 <TextBlock FontWeight="SemiBold" Foreground="{DynamicResource AppText}" Text="{loc:Tr CustomerRemoveTitle}" />
                 <TextBlock Classes="hint" Text="{Binding Customers.PendingRemovalBody}" TextWrapping="Wrap" />
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                  <Button Content="{loc:Tr CustomerConfirmRemove}" Command="{Binding Customers.ConfirmRemoveCommand}" />
-                  <Button Content="{loc:Tr CustomerCancel}" Command="{Binding Customers.CancelRemoveCommand}" />
-                </StackPanel>
+                <WrapPanel Orientation="Horizontal">
+                  <Button MinHeight="42" Margin="0,0,8,8" Content="{loc:Tr CustomerConfirmRemove}" Command="{Binding Customers.ConfirmRemoveCommand}" />
+                  <Button MinHeight="42" Margin="0,0,8,8" Content="{loc:Tr CustomerCancel}" Command="{Binding Customers.CancelRemoveCommand}" />
+                </WrapPanel>
               </StackPanel>
             </Border>
           </StackPanel>
@@ -129,21 +131,20 @@
 
         <StackPanel Spacing="4">
           <TextBlock Classes="label" Text="{loc:Tr FieldLogDirectory}" />
-          <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-            <TextBox Grid.Column="0"
-                     Text="{Binding LogDirectory, Mode=TwoWay}"
-                     PlaceholderText="{loc:Tr TooltipBrowse}" />
-            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
-              <Button MinWidth="120"
-                      Content="{loc:Tr ButtonBrowse}"
-                      Command="{Binding BrowseLogDirectoryCommand}"
-                      ToolTip.Tip="{loc:Tr TooltipBrowse}" />
-              <Button MinWidth="120"
-                      Content="{loc:Tr NavOpenLogFolder}"
-                      Command="{Binding OpenLogFolderCommand}"
-                      ToolTip.Tip="{loc:Tr TooltipOpenLogFolder}" />
-            </StackPanel>
-          </Grid>
+          <TextBox Text="{Binding LogDirectory, Mode=TwoWay}"
+                   PlaceholderText="{loc:Tr TooltipBrowse}" />
+          <WrapPanel Orientation="Horizontal" Margin="0,8,0,0">
+            <Button MinHeight="42"
+                    Margin="0,0,8,8"
+                    Content="{loc:Tr ButtonBrowse}"
+                    Command="{Binding BrowseLogDirectoryCommand}"
+                    ToolTip.Tip="{loc:Tr TooltipBrowse}" />
+            <Button MinHeight="42"
+                    Margin="0,0,8,8"
+                    Content="{loc:Tr NavOpenLogFolder}"
+                    Command="{Binding OpenLogFolderCommand}"
+                    ToolTip.Tip="{loc:Tr TooltipOpenLogFolder}" />
+          </WrapPanel>
           <TextBlock Classes="error"
                      Text="{Binding LogDirectoryError}"
                      IsVisible="{Binding HasLogDirectoryError}" />
@@ -166,9 +167,12 @@
           <TextBlock Classes="hint"
                      Text="{loc:Tr WindowsPowerShell51Note}"
                      IsVisible="{Binding ShowWindowsPowerShellNote}" />
+          <TextBlock Classes="hint"
+                     Text="{Binding SelectedEngineMissingText}"
+                     IsVisible="{Binding ShowSelectedEngineMissing}" />
         </StackPanel>
 
-        <StackPanel Spacing="4">
+        <StackPanel Spacing="4" IsVisible="{Binding ShowElevationOption}">
           <CheckBox IsChecked="{Binding RunAsAdministrator, Mode=TwoWay}"
                     Content="{loc:Tr FieldRunAsAdministrator}"
                     ToolTip.Tip="{loc:Tr TooltipRunAsAdministrator}" />
@@ -193,18 +197,18 @@
     <Border Classes="card">
       <StackPanel Spacing="12">
         <TextBlock Classes="section" Text="{loc:Tr SectionPreview}" />
-        <Grid ColumnDefinitions="220,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="8">
-          <TextBlock Grid.Row="0" Grid.Column="0" Classes="preview-label" Text="{loc:Tr PreviewCustomerTag}" />
-          <TextBlock Grid.Row="0" Grid.Column="1" Classes="preview-value" Text="{Binding PreviewCustomerTag}" />
-          <TextBlock Grid.Row="1" Grid.Column="0" Classes="preview-label" Text="{loc:Tr PreviewSessionName}" />
-          <TextBlock Grid.Row="1" Grid.Column="1" Classes="preview-value" Text="{Binding PreviewSessionName}" />
-          <TextBlock Grid.Row="2" Grid.Column="0" Classes="preview-label" Text="{loc:Tr PreviewPowerShellVersion}" />
-          <TextBlock Grid.Row="2" Grid.Column="1" Classes="preview-value" Text="{Binding PreviewPowerShellVersion}" />
-          <TextBlock Grid.Row="3" Grid.Column="0" Classes="preview-label" Text="{loc:Tr PreviewPrivilegeMode}" />
-          <TextBlock Grid.Row="3" Grid.Column="1" Classes="preview-value" Text="{Binding PreviewPrivilege}" />
-          <TextBlock Grid.Row="4" Grid.Column="0" Classes="preview-label" Text="{loc:Tr PreviewLogDirectory}" />
-          <TextBlock Grid.Row="4" Grid.Column="1" Classes="preview-value" Text="{Binding PreviewLogDirectory}" />
-          <TextBlock Grid.Row="5" Grid.Column="0" Classes="preview-label" Text="{loc:Tr PreviewFileName}" />
+        <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="8">
+          <TextBlock Grid.Row="0" Grid.Column="0" MaxWidth="220" Classes="preview-label" Text="{loc:Tr PreviewCustomerTag}" TextWrapping="Wrap" />
+          <TextBlock Grid.Row="0" Grid.Column="1" Classes="preview-value" Text="{Binding PreviewCustomerTag}" TextWrapping="Wrap" />
+          <TextBlock Grid.Row="1" Grid.Column="0" MaxWidth="220" Classes="preview-label" Text="{loc:Tr PreviewSessionName}" TextWrapping="Wrap" />
+          <TextBlock Grid.Row="1" Grid.Column="1" Classes="preview-value" Text="{Binding PreviewSessionName}" TextWrapping="Wrap" />
+          <TextBlock Grid.Row="2" Grid.Column="0" MaxWidth="220" Classes="preview-label" Text="{loc:Tr PreviewPowerShellVersion}" TextWrapping="Wrap" />
+          <TextBlock Grid.Row="2" Grid.Column="1" Classes="preview-value" Text="{Binding PreviewPowerShellVersion}" TextWrapping="Wrap" />
+          <TextBlock Grid.Row="3" Grid.Column="0" MaxWidth="220" Classes="preview-label" Text="{loc:Tr PreviewPrivilegeMode}" TextWrapping="Wrap" />
+          <TextBlock Grid.Row="3" Grid.Column="1" Classes="preview-value" Text="{Binding PreviewPrivilege}" TextWrapping="Wrap" />
+          <TextBlock Grid.Row="4" Grid.Column="0" MaxWidth="220" Classes="preview-label" Text="{loc:Tr PreviewLogDirectory}" TextWrapping="Wrap" />
+          <TextBlock Grid.Row="4" Grid.Column="1" Classes="preview-value" Text="{Binding PreviewLogDirectory}" TextWrapping="Wrap" />
+          <TextBlock Grid.Row="5" Grid.Column="0" MaxWidth="220" Classes="preview-label" Text="{loc:Tr PreviewFileName}" TextWrapping="Wrap" />
           <TextBox Grid.Row="5"
                    Grid.Column="1"
                    Text="{Binding ProposedFileName}"

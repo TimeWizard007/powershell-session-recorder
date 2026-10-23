@@ -77,6 +77,17 @@ public partial class SessionSetupViewModel : ViewModelBase
 
     public bool ShowWindowsPowerShellNote => !OperatingSystem.IsWindows();
 
+    public bool ShowElevationOption => OperatingSystem.IsWindows();
+
+    public bool ShowSelectedEngineMissing =>
+        OperatingSystem.IsWindows()
+        && _recordingService is not null
+        && !SelectedEngineAvailable;
+
+    public string SelectedEngineMissingText => SelectedPowerShellVersion == PowerShellVersion.WindowsPowerShell51
+        ? _localization.Get(L.ReasonWindowsPowerShellMissing)
+        : _localization.Get(L.ReasonPowerShellMissing);
+
     public bool HasRecentTags => RecentCustomerTags.Count > 0;
 
     [ObservableProperty]
@@ -139,22 +150,20 @@ public partial class SessionSetupViewModel : ViewModelBase
 
     public bool CanStartSession =>
         _recordingService is not null
-        && !RunAsAdministrator
-        && SelectedPowerShellVersion == PowerShellVersion.PowerShell7
-        && !string.IsNullOrWhiteSpace(LogDirectory)
-        && !HasLogDirectoryError
-        && CurrentValidation().IsValid
-        && _recordingService.Capabilities is
-        {
-            PlatformSupported: true,
-            PowerShell7Available: true,
-            TerminalAvailable: true
-        };
+        && SessionStartPolicy.CanStart(
+            OperatingSystem.IsWindows(),
+            _recordingService.Capabilities,
+            SelectedPowerShellVersion,
+            RunAsAdministrator,
+            CurrentValidation().IsValid,
+            !string.IsNullOrWhiteSpace(LogDirectory),
+            HasLogDirectoryError);
 
     public bool ShowDependencyNotice =>
         ShowUnsupportedPlatform || ShowPowerShellMissing || ShowTerminalMissing;
 
-    public bool ShowPowerShellMissing => _recordingService?.Capabilities.PowerShell7Available == false;
+    public bool ShowPowerShellMissing =>
+        _recordingService?.Capabilities is { PowerShell7Available: false, WindowsPowerShellAvailable: false };
 
     public bool ShowTerminalMissing =>
         _recordingService?.Capabilities is { PlatformSupported: true, TerminalAvailable: false };
@@ -176,15 +185,19 @@ public partial class SessionSetupViewModel : ViewModelBase
             var capabilities = _recordingService.Capabilities;
             if (!capabilities.PlatformSupported)
                 return _localization.Get(L.DependencyUnsupportedPlatform);
-            if (!capabilities.PowerShell7Available && !capabilities.TerminalAvailable)
+            if (!OperatingSystem.IsWindows() && !capabilities.PowerShell7Available && !capabilities.TerminalAvailable)
                 return _localization.Get(L.ReasonPowerShellMissing) + " " + _localization.Get(L.ReasonTerminalMissing);
-            if (!capabilities.PowerShell7Available)
+            if (!OperatingSystem.IsWindows() && !capabilities.PowerShell7Available)
                 return _localization.Get(L.ReasonPowerShellMissing);
-            if (!capabilities.TerminalAvailable)
+            if (!OperatingSystem.IsWindows() && !capabilities.TerminalAvailable)
                 return _localization.Get(L.ReasonTerminalMissing);
-            if (RunAsAdministrator)
+            if (OperatingSystem.IsWindows() && !SelectedEngineAvailable)
+                return SelectedEngineMissingText;
+            if (!OperatingSystem.IsWindows() && RunAsAdministrator)
                 return _localization.Get(L.ReasonElevationUnavailable);
-            if (SelectedPowerShellVersion != PowerShellVersion.PowerShell7)
+            if (OperatingSystem.IsWindows() && RunAsAdministrator && !capabilities.ElevationAvailable)
+                return _localization.Get(L.ReasonElevationUnavailable);
+            if (!OperatingSystem.IsWindows() && SelectedPowerShellVersion != PowerShellVersion.PowerShell7)
                 return _localization.Get(L.ReasonWindowsPowerShellUnsupported);
             if (string.IsNullOrWhiteSpace(LogDirectory))
                 return _localization.Get(L.ValidationLogDirectoryRequired);
@@ -193,7 +206,26 @@ public partial class SessionSetupViewModel : ViewModelBase
             if (!CurrentValidation().IsValid)
                 return _localization.Get(L.ReasonConfigurationInvalid);
 
-            return _localization.Get(L.StartSessionReadyHint);
+            return _localization.Get(OperatingSystem.IsWindows()
+                ? L.StartSessionReadyHintWindows
+                : L.StartSessionReadyHint);
+        }
+    }
+
+    private bool SelectedEngineAvailable
+    {
+        get
+        {
+            var capabilities = _recordingService?.Capabilities;
+            if (capabilities is null)
+                return false;
+
+            return SelectedPowerShellVersion switch
+            {
+                PowerShellVersion.PowerShell7 => capabilities.PowerShell7Available,
+                PowerShellVersion.WindowsPowerShell51 => capabilities.WindowsPowerShellAvailable,
+                _ => false
+            };
         }
     }
 
@@ -208,7 +240,11 @@ public partial class SessionSetupViewModel : ViewModelBase
         SelectedPowerShellChoice?.DisplayName ?? _localization.Get(L.PowerShell7);
 
     public string PreviewPrivilege => _localization.Get(
-        RunAsAdministrator ? L.PrivilegeAdministrator : L.PrivilegeStandard);
+        !RunAsAdministrator
+            ? L.PrivilegeStandard
+            : OperatingSystem.IsWindows()
+                ? L.PrivilegeAdministratorRequested
+                : L.PrivilegeAdministrator);
 
     public string PreviewLogDirectory => DisplayOrNotSelected(LogDirectory);
 
@@ -397,6 +433,8 @@ public partial class SessionSetupViewModel : ViewModelBase
         OnPropertyChanged(nameof(LogDirectoryError));
         OnPropertyChanged(nameof(HasLogDirectoryHint));
         OnPropertyChanged(nameof(LogDirectoryHint));
+        OnPropertyChanged(nameof(ShowSelectedEngineMissing));
+        OnPropertyChanged(nameof(SelectedEngineMissingText));
         OnPropertyChanged(nameof(CanStartSession));
         OnPropertyChanged(nameof(StartSessionHint));
         OnPropertyChanged(nameof(StartSessionTooltip));
@@ -500,8 +538,12 @@ public partial class SessionSetupViewModel : ViewModelBase
     private string Describe(SessionRecordingResult result)
         => result.Status switch
         {
-            SessionRecordingStatus.Started => _localization.Get(L.StatusRecordingStarted)
+            SessionRecordingStatus.Started => _localization.Get(
+                    RunAsAdministrator && OperatingSystem.IsWindows()
+                        ? L.StatusRecordingStartedElevated
+                        : L.StatusRecordingStarted)
                 .Replace("{0}", result.TranscriptPath ?? "", StringComparison.Ordinal),
+            SessionRecordingStatus.ElevationCancelled => _localization.Get(L.StatusElevationCancelled),
             SessionRecordingStatus.Unconfirmed => _localization.Get(L.StatusRecordingUnconfirmed),
             SessionRecordingStatus.DirectoryFailed => _localization.Get(L.StatusDirectoryCreateFailed),
             SessionRecordingStatus.AllocationFailed => _localization.Get(L.StatusTranscriptAllocationFailed),

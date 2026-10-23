@@ -29,6 +29,12 @@ public static class UnixPrivateMetadata
     public static void PrepareOwnerDirectory(string directory)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(directory);
+        if (OperatingSystem.IsWindows())
+        {
+            WindowsPrivateMetadata.PrepareOwnerDirectory(directory);
+            return;
+        }
+
         if (IsSymbolicLink(directory))
             throw new IOException("Refusing to use a symlinked configuration directory.");
 
@@ -41,6 +47,14 @@ public static class UnixPrivateMetadata
 
     public static void RejectSymbolicLink(string path)
     {
+        if (OperatingSystem.IsWindows())
+        {
+            if (WindowsPrivateMetadata.IsReparsePoint(path))
+                throw new IOException("Refusing to follow a reparse point.");
+
+            return;
+        }
+
         if (IsSymbolicLink(path))
             throw new IOException("Refusing to follow a symlink.");
     }
@@ -64,7 +78,10 @@ public static class UnixPrivateMetadata
     public static void TryRestrictRegularFile(string path)
     {
         if (OperatingSystem.IsWindows())
+        {
+            WindowsPrivateMetadata.TryRestrictFile(path);
             return;
+        }
 
         RejectSymbolicLink(path);
         try

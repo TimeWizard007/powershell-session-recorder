@@ -16,7 +16,7 @@ public static class AppDataPaths
             platform,
             Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
             Environment.GetEnvironmentVariable("XDG_CONFIG_HOME"),
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData));
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
     }
 
     public static string GetLocalizationDirectory()

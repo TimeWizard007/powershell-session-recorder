@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  linux:
+    name: Ubuntu build and tests
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out the pull request or main commit
+        uses: actions/checkout@v4
+
+      - name: Install the .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Debug build
+        run: dotnet build -c Debug --nologo
+
+      - name: Debug tests
+        run: dotnet test -c Debug --no-build --nologo
+
+      - name: Release build
+        run: dotnet build -c Release --nologo
+
+      - name: Release tests
+        run: dotnet test -c Release --no-build --nologo
+
+  windows:
+    name: Windows build and tests
+    runs-on: windows-2022
+    steps:
+      - name: Check out the pull request or main commit
+        uses: actions/checkout@v4
+
+      - name: Install the .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Debug build
+        run: dotnet build -c Debug --nologo
+
+      - name: Debug tests
+        run: dotnet test -c Debug --no-build --nologo
+
+      - name: Release build
+        run: dotnet build -c Release --nologo
+
+      - name: Release tests
+        run: dotnet test -c Release --no-build --nologo

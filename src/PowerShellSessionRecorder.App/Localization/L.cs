@@ -54,6 +54,11 @@ public static class L
     public const string PreviewNotSelected = "PreviewNotSelected";
     public const string PreviewFilenameNote = "PreviewFilenameNote";
     public const string ReasonElevationUnavailable = "ReasonElevationUnavailable";
+    public const string ReasonWindowsPowerShellMissing = "ReasonWindowsPowerShellMissing";
+    public const string PrivilegeAdministratorRequested = "PrivilegeAdministratorRequested";
+    public const string StartSessionReadyHintWindows = "StartSessionReadyHintWindows";
+    public const string StatusElevationCancelled = "StatusElevationCancelled";
+    public const string StatusRecordingStartedElevated = "StatusRecordingStartedElevated";
     public const string ReasonWindowsPowerShellUnsupported = "ReasonWindowsPowerShellUnsupported";
     public const string ReasonRecordingRuntimeUnavailable = "ReasonRecordingRuntimeUnavailable";
     public const string ReasonPowerShellMissing = "ReasonPowerShellMissing";
@@ -143,6 +148,14 @@ public static class L
     public const string SectionUpdates = "SectionUpdates";
     public const string UpdatesAutomatic = "UpdatesAutomatic";
     public const string UpdatesAutomaticHelp = "UpdatesAutomaticHelp";
+    public const string UpdatesChannel = "UpdatesChannel";
+    public const string UpdatesChannelHelp = "UpdatesChannelHelp";
+    public const string UpdatesChannelStable = "UpdatesChannelStable";
+    public const string UpdatesChannelBeta = "UpdatesChannelBeta";
+    public const string UpdatesLatestVersionBeta = "UpdatesLatestVersionBeta";
+    public const string UpdatesAvailableVersion = "UpdatesAvailableVersion";
+    public const string UpdatesAvailableNone = "UpdatesAvailableNone";
+    public const string UpdatesAvailableStatusBeta = "UpdatesAvailableStatusBeta";
     public const string UpdatesCheckNow = "UpdatesCheckNow";
     public const string UpdatesChecking = "UpdatesChecking";
     public const string UpdatesCurrentVersion = "UpdatesCurrentVersion";

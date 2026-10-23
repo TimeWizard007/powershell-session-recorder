@@ -14,23 +14,25 @@
           <TextBlock Classes="label" Text="{loc:Tr SettingsLanguage}" />
           <ComboBox ItemsSource="{Binding Languages}"
                     SelectedItem="{Binding SelectedLanguage, Mode=TwoWay}"
-                    MinWidth="240"
-                    HorizontalAlignment="Left">
+                    MinWidth="160"
+                    MaxWidth="360"
+                    HorizontalAlignment="Stretch">
             <ComboBox.ItemTemplate>
               <DataTemplate x:DataType="vm:LanguageOption">
                 <TextBlock Text="{Binding DisplayName}" />
               </DataTemplate>
             </ComboBox.ItemTemplate>
           </ComboBox>
-          <TextBlock Classes="hint" Text="{loc:Tr SettingsLanguageHelp}" />
+          <TextBlock Classes="hint" Text="{loc:Tr SettingsLanguageHelp}" TextWrapping="Wrap" />
         </StackPanel>
 
         <StackPanel Spacing="4">
           <TextBlock Classes="label" Text="{loc:Tr SettingsTheme}" />
           <ComboBox ItemsSource="{Binding Themes}"
                     SelectedItem="{Binding SelectedTheme, Mode=TwoWay}"
-                    MinWidth="240"
-                    HorizontalAlignment="Left">
+                    MinWidth="160"
+                    MaxWidth="360"
+                    HorizontalAlignment="Stretch">
             <ComboBox.ItemTemplate>
               <DataTemplate x:DataType="vm:ThemeOption">
                 <TextBlock Text="{Binding DisplayName}" />
@@ -60,13 +62,36 @@
     <Border Classes="card">
       <StackPanel Spacing="16">
         <TextBlock Classes="section" Text="{loc:Tr SectionUpdates}" />
+        <StackPanel Spacing="4">
+          <TextBlock Classes="label" Text="{loc:Tr UpdatesChannel}" />
+          <ComboBox ItemsSource="{Binding Updates.Channels}"
+                    SelectedItem="{Binding Updates.SelectedChannel, Mode=TwoWay}"
+                    MinWidth="160"
+                    MaxWidth="360"
+                    HorizontalAlignment="Stretch">
+            <ComboBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:UpdateChannelOption">
+                <TextBlock Text="{Binding DisplayName}" />
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+          <TextBlock Classes="hint" Text="{loc:Tr UpdatesChannelHelp}" TextWrapping="Wrap" />
+        </StackPanel>
         <CheckBox IsChecked="{Binding Updates.CheckForUpdatesAutomatically, Mode=TwoWay}"
                   Content="{loc:Tr UpdatesAutomatic}" />
-        <TextBlock Classes="hint" Text="{loc:Tr UpdatesAutomaticHelp}" />
+        <TextBlock Classes="hint" Text="{loc:Tr UpdatesAutomaticHelp}" TextWrapping="Wrap" />
 
-        <Button HorizontalAlignment="Left"
-                Content="{loc:Tr UpdatesCheckNow}"
-                Command="{Binding Updates.CheckForUpdatesNowCommand}" />
+        <WrapPanel Orientation="Horizontal">
+          <Button MinHeight="42"
+                  Margin="0,0,8,8"
+                  Content="{loc:Tr UpdatesCheckNow}"
+                  Command="{Binding Updates.CheckForUpdatesNowCommand}" />
+          <Button MinHeight="42"
+                  Margin="0,0,8,8"
+                  Content="{loc:Tr UpdateNoticeViewRelease}"
+                  Command="{Binding Updates.ViewReleaseCommand}"
+                  IsVisible="{Binding Updates.CanOpenReleasePage}" />
+        </WrapPanel>
         <TextBlock Classes="hint"
                    Text="{Binding Updates.UpdateCheckMessage}"
                    IsVisible="{Binding Updates.HasUpdateCheckMessage}" />
@@ -76,8 +101,12 @@
           <TextBlock Foreground="{DynamicResource AppText}" Text="{Binding Updates.CurrentVersion}" />
         </StackPanel>
         <StackPanel Spacing="4">
-          <TextBlock Classes="label" Text="{loc:Tr UpdatesLatestVersion}" />
+          <TextBlock Classes="label" Text="{Binding Updates.LatestVersionLabel}" TextWrapping="Wrap" />
           <TextBlock Foreground="{DynamicResource AppText}" Text="{Binding Updates.LatestVersionText}" TextWrapping="Wrap" />
+        </StackPanel>
+        <StackPanel Spacing="4">
+          <TextBlock Classes="label" Text="{loc:Tr UpdatesAvailableVersion}" />
+          <TextBlock Foreground="{DynamicResource AppText}" Text="{Binding Updates.AvailableVersionText}" TextWrapping="Wrap" />
         </StackPanel>
         <StackPanel Spacing="4">
           <TextBlock Classes="label" Text="{loc:Tr UpdatesLastCheck}" />

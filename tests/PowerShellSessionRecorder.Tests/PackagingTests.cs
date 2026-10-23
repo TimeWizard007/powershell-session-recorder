@@ -27,8 +27,8 @@ public class PackagingTests
             .Single()
             .Value;
 
-        Assert.Equal("0.1.0-beta.1", informational);
-        Assert.Equal("0.1.0~beta.1-1", DebianPackageVersion.FromInformational(informational));
+        Assert.Equal("0.1.0-beta.2", informational);
+        Assert.Equal("0.1.0~beta.2-1", DebianPackageVersion.FromInformational(informational));
         var assemblyVersion = typeof(ProductVersion).Assembly
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
             ?.InformationalVersion
@@ -113,6 +113,7 @@ public class PackagingTests
     [InlineData(64)]
     [InlineData(128)]
     [InlineData(256)]
+    [InlineData(512)]
     public void HicolorIcons_UseTheExpectedSize(int size)
     {
         var path = Path.Combine(
@@ -123,7 +124,7 @@ public class PackagingTests
             "powershell-session-recorder.png");
 
         Assert.Equal(size, PngWidth(path));
-        Assert.True(File.Exists(Path.Combine(
+        Assert.False(File.Exists(Path.Combine(
             RepositoryRoot(),
             "packaging/ubuntu/icons/hicolor/scalable/apps/powershell-session-recorder.svg")));
     }

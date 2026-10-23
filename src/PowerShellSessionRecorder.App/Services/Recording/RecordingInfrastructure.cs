@@ -148,15 +148,21 @@ public sealed class FileTranscriptWatcher : ITranscriptWatcher
 
 public sealed class BootstrapFileStore
 {
-    private static readonly UTF8Encoding Utf8 = new(encoderShouldEmitUTF8Identifier: false);
+    private static readonly UTF8Encoding Utf8WithoutBom = new(encoderShouldEmitUTF8Identifier: false);
 
-    public BootstrapFileStore(string directory)
+    private readonly Encoding _encoding;
+
+    public BootstrapFileStore(string directory, bool? emitUtf8Bom = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(directory);
         DirectoryPath = directory;
+        _encoding = CreateEncoding(emitUtf8Bom ?? OperatingSystem.IsWindows());
     }
 
     public string DirectoryPath { get; }
+
+    public static Encoding CreateEncoding(bool emitUtf8Bom)
+        => emitUtf8Bom ? new UTF8Encoding(encoderShouldEmitUTF8Identifier: true) : Utf8WithoutBom;
 
     public string WriteScript()
     {
@@ -166,7 +172,7 @@ public sealed class BootstrapFileStore
 
         var path = Path.Combine(DirectoryPath, "session-" + Guid.NewGuid().ToString("N") + ".ps1");
         var temporary = path + ".tmp";
-        File.WriteAllText(temporary, RecordingBootstrap.Script, Utf8);
+        File.WriteAllText(temporary, RecordingBootstrap.Script, _encoding);
         TryRestrictFile(temporary);
         File.Move(temporary, path, overwrite: true);
         return path;
@@ -223,6 +229,13 @@ public static class BootstrapPaths
 {
     public static string GetDirectory()
     {
+        if (OperatingSystem.IsWindows())
+        {
+            var local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            if (!string.IsNullOrWhiteSpace(local))
+                return Path.Combine(local, "PowerShellSessionRecorder", "bootstrap");
+        }
+
         var runtime = Environment.GetEnvironmentVariable("XDG_RUNTIME_DIR");
         if (!string.IsNullOrWhiteSpace(runtime))
             return Path.Combine(runtime.Trim(), "powershell-session-recorder");

@@ -30,7 +30,9 @@ public sealed class UpdateCheckCoordinator
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(settings);
-        if (!manual && !UpdateCheckSchedule.AutomaticCheckIsDue(settings.LastUpdateCheckUtc, _utcNow()))
+        var channel = settings.UpdateChannel;
+        var cacheMatches = settings.CachedUpdateChannel == channel;
+        if (!manual && cacheMatches && !UpdateCheckSchedule.AutomaticCheckIsDue(settings.LastUpdateCheckUtc, _utcNow()))
         {
             return new UpdateCheckOutcome(
                 UpdateCheckKind.NotDue,
@@ -42,7 +44,7 @@ public sealed class UpdateCheckCoordinator
         GitHubFetchResult fetch;
         try
         {
-            fetch = await _source.GetLatestAsync(cancellationToken).ConfigureAwait(false);
+            fetch = await _source.GetLatestAsync(channel, cancellationToken).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -57,8 +59,8 @@ public sealed class UpdateCheckCoordinator
             return new UpdateCheckOutcome(UpdateCheckKind.Offline, _currentVersion, null, null);
         }
 
-        var outcome = UpdateCheckOutcome.Interpret(_currentVersion, fetch);
-        UpdateCheckOutcome.Remember(settings, outcome, _utcNow());
+        var outcome = UpdateCheckOutcome.Interpret(_currentVersion, fetch, channel);
+        UpdateCheckOutcome.Remember(settings, outcome, _utcNow(), channel);
         return outcome;
     }
 }

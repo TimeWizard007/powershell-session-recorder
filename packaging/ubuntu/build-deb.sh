@@ -28,11 +28,17 @@ publish="$stage/publish"
 pkg="$stage/pkg"
 mkdir -p "$publish" "$pkg"
 
+revision_args=""
+if [ -n "${SOURCE_REVISION_ID:-}" ]; then
+  revision_args="-p:SourceRevisionId=${SOURCE_REVISION_ID} -p:ContinuousIntegrationBuild=true"
+fi
+# shellcheck disable=SC2086
 dotnet publish "$csproj" \
   -c Release \
   -r linux-x64 \
   --self-contained true \
-  -o "$publish"
+  -o "$publish" \
+  $revision_args
 
 mkdir -p \
   "$pkg/opt/powershell-session-recorder" \
@@ -44,6 +50,8 @@ mkdir -p \
 
 cp -a "$publish/." "$pkg/opt/powershell-session-recorder/"
 rm -f "$pkg/opt/powershell-session-recorder/"*.pdb
+. "$root/packaging/reject-user-data.sh"
+reject_user_data "$pkg/opt/powershell-session-recorder"
 ln -s /opt/powershell-session-recorder/PowerShellSessionRecorder \
   "$pkg/usr/bin/powershell-session-recorder"
 cp "$root/packaging/ubuntu/powershell-session-recorder.desktop" \
@@ -80,6 +88,21 @@ EOF
   find . -type f ! -path './DEBIAN/*' -print0 | sort -z | xargs -0 md5sum > DEBIAN/md5sums
 )
 chmod 644 "$pkg/DEBIAN/control" "$pkg/DEBIAN/md5sums"
+cat > "$pkg/DEBIAN/postinst" <<'EOF'
+#!/bin/sh
+set -e
+if command -v gtk-update-icon-cache >/dev/null 2>&1; then
+  gtk-update-icon-cache -f -t /usr/share/icons/hicolor || true
+fi
+EOF
+cat > "$pkg/DEBIAN/postrm" <<'EOF'
+#!/bin/sh
+set -e
+if command -v gtk-update-icon-cache >/dev/null 2>&1; then
+  gtk-update-icon-cache -f -t /usr/share/icons/hicolor || true
+fi
+EOF
+chmod 755 "$pkg/DEBIAN/postinst" "$pkg/DEBIAN/postrm"
 
 mkdir -p "$root/artifacts"
 dpkg-deb --root-owner-group --build "$pkg" "$root/artifacts/$filename"

@@ -5,7 +5,7 @@
              x:Class="PowerShellSessionRecorder.App.Views.AboutView"
              x:DataType="vm:MainWindowViewModel"
              x:CompileBindings="True">
-  <Border Classes="card" MaxWidth="760" HorizontalAlignment="Left">
+  <Border Classes="card" MaxWidth="760" HorizontalAlignment="Stretch">
     <StackPanel Spacing="16">
       <TextBlock Classes="section" Text="{loc:Tr SectionAbout}" />
       <TextBlock FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource AppText}" Text="{loc:Tr AppTitle}" />

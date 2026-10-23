@@ -8,7 +8,7 @@ Aplikacja nie wymaga serwera zaplecza, serwera bazy danych, konta w chmurze ani 
 
 ## Stan projektu
 
-**Beta Ubuntu 0.1.0-beta.1.** Przycisk Uruchom sesję otwiera niezależny GNOME Terminal z programem `pwsh` i już działającym `Start-Transcript`. Potwierdzona sesja może pojawić się w Historii. Zapisany TAG klienta jest wybierany przed rozpoczęciem rejestrowania. Z tej kopii repozytorium można zbudować pakiet `.deb` dla Ubuntu 24.04 amd64. Strona O programie i sprawdzanie aktualizacji podają wersję `0.1.0-beta.1`. Sprawdzanie szuka tylko nowszego stabilnego wydania GitHub, więc ta beta i kolejne bety nie są proponowane jako aktualizacja. Nic nie jest pobierane ani instalowane. Wersja 1.0.0 nie została wydana. Szczegóły zawierają [informacje o wydaniu](docs/en/release-notes-0.1.0-beta.1.md), [CHANGELOG.md](CHANGELOG.md) i [instalację](docs/pl/instalacja.md).
+**Wersja 0.1.0-beta.2 jest przygotowana i nieopublikowana.** Opublikowane wydanie GitHub pozostaje [0.1.0-beta.1](docs/en/release-notes-0.1.0-beta.1.md). Ta kopia repozytorium podaje `0.1.0-beta.2`. Ubuntu zachowuje GNOME Terminal i program PowerShell 7. Windows 10/11 x64 może otworzyć program PowerShell 7 albo Windows PowerShell 5.1, z opcjonalną Kontrolą konta użytkownika tylko dla tej konsoli. Ustawienia mogą używać kanału stabilnego albo testowego. Nic nie jest pobierane ani instalowane automatycznie. Skrypt instalatora Windows jest gotowy dla Inno Setup 6 i nie został tu skompilowany. Szczegóły zawierają [etap 5.2](docs/pl/etap-5.2.md), [informacje o wydaniu](docs/en/release-notes-0.1.0-beta.2.md) i [instalację](docs/pl/instalacja.md).
 
 ## Obsługiwane systemy operacyjne
 
@@ -18,7 +18,7 @@ Aplikacja jest przeznaczona dla:
 - Ubuntu Linux
 - macOS
 
-Etap 2 rejestruje sesję programu PowerShell 7 w Ubuntu przez GNOME Terminal. Windows PowerShell 5.1 można wybrać tylko wtedy, gdy aplikacja działa w systemie Windows, i nie jest uruchamiany.
+Ubuntu rejestruje sesję programu PowerShell 7 przez GNOME Terminal. Windows 10/11 x64 może uruchomić program PowerShell 7 (`pwsh.exe`) albo Windows PowerShell 5.1 (`powershell.exe`) w osobnej konsoli. macOS nie jest uruchamiany.
 
 ## Technologia
 
@@ -26,7 +26,7 @@ Etap 2 rejestruje sesję programu PowerShell 7 w Ubuntu przez GNOME Terminal. Wi
 - Avalonia UI 12 z motywem Fluent
 - MVVM z pakietem CommunityToolkit.Mvvm
 - PowerShell 7. Rejestrowanie jest zaimplementowane dla Ubuntu z GNOME Terminal
-- Windows PowerShell 5.1 tylko w systemie Windows (jeszcze nie jest uruchamiany)
+- Windows PowerShell 5.1 tylko w systemie Windows. Program PowerShell 7 nie jest wtedy wymagany
 - JSON dla ustawień lokalnych i historii sesji
 
 ## Co działa teraz
@@ -39,13 +39,14 @@ Etap 2 rejestruje sesję programu PowerShell 7 w Ubuntu przez GNOME Terminal. Wi
 - Lokalne ustawienia JSON
 - Zapisany katalog klientów. Nowa sesja nie ma wybranego TAG-u. TAG wybiera się z katalogu albo dodaje w formularzu sesji. Zmiana nazwy albo usunięcie klienta nie zmienia Historii ani plików transkrypcji
 - Strona Historia dla sesji zarejestrowanych z zaznaczoną opcją **Zapisz sesję w historii**. Starsze pliki transkrypcji nie są importowane. Wpis historii można usunąć osobno albo razem z plikiem transkrypcji, który ma stopkę zakończenia
-- Przycisk **Uruchom sesję**, gdy formularz jest poprawny oraz dostępne są `pwsh` i GNOME Terminal
-- Samo powiadomienie o nowszym stabilnym wydaniu w serwisie GitHub. Automatyczne sprawdzenie działa najwyżej raz na 24 godziny i można je wyłączyć. Nic nie jest pobierane ani instalowane. Etykiety beta, w tym to wydanie `0.1.0-beta.1`, nie są traktowane jako dostępna aktualizacja
+- Przycisk **Uruchom sesję** w Ubuntu, gdy formularz jest poprawny oraz dostępne są `pwsh` i GNOME Terminal
+- W Windows 10/11 x64 wybór programu PowerShell 7 albo Windows PowerShell 5.1 i osobna widoczna konsola. PowerShell 7 jest preferowany, gdy oba są zainstalowane. Bieżący katalog nie jest przeszukiwany w poszukiwaniu silnika
+- Samo powiadomienie GitHub z kanałem stabilnym albo testowym. Domyślny jest kanał stabilny. Automatyczne sprawdzenie działa najwyżej raz na 24 godziny i można je wyłączyć. Nic nie jest pobierane ani instalowane. Żądanie nie wysyła TAG-ów klientów, nazw sesji, transkrypcji, historii ani ustawień
 
 ## Ograniczenia
 
-- Windows PowerShell 5.1 nie jest uruchamiany
-- Uprawnienia nie są podnoszone. Pole administratora nie jest zapisywane, a sesji nie można uruchomić, gdy jest zaznaczone
+- Rejestrowania, instalacji i układu okna w Windows nie sprawdzono na komputerze z Windows dla tej bety. Instalatora Inno Setup nie skompilowano w Ubuntu
+- W Ubuntu opcja administratora jest ukryta i sesji nie można uruchomić, gdy podniesienie uprawnień jest ustawione. W Windows podniesienie dotyczy tylko konsoli programu PowerShell. Anulowanie pytania nie uruchamia rejestrowania, a przyjęte pytanie nie jest zapisywane jako potwierdzone podniesienie uprawnień
 - Historia nie pokazuje stanu Aktywna. Etykieta to „Nagrywanie uruchomione (obecny stan nieznany)”, dopóki transkrypcja nie ma stopki. Stan Zakończona nie wymyśla czasu zakończenia
 - Transkrypcje zarejestrowane bez zaznaczonej opcji **Zapisz sesję w historii** oraz transkrypcje sprzed tej funkcji nie trafiają do Historii
 - `Start-Transcript` zapisuje wyjście hosta. Dane poufne wpisane lub wyświetlone w konsoli mogą trafić do transkrypcji
@@ -106,14 +107,14 @@ dotnet test PowerShellSessionRecorder.sln
 
 ## Planowane funkcje
 
-Kolejne etapy mogą uruchomić Windows PowerShell 5.1 i obsłużyć podnoszenie uprawnień tam, gdzie pozwala na to system operacyjny.
+Rejestrowanie w macOS nie jest zaimplementowane. Działanie konsoli Windows nadal trzeba sprawdzić w systemie Windows.
 
 ## Położenie ustawień
 
 | System operacyjny | Plik ustawień |
 | --- | --- |
 | Linux | `$XDG_CONFIG_HOME/powershell-session-recorder/settings.json` lub `~/.config/powershell-session-recorder/settings.json` |
-| Windows | `%APPDATA%\PowerShellSessionRecorder\settings.json` |
+| Windows | `%LOCALAPPDATA%\PowerShellSessionRecorder\settings.json` |
 | macOS | `~/Library/Application Support/PowerShellSessionRecorder/settings.json` |
 
 Plik ustawień przechowuje język interfejsu, ostatni katalog dziennika, ostatnią wersję programu PowerShell, opcje daty i historii, motyw oraz preferencję sprawdzania aktualizacji. Nie przechowuje haseł ani poufnych danych klientów. W Linuksie katalog konfiguracji należy tylko do właściciela, a plik ustawień ma odczyt i zapis właściciela. Plik, którego nie można odczytać, pozostaje na miejscu, jest jednorazowo kopiowany do `settings.invalid.json`, a aplikacja używa ustawień domyślnych.
@@ -122,7 +123,10 @@ Historia sesji to osobny plik `history.json` w tym samym katalogu. Zawiera metad
 
 ## Dokumentacja
 
+- [Etap 5](docs/pl/etap-5.md)
 - [Informacje o wydaniu 0.1.0-beta.1](docs/en/release-notes-0.1.0-beta.1.md)
+- [Informacje o wydaniu 0.1.0-beta.2](docs/en/release-notes-0.1.0-beta.2.md)
+- [CI i kompilacje wydania](docs/pl/potok-wydania.md)
 - [Instalacja](docs/pl/instalacja.md)
 - [Etap 4.1](docs/pl/etap-4.1.md)
 - [Etap 4](docs/pl/etap-4.md)

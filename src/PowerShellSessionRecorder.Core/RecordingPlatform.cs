@@ -18,5 +18,6 @@ public static class RecordingPlatform
 
     public const string UbuntuTerminalInstallCommand = "sudo apt install gnome-terminal";
 
-    public static bool IsCurrentPlatformSupported() => OperatingSystem.IsLinux();
+    public static bool IsCurrentPlatformSupported()
+        => OperatingSystem.IsLinux() || OperatingSystem.IsWindows();
 }

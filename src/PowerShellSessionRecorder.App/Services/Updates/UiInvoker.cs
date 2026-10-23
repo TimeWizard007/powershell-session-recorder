@@ -33,6 +33,6 @@ public sealed class AvaloniaUiInvoker : IUiInvoker
 
 internal sealed class UnavailableReleaseSource : IGitHubReleaseSource
 {
-    public Task<GitHubFetchResult> GetLatestAsync(CancellationToken cancellationToken)
+    public Task<GitHubFetchResult> GetLatestAsync(UpdateChannel channel, CancellationToken cancellationToken)
         => Task.FromResult(new GitHubFetchResult(GitHubFetchStatus.Offline, null, null));
 }

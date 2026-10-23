@@ -1,0 +1,197 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing Git tag to build, for example v0.1.0-beta.2
+        required: true
+        type: string
+      mode:
+        description: review-only uploads artifacts. publish creates a GitHub Release after approval.
+        required: true
+        type: choice
+        options:
+          - review-only
+          - publish
+        default: review-only
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  resolve:
+    name: Resolve the tagged commit
+    runs-on: ubuntu-24.04
+    outputs:
+      sha: ${{ steps.tag.outputs.sha }}
+      version: ${{ steps.tag.outputs.version }}
+      debian: ${{ steps.tag.outputs.debian }}
+    steps:
+      - name: Check out the tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+          fetch-depth: 0
+
+      - name: Require a clean tag that matches the project version
+        id: tag
+        run: packaging/ci/resolve-release-tag.sh "${{ inputs.tag }}"
+
+  linux:
+    name: Build Ubuntu and Linux archives
+    runs-on: ubuntu-24.04
+    needs: resolve
+    env:
+      SOURCE_REVISION_ID: ${{ needs.resolve.outputs.sha }}
+    steps:
+      - name: Check out the resolved commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.resolve.outputs.sha }}
+          fetch-depth: 1
+
+      - name: Install the .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Build the Ubuntu package
+        run: packaging/ubuntu/build-deb.sh
+
+      - name: Build the per-user archive
+        run: packaging/linux/build-tarball.sh
+
+      - name: Validate packages, checksums, icons, and commit metadata
+        run: packaging/ci/validate-linux-release.sh
+
+      - name: Upload Linux release assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-linux
+          retention-days: 14
+          if-no-files-found: error
+          path: |
+            artifacts/powershell-session-recorder_${{ needs.resolve.outputs.debian }}_amd64.deb
+            artifacts/powershell-session-recorder_${{ needs.resolve.outputs.debian }}_amd64.deb.sha256
+            artifacts/powershell-session-recorder-${{ needs.resolve.outputs.version }}-linux-x64.tar.gz
+            artifacts/powershell-session-recorder-${{ needs.resolve.outputs.version }}-linux-x64.tar.gz.sha256
+
+  windows:
+    name: Build the Windows installer
+    runs-on: windows-2022
+    needs: resolve
+    env:
+      SOURCE_REVISION_ID: ${{ needs.resolve.outputs.sha }}
+    steps:
+      - name: Check out the resolved commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.resolve.outputs.sha }}
+          fetch-depth: 1
+
+      - name: Install the .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Release tests, including Windows PowerShell 5.1
+        run: dotnet test -c Release --nologo
+
+      - name: Install pinned Inno Setup 6.5.4
+        shell: pwsh
+        run: |
+          $compiler = (./packaging/windows/install-inno-setup.ps1 | Select-Object -Last 1).Trim()
+          "INNO_SETUP_COMPILER=$compiler" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8NoBOM
+
+      - name: Publish the application and compile the installer
+        shell: pwsh
+        run: |
+          bash ./packaging/windows/publish-win-x64.sh
+          ./packaging/windows/build-setup.ps1 -CompilerPath $env:INNO_SETUP_COMPILER
+
+      - name: Validate the installer, icon, and commit metadata
+        shell: pwsh
+        run: ./packaging/windows/verify-release.ps1
+
+      - name: Upload the Windows installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-windows
+          retention-days: 14
+          if-no-files-found: error
+          path: |
+            artifacts/PowerShellSessionRecorder-${{ needs.resolve.outputs.version }}-win-x64-setup.exe
+            artifacts/PowerShellSessionRecorder-${{ needs.resolve.outputs.version }}-win-x64-setup.exe.sha256
+
+  review:
+    name: Collect artifacts for review
+    runs-on: ubuntu-24.04
+    needs:
+      - resolve
+      - linux
+      - windows
+    steps:
+      - name: Check out the resolved commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.resolve.outputs.sha }}
+          fetch-depth: 1
+
+      - name: Download the platform assets
+        uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          path: release-assets
+
+      - name: Verify checksums and the installer icon
+        run: |
+          packaging/ci/verify-checksum-files.sh release-assets 3
+          python3 packaging/ci/assert-icon-resource.py \
+            assets/branding/app-icon.ico \
+            release-assets/release-windows/PowerShellSessionRecorder-${{ needs.resolve.outputs.version }}-win-x64-setup.exe
+
+      - name: Upload the review bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-review-${{ inputs.tag }}
+          retention-days: 14
+          if-no-files-found: error
+          path: release-assets
+
+  publish:
+    name: Publish the approved GitHub Release
+    needs:
+      - resolve
+      - review
+    if: inputs.mode == 'publish'
+    runs-on: ubuntu-24.04
+    environment: release
+    permissions:
+      contents: write
+    steps:
+      - name: Check out the resolved commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.resolve.outputs.sha }}
+          fetch-depth: 1
+
+      - name: Download the reviewed assets
+        uses: actions/download-artifact@v4
+        with:
+          name: release-review-${{ inputs.tag }}
+          path: release-assets
+
+      - name: Create the GitHub Release
+        env:
+          RELEASE_APPROVED: ${{ vars.RELEASE_APPROVED }}
+        run: packaging/ci/publish-github-release.sh "${{ inputs.tag }}" "${{ needs.resolve.outputs.sha }}" release-assets

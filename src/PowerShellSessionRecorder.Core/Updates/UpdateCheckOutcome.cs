@@ -42,6 +42,9 @@ public sealed record UpdateCheckOutcome(
             or UpdateCheckKind.NoPublishedRelease;
 
     public static UpdateCheckOutcome Interpret(string currentVersion, GitHubFetchResult fetch)
+        => Interpret(currentVersion, fetch, UpdateChannel.Stable);
+
+    public static UpdateCheckOutcome Interpret(string currentVersion, GitHubFetchResult fetch, UpdateChannel channel)
     {
         currentVersion ??= "";
         switch (fetch.Status)
@@ -66,37 +69,43 @@ public sealed record UpdateCheckOutcome(
                 return new UpdateCheckOutcome(UpdateCheckKind.MalformedResponse, currentVersion, null, null);
         }
 
-        var relation = ReleaseVersionComparison.Relate(currentVersion, fetch.TagName);
-        var page = ReleasePageLink.SelectTrustedPage(fetch.HtmlUrl, fetch.TagName);
-        return relation switch
+        if (!ReleaseVersion.TryParse(currentVersion, out var local)
+            || !ReleaseVersion.TryParse(fetch.TagName, out var remote))
         {
-            ReleaseRelation.NewerStable => new UpdateCheckOutcome(
+            return new UpdateCheckOutcome(UpdateCheckKind.InvalidRelease, currentVersion, null, null);
+        }
+
+        if (channel == UpdateChannel.Stable && !remote.IsStable)
+        {
+            return new UpdateCheckOutcome(UpdateCheckKind.IgnoredPrerelease, currentVersion, null, null);
+        }
+
+        var page = ReleasePageLink.SelectTrustedPage(fetch.HtmlUrl, fetch.TagName);
+        if (remote.CompareTo(local) > 0)
+        {
+            return new UpdateCheckOutcome(
                 UpdateCheckKind.UpdateAvailable,
                 currentVersion,
                 fetch.TagName,
-                page),
-            ReleaseRelation.SameStable or ReleaseRelation.RemoteOlder => new UpdateCheckOutcome(
-                UpdateCheckKind.UpToDate,
-                currentVersion,
-                fetch.TagName,
-                page),
-            ReleaseRelation.RemotePrerelease => new UpdateCheckOutcome(
-                UpdateCheckKind.IgnoredPrerelease,
-                currentVersion,
-                null,
-                null),
-            _ => new UpdateCheckOutcome(UpdateCheckKind.InvalidRelease, currentVersion, null, null)
-        };
+                page);
+        }
+
+        return new UpdateCheckOutcome(UpdateCheckKind.UpToDate, currentVersion, fetch.TagName, page);
     }
 
-    public static void Remember(ApplicationSettings settings, UpdateCheckOutcome outcome, DateTimeOffset utcNow)
+    public static void Remember(
+        ApplicationSettings settings,
+        UpdateCheckOutcome outcome,
+        DateTimeOffset utcNow,
+        UpdateChannel channel)
     {
         ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(outcome);
-        if (!outcome.CountsAsSuccessfulCheck)
+        if (!outcome.CountsAsSuccessfulCheck || settings.UpdateChannel != channel)
             return;
 
         settings.LastUpdateCheckUtc = utcNow;
+        settings.CachedUpdateChannel = channel;
         switch (outcome.Kind)
         {
             case UpdateCheckKind.UpdateAvailable:
@@ -105,6 +114,7 @@ public sealed record UpdateCheckOutcome(
                 settings.LastKnownReleaseUrl = outcome.ReleasePageUrl ?? "";
                 break;
             case UpdateCheckKind.NoPublishedRelease:
+            case UpdateCheckKind.IgnoredPrerelease:
                 settings.LastKnownStableVersion = "";
                 settings.LastKnownReleaseUrl = "";
                 break;

@@ -84,11 +84,11 @@ public class UpdateCheckTests
     [Fact]
     public void BetaProductVersion_IsReportedToGitHubAndIsNotAStableRelease()
     {
-        Assert.Equal("0.1.0-beta.1", ProductVersion.Current);
-        Assert.Equal(ReleaseRelation.RemotePrerelease, ReleaseVersionComparison.Relate(ProductVersion.Current, "0.1.0-beta.2"));
+        Assert.Equal("0.1.0-beta.2", ProductVersion.Current);
+        Assert.Equal(ReleaseRelation.RemotePrerelease, ReleaseVersionComparison.Relate(ProductVersion.Current, "0.1.0-beta.3"));
         using var client = GitHubReleaseClient.CreateClient(ProductVersion.Current);
         Assert.Contains(
-            "PowerShellSessionRecorder/0.1.0-beta.1",
+            "PowerShellSessionRecorder/0.1.0-beta.2",
             client.DefaultRequestHeaders.UserAgent.ToString(),
             StringComparison.Ordinal);
         Assert.Equal(
@@ -156,7 +156,7 @@ public class UpdateCheckTests
         foreach (var header in http.DefaultRequestHeaders)
             sending.DefaultRequestHeaders.TryAddWithoutValidation(header.Key, header.Value);
 
-        var result = await new GitHubReleaseClient(sending).GetLatestAsync(CancellationToken.None);
+        var result = await new GitHubReleaseClient(sending).GetLatestAsync(UpdateChannel.Stable, CancellationToken.None);
 
         Assert.Equal(GitHubReleaseClient.LatestReleaseUri, handler.Request!.RequestUri);
         Assert.Equal(HttpMethod.Get, handler.Request.Method);
@@ -182,18 +182,18 @@ public class UpdateCheckTests
         })).Status);
 
         using var timingOut = new HttpClient(new DelayHandler()) { Timeout = TimeSpan.FromMilliseconds(100) };
-        var timedOut = await new GitHubReleaseClient(timingOut).GetLatestAsync(CancellationToken.None);
+        var timedOut = await new GitHubReleaseClient(timingOut).GetLatestAsync(UpdateChannel.Stable, CancellationToken.None);
         Assert.Equal(GitHubFetchStatus.TimedOut, timedOut.Status);
 
         using var cancelClient = new HttpClient(new DelayHandler()) { Timeout = TimeSpan.FromSeconds(5) };
         using var cancel = new CancellationTokenSource();
-        var pending = new GitHubReleaseClient(cancelClient).GetLatestAsync(cancel.Token);
+        var pending = new GitHubReleaseClient(cancelClient).GetLatestAsync(UpdateChannel.Stable, cancel.Token);
         cancel.Cancel();
         var canceled = await pending;
         Assert.Equal(GitHubFetchStatus.Canceled, canceled.Status);
 
         using var offlineClient = new HttpClient(new ThrowingHandler()) { Timeout = TimeSpan.FromSeconds(5) };
-        var offline = await new GitHubReleaseClient(offlineClient).GetLatestAsync(CancellationToken.None);
+        var offline = await new GitHubReleaseClient(offlineClient).GetLatestAsync(UpdateChannel.Stable, CancellationToken.None);
         Assert.Equal(GitHubFetchStatus.Offline, offline.Status);
     }
 
@@ -342,6 +342,7 @@ public class UpdateCheckTests
         var loaded = new JsonSettingsStore(path).LoadDetailed();
 
         Assert.True(loaded.Settings.CheckForUpdatesAutomatically);
+        Assert.Equal(UpdateChannel.Stable, loaded.Settings.UpdateChannel);
         Assert.Null(loaded.Settings.LastUpdateCheckUtc);
         Assert.Equal(before, File.ReadAllBytes(path));
     }
@@ -361,7 +362,7 @@ public class UpdateCheckTests
     private static async Task<GitHubFetchResult> Send(HttpResponseMessage response)
     {
         using var http = new HttpClient(new RecordingHandler { Response = response }) { Timeout = TimeSpan.FromSeconds(5) };
-        return await new GitHubReleaseClient(http).GetLatestAsync(CancellationToken.None);
+        return await new GitHubReleaseClient(http).GetLatestAsync(UpdateChannel.Stable, CancellationToken.None);
     }
 
     private static UpdateStatusViewModel CreateUpdates(IGitHubReleaseSource source, string directory)
@@ -408,7 +409,7 @@ public class UpdateCheckTests
 
         public int Calls { get; private set; }
 
-        public Task<GitHubFetchResult> GetLatestAsync(CancellationToken cancellationToken)
+        public Task<GitHubFetchResult> GetLatestAsync(UpdateChannel channel, CancellationToken cancellationToken)
         {
             Calls++;
             return _next?.Invoke(cancellationToken) ?? Task.FromResult(Result);

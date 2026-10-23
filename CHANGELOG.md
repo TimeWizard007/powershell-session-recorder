@@ -9,6 +9,28 @@ Version 1.0.0 has not been released.
 
 ## [Unreleased]
 
+Prepared `0.1.0-beta.2`. It is not published. The published GitHub release remains `0.1.0-beta.1`.
+
+### Added
+
+- GitHub Actions CI for pull requests and `main`, and a manual release workflow that builds the Ubuntu `.deb`, Linux `.tar.gz`, and Windows installer from one tag. Publishing a GitHub Release stays behind an environment approval and does not run on push.
+- Stable and Beta update channels. Stable stays the default and still reads GitHub’s latest stable release. Beta compares published stable and prerelease tags, skips drafts, and looks at most three pages of 100 releases. A lower version is not offered. Changing the channel clears the cached result. Nothing is downloaded or installed.
+- A self-contained Linux x64 `.tar.gz` with `install-user.sh` and `uninstall-user.sh`. The default directory is `~/.local/opt/powershell-session-recorder`. The desktop entry is separate from the system `.deb`. User settings, customers, history, and transcripts are not removed.
+- Inno Setup choices for a per-user install, the default, and an all-users install. The script was not compiled on Ubuntu.
+
+### Fixed
+
+- Checkpoint 5.2.2 does not ship sample customers, TAGs, history, or transcripts. A new profile starts empty, and an existing catalog is left unchanged on upgrade. Package builds refuse `settings.json`, `customers.json`, and `history.json`.
+- Checkpoint 5.2.1 uses the approved icon from `assets/branding/app-icon-source.png` for the window, the Windows executable, the Inno Setup installer, and the Linux hicolor icons. The Windows build script looks for Inno Setup 6 under Program Files, including `C:\Program Files (x86)\Inno Setup 6\ISCC.exe`.
+- Checkpoint 5.1 writes the Windows bootstrap script as UTF-8 with a BOM so Windows PowerShell 5.1 can parse Polish text. Linux scripts stay UTF-8 without a BOM.
+- Checkpoint 5.1 sizes the window to the monitor working area, starting at 960×640 device-independent pixels when that fits, and lets action buttons wrap instead of using a fixed 1120×780 window.
+
+### Added
+
+- Checkpoint 5 Windows console: PowerShell 7 and Windows PowerShell 5.1 can be selected on Windows 10/11 x64. Start Session opens a separate visible console that is not embedded in the application. Optional elevation uses the standard User Account Control prompt for that console only. Canceling the prompt does not start a recording and does not write History.
+- Windows configuration is `%LOCALAPPDATA%\PowerShellSessionRecorder`. Transcript deletion on Windows refuses reparse points, directories, and unfinished transcripts, and it does not use a command shell.
+- A self-contained `win-x64` publish script and an Inno Setup script. The installer was not built or tested on Windows. The published Ubuntu beta remains `0.1.0-beta.1`. The prepared informational version is `0.1.0-beta.2`.
+
 ## [0.1.0-beta.1] - 2026-10-19
 
 First public Ubuntu 24.04 amd64 beta. About and the GitHub update checker report `0.1.0-beta.1`. The Debian package version is `0.1.0~beta.1-1`. The checker reads the latest stable GitHub release and does not offer this beta, or any later beta, as an update. Release notes: [docs/en/release-notes-0.1.0-beta.1.md](docs/en/release-notes-0.1.0-beta.1.md).
@@ -41,6 +63,28 @@ First public Ubuntu 24.04 amd64 beta. About and the GitHub update checker report
 - Abrupt termination can leave a transcript without its footer. That file can be dropped from History and is not deleted. A footer confirms transcript completion, not that every related process has exited.
 
 ## [Niewydane]
+
+Przygotowano `0.1.0-beta.2`. To wydanie nie jest opublikowane. Opublikowane wydanie GitHub pozostaje `0.1.0-beta.1`.
+
+### Dodano
+
+- GitHub Actions CI dla żądań ściągnięcia i gałęzi `main` oraz ręczny przepływ wydania, który buduje pakiet Ubuntu `.deb`, archiwum Linux `.tar.gz` i instalator Windows z jednego znacznika. Publikacja wydania GitHub wymaga zatwierdzenia środowiska i nie uruchamia się po wypchnięciu.
+- Kanały aktualizacji: stabilny i testowy. Stabilny pozostaje domyślny i nadal czyta najnowsze stabilne wydanie GitHub. Kanał testowy porównuje opublikowane wersje stabilne i przedpremierowe, pomija szkice i przegląda najwyżej trzy strony po 100 wydań. Niższa wersja nie jest proponowana. Zmiana kanału czyści zapisany wynik. Nic nie jest pobierane ani instalowane.
+- Samodzielne archiwum Linux x64 `.tar.gz` ze skryptami `install-user.sh` i `uninstall-user.sh`. Domyślny katalog to `~/.local/opt/powershell-session-recorder`. Wpis pulpitu jest oddzielny od systemowego pakietu `.deb`. Ustawienia, klienci, historia i transkrypcje nie są usuwane.
+- Wybór Inno Setup: instalacja dla bieżącego użytkownika, która jest domyślna, oraz instalacja dla wszystkich użytkowników. Skryptu nie skompilowano w Ubuntu.
+
+### Naprawiono
+
+- Etap 5.2.2 nie dołącza przykładowych klientów, TAG-ów, historii ani transkrypcji. Nowy profil startuje pusty, a istniejący katalog zostaje bez zmian przy aktualizacji. Kompilacja pakietów odrzuca `settings.json`, `customers.json` i `history.json`.
+- Etap 5.2.1 używa zatwierdzonej ikony z `assets/branding/app-icon-source.png` dla okna, pliku wykonywalnego Windows, instalatora Inno Setup i ikon hicolor w Linuksie. Skrypt kompilacji Windows szuka Inno Setup 6 w Program Files, także w `C:\Program Files (x86)\Inno Setup 6\ISCC.exe`.
+- Etap 5.1 zapisuje skrypt startowy Windows jako UTF-8 ze znacznikiem BOM, żeby Windows PowerShell 5.1 poprawnie odczytał polski tekst. Skrypty w Linuksie pozostają UTF-8 bez znacznika BOM.
+- Etap 5.1 dopasowuje okno do obszaru roboczego monitora. Gdy się mieści, startuje w 960×640 pikselach niezależnych od urządzenia, a przyciski akcji zawijają się zamiast wymuszać okno 1120×780.
+
+### Dodano
+
+- Konsola Windows etapu 5: w Windows 10/11 x64 można wybrać program PowerShell 7 albo Windows PowerShell 5.1. Uruchom sesję otwiera osobną widoczną konsolę, która nie jest osadzona w aplikacji. Opcjonalne podniesienie uprawnień używa standardowego pytania Kontroli konta użytkownika tylko dla tej konsoli. Anulowanie pytania nie uruchamia rejestrowania i nie zapisuje Historii.
+- Konfiguracja Windows to `%LOCALAPPDATA%\PowerShellSessionRecorder`. Kasowanie transkrypcji w Windows odrzuca punkty ponownej analizy, katalogi i niedokończone transkrypcje oraz nie używa powłoki poleceń.
+- Skrypt samodzielnej publikacji `win-x64` i skrypt Inno Setup. Instalator nie został zbudowany ani sprawdzony w Windows. Opublikowana beta Ubuntu pozostaje `0.1.0-beta.1`. Przygotowana wersja informacyjna to `0.1.0-beta.2`.
 
 ## [0.1.0-beta.1] - 2026-10-19
 

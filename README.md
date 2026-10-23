@@ -8,7 +8,7 @@ There is no backend server, database server, cloud account, or Windows service.
 
 ## Status
 
-**Ubuntu beta 0.1.0-beta.1.** Start Session opens an independent GNOME Terminal running `pwsh` with `Start-Transcript` already active. A confirmed session can be listed in History. Saved customer TAGs are chosen before recording starts. An Ubuntu 24.04 amd64 `.deb` can be built from this checkout. About and the update checker report `0.1.0-beta.1`. The checker looks only for a newer stable GitHub release, so this beta and later betas are not offered as updates. It does not download or install anything. Version 1.0.0 has not been released. See [release notes](docs/en/release-notes-0.1.0-beta.1.md), [CHANGELOG.md](CHANGELOG.md), and [installation](docs/en/installation.md).
+**0.1.0-beta.2 is prepared and not published.** The published GitHub release remains [0.1.0-beta.1](docs/en/release-notes-0.1.0-beta.1.md). This working tree reports `0.1.0-beta.2`. Ubuntu keeps the GNOME Terminal and PowerShell 7 flow. Windows 10/11 x64 can open PowerShell 7 or Windows PowerShell 5.1, with optional User Account Control for that console only. Settings can follow the Stable or Beta update channel. Nothing is downloaded or installed automatically. The Windows installer script is ready for Inno Setup 6 and was not compiled here. See [Checkpoint 5.2](docs/en/checkpoint-5.2.md), [release notes](docs/en/release-notes-0.1.0-beta.2.md), and [installation](docs/en/installation.md).
 
 ## Supported operating systems
 
@@ -18,7 +18,7 @@ The application is intended for:
 - Ubuntu Linux
 - macOS
 
-Checkpoint 2 records a PowerShell 7 session on Ubuntu through GNOME Terminal. Windows PowerShell 5.1 can be selected only when the application is running on Windows, and it is not launched.
+Ubuntu records a PowerShell 7 session through GNOME Terminal. Windows 10/11 x64 can launch PowerShell 7 (`pwsh.exe`) or Windows PowerShell 5.1 (`powershell.exe`) in a separate console. macOS is not launched.
 
 ## Technology
 
@@ -26,7 +26,7 @@ Checkpoint 2 records a PowerShell 7 session on Ubuntu through GNOME Terminal. Wi
 - Avalonia UI 12 with the Fluent theme
 - MVVM with CommunityToolkit.Mvvm
 - PowerShell 7. Recording is implemented for Ubuntu with GNOME Terminal
-- Windows PowerShell 5.1 on Windows only (not launched yet)
+- Windows PowerShell 5.1 on Windows only. PowerShell 7 is not required for that engine
 - JSON for local settings and session history
 
 ## What works now
@@ -39,13 +39,14 @@ Checkpoint 2 records a PowerShell 7 session on Ubuntu through GNOME Terminal. Wi
 - Local JSON settings
 - A saved customer catalog. New Session starts with no TAG selected. A TAG is chosen from the catalog or added in the session form. Renaming or removing a saved customer does not change History or transcript files
 - A History page for sessions recorded with **Save session in history** checked. Older transcript files are not imported. A history entry can be removed on its own, or together with a transcript file that has a completion footer
-- **Start Session**, when the form is valid and `pwsh` and GNOME Terminal are available
-- A notify-only check for a newer stable GitHub release. Automatic checks run at most once every 24 hours and can be turned off. Nothing is downloaded or installed. Beta tags, including this `0.1.0-beta.1` release, are not treated as available updates
+- **Start Session** on Ubuntu, when the form is valid and `pwsh` and GNOME Terminal are available
+- On Windows 10/11 x64, a choice of PowerShell 7 or Windows PowerShell 5.1 and a separate visible console. PowerShell 7 is preferred when both are installed. The current directory is not searched for an engine
+- A notify-only GitHub update check with a Stable or Beta channel. Stable is the default. Automatic checks run at most once every 24 hours and can be turned off. Nothing is downloaded or installed. The request does not send customer TAGs, session names, transcripts, history, or settings
 
 ## Limitations
 
-- Windows PowerShell 5.1 is not launched
-- Privilege elevation is not performed. The administrator checkbox is not saved, and a session cannot start while it is checked
+- Windows recording, installation, and the window layout were not exercised on a Windows machine for this beta. The Inno Setup installer was not compiled on Ubuntu
+- On Ubuntu the administrator option is hidden and a session cannot start while elevation is set. On Windows, elevation is requested only for the PowerShell console. Canceling the prompt does not start a recording, and an accepted prompt is not stored as confirmed elevation
 - History does not show a live Active state. The label is “Recording started (current state unknown)” until the transcript footer is present. Finished does not invent an end time
 - Transcripts recorded with **Save session in history** unchecked, and transcripts created before this feature, are not added to History
 - `Start-Transcript` records host output. Secrets typed or displayed in the console can be stored in the transcript
@@ -106,14 +107,14 @@ dotnet test PowerShellSessionRecorder.sln
 
 ## Planned functionality
 
-Later checkpoints can launch Windows PowerShell 5.1 and support elevation where the operating system allows it.
+macOS recording is not implemented. Windows console behavior still needs to be checked on Windows.
 
 ## Settings locations
 
 | Operating system | Settings file |
 | --- | --- |
 | Linux | `$XDG_CONFIG_HOME/powershell-session-recorder/settings.json` or `~/.config/powershell-session-recorder/settings.json` |
-| Windows | `%APPDATA%\PowerShellSessionRecorder\settings.json` |
+| Windows | `%LOCALAPPDATA%\PowerShellSessionRecorder\settings.json` |
 | macOS | `~/Library/Application Support/PowerShellSessionRecorder/settings.json` |
 
 The settings file stores the interface language, the last log directory, the last PowerShell version, the timestamp and history options, the theme, and the update-check preference. It does not store passwords or customer secrets. On Linux the configuration directory is limited to the owner, and the settings file is owner read and write. A file that cannot be parsed is left in place, copied once to `settings.invalid.json`, and replaced in memory by defaults.
@@ -122,7 +123,10 @@ Session history is a separate `history.json` file in that same directory. It sto
 
 ## Documentation
 
+- [Checkpoint 5](docs/en/checkpoint-5.md)
 - [Release notes 0.1.0-beta.1](docs/en/release-notes-0.1.0-beta.1.md)
+- [Release notes 0.1.0-beta.2](docs/en/release-notes-0.1.0-beta.2.md)
+- [CI and release builds](docs/en/release-pipeline.md)
 - [Installation](docs/en/installation.md)
 - [Checkpoint 4.1](docs/en/checkpoint-4.1.md)
 - [Checkpoint 4](docs/en/checkpoint-4.md)

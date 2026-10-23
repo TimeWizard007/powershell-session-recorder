@@ -6,15 +6,16 @@
         x:Class="PowerShellSessionRecorder.App.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         x:CompileBindings="True"
-        Width="1120"
-        Height="780"
-        MinWidth="960"
-        MinHeight="640"
+        Width="960"
+        Height="640"
+        MinWidth="640"
+        MinHeight="480"
+        CanResize="True"
         WindowStartupLocation="CenterScreen"
         Icon="/Assets/app-icon.png"
         Background="{DynamicResource AppBackground}"
         Title="{loc:Tr AppTitle}">
-  <Grid ColumnDefinitions="248,*">
+  <Grid ColumnDefinitions="200,*">
     <Border Grid.Column="0"
             Background="{DynamicResource AppNav}"
             BorderBrush="{DynamicResource AppBorder}"
@@ -64,35 +65,32 @@
     <Grid Grid.Column="1" RowDefinitions="Auto,*">
     <Border Grid.Row="0"
             Classes="notice"
-            Margin="32,20,32,0"
+            Margin="16,12,16,0"
             IsVisible="{Binding Updates.ShowNotice}"
             AutomationProperties.Name="{loc:Tr UpdateNoticeTitle}">
-      <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12">
-        <StackPanel Spacing="4" VerticalAlignment="Center">
-          <TextBlock FontWeight="SemiBold"
-                     Foreground="{DynamicResource AppText}"
-                     Text="{loc:Tr UpdateNoticeTitle}"
-                     TextWrapping="Wrap" />
-          <TextBlock Foreground="{DynamicResource AppText}"
-                     Text="{Binding Updates.UpdateNoticeBody}"
-                     TextWrapping="Wrap" />
-        </StackPanel>
-        <Button Grid.Column="1"
-                VerticalAlignment="Center"
-                Content="{loc:Tr UpdateNoticeViewRelease}"
-                Command="{Binding Updates.ViewReleaseCommand}"
-                IsVisible="{Binding Updates.HasReleasePage}" />
-        <Button Grid.Column="2"
-                VerticalAlignment="Center"
-                Content="{loc:Tr UpdateNoticeLater}"
-                Command="{Binding Updates.DismissUpdateCommand}" />
-      </Grid>
+      <StackPanel Spacing="8">
+        <TextBlock FontWeight="SemiBold"
+                   Foreground="{DynamicResource AppText}"
+                   Text="{loc:Tr UpdateNoticeTitle}"
+                   TextWrapping="Wrap" />
+        <TextBlock Foreground="{DynamicResource AppText}"
+                   Text="{Binding Updates.UpdateNoticeBody}"
+                   TextWrapping="Wrap" />
+        <WrapPanel Orientation="Horizontal">
+          <Button Margin="0,0,8,0"
+                  Content="{loc:Tr UpdateNoticeViewRelease}"
+                  Command="{Binding Updates.ViewReleaseCommand}"
+                  IsVisible="{Binding Updates.HasReleasePage}" />
+          <Button Content="{loc:Tr UpdateNoticeLater}"
+                  Command="{Binding Updates.DismissUpdateCommand}" />
+        </WrapPanel>
+      </StackPanel>
     </Border>
     <Grid Grid.Row="1">
     <ScrollViewer Background="{DynamicResource AppBackground}"
                   HorizontalScrollBarVisibility="Disabled"
                   IsVisible="{Binding !IsHistoryPage}"
-                  Padding="32,28">
+                  Padding="16,16">
       <Panel>
         <Border IsVisible="{Binding IsSessionPage}">
           <views:SessionSetupView DataContext="{Binding Session}" />
@@ -106,7 +104,7 @@
       </Panel>
     </ScrollViewer>
     <Border IsVisible="{Binding IsHistoryPage}">
-      <views:HistoryView DataContext="{Binding History}" Margin="32,28" />
+      <views:HistoryView DataContext="{Binding History}" Margin="16,16" />
     </Border>
     </Grid>
     </Grid>

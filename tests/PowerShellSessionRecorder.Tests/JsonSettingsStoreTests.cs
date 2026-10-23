@@ -46,6 +46,7 @@ public class JsonSettingsStoreTests
 
         Assert.Equal(
             [
+                "cachedUpdateChannel",
                 "checkForUpdatesAutomatically",
                 "includeDateAndTime",
                 "language",
@@ -57,7 +58,8 @@ public class JsonSettingsStoreTests
                 "recentCustomerTags",
                 "saveSessionInHistory",
                 "schemaVersion",
-                "theme"
+                "theme",
+                "updateChannel"
             ],
             names);
         Assert.DoesNotContain("password", File.ReadAllText(store.FilePath), StringComparison.OrdinalIgnoreCase);
@@ -192,12 +194,12 @@ public class JsonSettingsStoreTests
     public void SettingsPath_UsesThePlatformApplicationDirectory()
     {
         Assert.Equal(
-            Path.Combine(@"C:\Users\admin\AppData\Roaming", "PowerShellSessionRecorder"),
+            Path.Combine(@"C:\Users\admin\AppData\Local", "PowerShellSessionRecorder"),
             SettingsPathResolver.GetSettingsDirectory(
                 SettingsPlatform.Windows,
                 homeDirectory: null,
                 xdgConfigHome: null,
-                windowsApplicationData: @"C:\Users\admin\AppData\Roaming"));
+                windowsApplicationData: @"C:\Users\admin\AppData\Local"));
 
         Assert.Equal(
             Path.Combine("/Users/admin/Library/Application Support/PowerShellSessionRecorder"),

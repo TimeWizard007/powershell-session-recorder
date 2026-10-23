@@ -21,6 +21,7 @@ public partial class UpdateStatusViewModel : ViewModelBase
     private UpdateCheckOutcome? _lastOutcome;
     private string? _dismissedVersion;
     private bool _busy;
+    private bool _suspendChannel = true;
 
     public UpdateStatusViewModel(
         LocalizationService localization,
@@ -38,9 +39,18 @@ public partial class UpdateStatusViewModel : ViewModelBase
         _links = links;
         _setStatus = setStatus;
         _ui = ui ?? new InlineUiInvoker();
+        Channels =
+        [
+            new UpdateChannelOption(UpdateChannel.Stable, L.UpdatesChannelStable, localization),
+            new UpdateChannelOption(UpdateChannel.Beta, L.UpdatesChannelBeta, localization)
+        ];
+        SelectedChannel = Channels.First(option => option.Channel == settings.UpdateChannel);
+        _suspendChannel = false;
         RefreshPresentation();
         localization.LanguageChanged += (_, _) => RefreshPresentation();
     }
+
+    public IReadOnlyList<UpdateChannelOption> Channels { get; }
 
     public string CurrentVersion => _coordinator.CurrentVersion;
 
@@ -69,6 +79,9 @@ public partial class UpdateStatusViewModel : ViewModelBase
     private bool _hasReleasePage;
 
     [ObservableProperty]
+    private bool _canOpenReleasePage;
+
+    [ObservableProperty]
     private string _updateNoticeBody = "";
 
     [ObservableProperty]
@@ -79,6 +92,37 @@ public partial class UpdateStatusViewModel : ViewModelBase
 
     [ObservableProperty]
     private string _latestVersionText = "";
+
+    [ObservableProperty]
+    private string _latestVersionLabel = "";
+
+    [ObservableProperty]
+    private string _availableVersionText = "";
+
+    [ObservableProperty]
+    private UpdateChannelOption? _selectedChannel;
+
+    partial void OnSelectedChannelChanged(UpdateChannelOption? value)
+    {
+        if (_suspendChannel || value is null || _settings.UpdateChannel == value.Channel)
+            return;
+
+        _settings.UpdateChannel = value.Channel;
+        _settings.CachedUpdateChannel = value.Channel;
+        _settings.LastKnownStableVersion = "";
+        _settings.LastKnownReleaseUrl = "";
+        _settings.LastUpdateCheckUtc = null;
+        _dismissedVersion = null;
+        _lastOutcome = null;
+        NoticeAvailableVersion = null;
+        NoticePageUrl = null;
+        ShowNotice = false;
+        HasReleasePage = false;
+        CanOpenReleasePage = false;
+        UpdateCheckMessage = "";
+        TrySave();
+        RefreshPresentation();
+    }
 
     public bool HasUpdateCheckMessage => !string.IsNullOrWhiteSpace(UpdateCheckMessage);
 
@@ -161,31 +205,45 @@ public partial class UpdateStatusViewModel : ViewModelBase
         if (outcome.CountsAsSuccessfulCheck)
             TrySave();
 
-        UpdateCheckMessage = Describe(outcome);
-        RefreshPresentation();
+        CanOpenReleasePage = ReleasePageLink.IsTrusted(outcome.ReleasePageUrl);
+        if (CanOpenReleasePage)
+            NoticePageUrl = outcome.ReleasePageUrl;
 
         if (outcome.Kind is UpdateCheckKind.UpToDate or UpdateCheckKind.NoPublishedRelease or UpdateCheckKind.IgnoredPrerelease)
-        {
             ShowNotice = false;
-            return;
-        }
+        else if (outcome.Kind is UpdateCheckKind.UpdateAvailable or UpdateCheckKind.NotDue)
+            ShowNoticeFor(outcome.LatestStableVersion, outcome.ReleasePageUrl);
 
-        if (outcome.Kind is not (UpdateCheckKind.UpdateAvailable or UpdateCheckKind.NotDue))
-            return;
-
-        ShowNoticeFor(outcome.LatestStableVersion, outcome.ReleasePageUrl);
+        UpdateCheckMessage = Describe(outcome);
+        RefreshPresentation();
     }
 
     private void ApplyCachedNotice()
     {
+        if (_settings.CachedUpdateChannel != _settings.UpdateChannel)
+        {
+            ShowNotice = false;
+            CanOpenReleasePage = false;
+            RefreshPresentation();
+            return;
+        }
+
+        CanOpenReleasePage = ReleasePageLink.IsTrusted(_settings.LastKnownReleaseUrl);
+        NoticePageUrl = CanOpenReleasePage ? _settings.LastKnownReleaseUrl : null;
         ShowNoticeFor(_settings.LastKnownStableVersion, _settings.LastKnownReleaseUrl);
         RefreshPresentation();
     }
 
+    private bool IsNewerRelease(string version)
+        => UpdateCheckOutcome.Interpret(
+            CurrentVersion,
+            new GitHubFetchResult(GitHubFetchStatus.Ok, version, null),
+            _settings.UpdateChannel).Kind == UpdateCheckKind.UpdateAvailable;
+
     private void ShowNoticeFor(string? version, string? pageUrl)
     {
         if (string.IsNullOrWhiteSpace(version)
-            || ReleaseVersionComparison.Relate(CurrentVersion, version) != ReleaseRelation.NewerStable
+            || !IsNewerRelease(version)
             || string.Equals(version, _dismissedVersion, StringComparison.Ordinal))
             return;
 
@@ -206,11 +264,20 @@ public partial class UpdateStatusViewModel : ViewModelBase
             ? checkedAt.ToLocalTime().ToString("g", System.Globalization.CultureInfo.CurrentCulture)
             : _localization.Get(L.UpdatesLastCheckNever);
 
+        foreach (var channel in Channels)
+            channel.Refresh();
+
+        LatestVersionLabel = _localization.Get(
+            _settings.UpdateChannel == UpdateChannel.Beta ? L.UpdatesLatestVersionBeta : L.UpdatesLatestVersion);
         LatestVersionText = !string.IsNullOrWhiteSpace(_settings.LastKnownStableVersion)
+            && _settings.CachedUpdateChannel == _settings.UpdateChannel
             ? _settings.LastKnownStableVersion
-            : _settings.LastUpdateCheckUtc is not null
+            : _settings.LastUpdateCheckUtc is not null && _settings.CachedUpdateChannel == _settings.UpdateChannel
                 ? _localization.Get(L.UpdatesNoPublishedReleases)
                 : _localization.Get(L.UpdatesLatestUnknown);
+        AvailableVersionText = ShowNotice && NoticeAvailableVersion is not null
+            ? NoticeAvailableVersion
+            : _localization.Get(L.UpdatesAvailableNone);
 
         if (ShowNotice && NoticeAvailableVersion is not null)
         {
@@ -231,7 +298,9 @@ public partial class UpdateStatusViewModel : ViewModelBase
     {
         UpdateCheckKind.UpdateAvailable => string.Format(
             System.Globalization.CultureInfo.CurrentCulture,
-            _localization.Get(L.UpdatesAvailableStatus),
+            _localization.Get(_settings.UpdateChannel == UpdateChannel.Beta
+                ? L.UpdatesAvailableStatusBeta
+                : L.UpdatesAvailableStatus),
             outcome.LatestStableVersion,
             outcome.CurrentVersion),
         UpdateCheckKind.UpToDate or UpdateCheckKind.IgnoredPrerelease => _localization.Get(L.UpdatesUpToDate),
