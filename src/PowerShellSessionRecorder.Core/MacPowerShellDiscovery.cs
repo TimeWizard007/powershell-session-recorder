@@ -36,10 +36,10 @@ public static class MacPowerShellDiscovery
         {
             foreach (var directory in pathVariable.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
             {
-                if (!Path.IsPathRooted(directory))
+                if (!MacPath.IsRooted(directory))
                     continue;
 
-                Consider(Path.Combine(directory, ExecutableName), currentDirectory, inspect, readLink, found, seen);
+                Consider(MacPath.Combine(directory, ExecutableName), currentDirectory, inspect, readLink, found, seen);
             }
         }
 
@@ -108,18 +108,8 @@ public static class MacPowerShellDiscovery
     {
         displayPath = "";
         executablePath = "";
-        if (!Path.IsPathRooted(candidate) || ContainsControl(candidate))
+        if (!MacPath.TryNormalize(candidate, out var current))
             return false;
-
-        string current;
-        try
-        {
-            current = Path.GetFullPath(candidate);
-        }
-        catch (Exception exception) when (exception is ArgumentException or NotSupportedException or PathTooLongException)
-        {
-            return false;
-        }
 
         if (InsideCurrentDirectory(current, currentDirectory))
             return false;
@@ -133,7 +123,7 @@ public static class MacPowerShellDiscovery
 
             if (!inspection.ReparsePoint)
             {
-                if (!string.Equals(Path.GetFileName(current), ExecutableName, StringComparison.Ordinal))
+                if (!string.Equals(MacPath.FileName(current), ExecutableName, StringComparison.Ordinal))
                     return false;
 
                 executablePath = current;
@@ -141,19 +131,8 @@ public static class MacPowerShellDiscovery
             }
 
             var link = readLink(current);
-            if (string.IsNullOrWhiteSpace(link) || ContainsControl(link))
+            if (string.IsNullOrWhiteSpace(link) || !MacPath.TryNormalizeLink(current, link, out current))
                 return false;
-
-            try
-            {
-                current = Path.IsPathRooted(link)
-                    ? Path.GetFullPath(link)
-                    : Path.GetFullPath(Path.Combine(Path.GetDirectoryName(current) ?? "", link));
-            }
-            catch (Exception exception) when (exception is ArgumentException or NotSupportedException or PathTooLongException)
-            {
-                return false;
-            }
         }
 
         return false;
@@ -161,20 +140,93 @@ public static class MacPowerShellDiscovery
 
     private static bool InsideCurrentDirectory(string path, string? currentDirectory)
     {
-        if (string.IsNullOrWhiteSpace(currentDirectory))
+        if (string.IsNullOrWhiteSpace(currentDirectory) || !MacPath.TryNormalize(currentDirectory, out var current))
             return false;
 
-        try
+        var directory = MacPath.DirectoryName(path) ?? "";
+        return string.Equals(directory, current, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// POSIX paths for macOS discovery. System.IO.Path rewrites a leading slash on Windows,
+    /// which would hide the same installs the macOS runner finds. A backslash is a legal
+    /// filename character and is not a separator.
+    /// </summary>
+    private static class MacPath
+    {
+        public static bool IsRooted(string path)
+            => path.Length > 0 && path[0] == '/';
+
+        public static string Combine(string directory, string name)
         {
-            var current = Path.GetFullPath(currentDirectory)
-                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            var directory = (Path.GetDirectoryName(path) ?? "")
-                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            return string.Equals(directory, current, StringComparison.OrdinalIgnoreCase);
+            if (IsRooted(name))
+                return name;
+
+            if (directory.Length == 0)
+                return name;
+
+            return directory[^1] == '/' ? directory + name : directory + "/" + name;
         }
-        catch (Exception exception) when (exception is ArgumentException or NotSupportedException or PathTooLongException)
+
+        public static string? DirectoryName(string path)
         {
-            return false;
+            var slash = path.LastIndexOf('/');
+            if (slash < 0)
+                return null;
+
+            return slash == 0 ? "/" : path[..slash];
+        }
+
+        public static string FileName(string path)
+        {
+            var slash = path.LastIndexOf('/');
+            return slash < 0 ? path : path[(slash + 1)..];
+        }
+
+        public static bool TryNormalize(string path, out string normalized)
+        {
+            normalized = "";
+            if (!IsRooted(path) || ContainsControl(path) || !TryCollapse(path, out normalized))
+                return false;
+
+            return true;
+        }
+
+        public static bool TryNormalizeLink(string current, string link, out string normalized)
+        {
+            normalized = "";
+            if (ContainsControl(link))
+                return false;
+
+            var combined = IsRooted(link)
+                ? link
+                : Combine(DirectoryName(current) ?? "/", link);
+            return TryNormalize(combined, out normalized);
+        }
+
+        private static bool TryCollapse(string path, out string normalized)
+        {
+            normalized = "";
+            var parts = new List<string>();
+            foreach (var part in path.Split('/', StringSplitOptions.None))
+            {
+                if (part.Length == 0 || part == ".")
+                    continue;
+
+                if (part == "..")
+                {
+                    if (parts.Count == 0)
+                        continue;
+
+                    parts.RemoveAt(parts.Count - 1);
+                    continue;
+                }
+
+                parts.Add(part);
+            }
+
+            normalized = "/" + string.Join('/', parts);
+            return normalized.Length > 1;
         }
     }
 

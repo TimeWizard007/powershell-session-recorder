@@ -5,8 +5,10 @@ namespace PowerShellSessionRecorder.Core;
 
 /// <summary>
 /// Deletes one regular transcript on macOS. The directory entry is opened with O_NOFOLLOW,
-/// so a symlink is not followed. The stat calls use the 64-bit inode symbols.
-/// A directory is classified and is not deleted.
+/// so a symlink is not followed. Modern libSystem exports fstat and fstatat, and those
+/// calls already return the 64-bit inode layout. The fstat$INODE64 aliases are static-link
+/// names and are not dlsym exports on macOS 15. A directory is classified and is not deleted.
+/// A stat result that is not a regular file refuses deletion.
 /// </summary>
 internal static partial class MacTranscriptDeletion
 {
@@ -21,8 +23,12 @@ internal static partial class MacTranscriptDeletion
     internal const int ErrorLoop = 62;
     internal const uint FileTypeMask = 0xF000;
     internal const uint RegularFile = 0x8000;
-    internal const string FileStatEntryPoint = "fstat$INODE64";
-    internal const string FileStatAtEntryPoint = "fstatat$INODE64";
+    internal const int StatSize = 144;
+    internal const int DeviceOffset = 0;
+    internal const int ModeOffset = 4;
+    internal const int InodeOffset = 8;
+    internal const string FileStatEntryPoint = "fstat";
+    internal const string FileStatAtEntryPoint = "fstatat";
 
     private static readonly UTF8Encoding Utf8 = new(encoderShouldEmitUTF8Identifier: false);
 
@@ -104,16 +110,16 @@ internal static partial class MacTranscriptDeletion
         return Utf8.GetString(buffer, 0, (int)read);
     }
 
-    [StructLayout(LayoutKind.Explicit, Size = 144)]
+    [StructLayout(LayoutKind.Explicit, Size = StatSize)]
     private struct MacStat
     {
-        [FieldOffset(0)]
+        [FieldOffset(DeviceOffset)]
         public int Device;
 
-        [FieldOffset(4)]
+        [FieldOffset(ModeOffset)]
         public ushort Mode;
 
-        [FieldOffset(8)]
+        [FieldOffset(InodeOffset)]
         public ulong Inode;
     }
 

@@ -135,6 +135,93 @@ public class SessionRecordingServiceTests
             Assert.Equal("/usr/bin/gnome-terminal", runner.FileNames.Single());
     }
 
+    [Fact]
+    public async Task StartMacAsync_DoesNotCreateAFileWhenPowerShellIsMissing()
+    {
+        using var root = new TempDirectory();
+        var runner = new FakeRunner();
+        var service = CreateMacService(root.Path, runner, new FakeWatcher(), engines: []);
+
+        var result = await service.StartAsync(Valid(root.Path), "en-US", CancellationToken.None);
+
+        Assert.Equal(SessionRecordingStatus.Rejected, result.Status);
+        Assert.Empty(Directory.EnumerateFiles(root.Path));
+        Assert.Empty(runner.Calls);
+    }
+
+    [Fact]
+    public async Task StartMacAsync_DoesNotCreateAFileWhenTerminalAppIsMissing()
+    {
+        using var root = new TempDirectory();
+        var runner = new FakeRunner();
+        var service = CreateMacService(root.Path, runner, new FakeWatcher(), terminalAvailable: false);
+
+        var result = await service.StartAsync(Valid(root.Path), "en-US", CancellationToken.None);
+
+        Assert.Equal(SessionRecordingStatus.Rejected, result.Status);
+        Assert.Empty(Directory.EnumerateFiles(root.Path));
+        Assert.Empty(runner.Calls);
+    }
+
+    [Fact]
+    public async Task StartMacAsync_DeletesTheCommandFileWhenTerminalAppFails()
+    {
+        using var root = new TempDirectory();
+        var runner = new FakeRunner { ExitCode = 1 };
+        var service = CreateMacService(root.Path, runner, new FakeWatcher());
+
+        var result = await service.StartAsync(Valid(root.Path), "en-US", CancellationToken.None);
+
+        Assert.Equal(SessionRecordingStatus.LaunchFailed, result.Status);
+        Assert.Null(result.TranscriptPath);
+        Assert.Empty(Directory.EnumerateFiles(root.Path, "*.txt"));
+        Assert.Equal("/usr/bin/open", runner.FileNames.Single());
+        Assert.Empty(Directory.EnumerateFiles(Path.Combine(root.Path, "bootstrap"), "*.command"));
+    }
+
+    [Fact]
+    public async Task StartMacAsync_KeepsMaliciousNamesOutOfTheBootstrapAndQuotesTheCommand()
+    {
+        using var root = new TempDirectory();
+        var runner = new FakeRunner();
+        var watcher = new FakeWatcher { Confirmed = true };
+        var engine = new MacPowerShellInstall(
+            "/opt/homebrew/bin/pwsh",
+            "/opt/homebrew/Cellar/powershell/7.6.8/bin/pwsh");
+        var service = CreateMacService(root.Path, runner, watcher, [engine]);
+        var configuration = Valid(root.Path, MaliciousTag, MaliciousName);
+
+        var result = await service.StartAsync(configuration, "en-US", CancellationToken.None);
+
+        var arguments = runner.Calls.Single();
+        var scriptPath = arguments[2];
+        var bootstrapPath = Directory.EnumerateFiles(Path.Combine(root.Path, "bootstrap"), "*.ps1").Single();
+        var script = File.ReadAllText(bootstrapPath);
+        var command = File.ReadAllText(scriptPath);
+        var powerShellArguments = RecordingBootstrap.BuildPowerShellArguments(
+            root.Path,
+            bootstrapPath,
+            result.TranscriptPath!,
+            "en-US");
+        Assert.True(MacTerminalCommand.TryBuildScript(engine.ExecutablePath, powerShellArguments, scriptPath, out var expected));
+
+        Assert.Equal(SessionRecordingStatus.Started, result.Status);
+        Assert.Equal(["-a", "Terminal", scriptPath], arguments);
+        Assert.Equal("/usr/bin/open", runner.FileNames.Single());
+        Assert.Equal(RecordingBootstrap.Script, script);
+        Assert.Equal(expected, command);
+        Assert.StartsWith("#!/bin/sh\n", command, StringComparison.Ordinal);
+        Assert.Contains("exec '/opt/homebrew/Cellar/powershell/7.6.8/bin/pwsh' ", command, StringComparison.Ordinal);
+        Assert.DoesNotContain(MaliciousTag, script, StringComparison.Ordinal);
+        Assert.DoesNotContain(MaliciousName, script, StringComparison.Ordinal);
+        Assert.DoesNotContain(MaliciousTag, command, StringComparison.Ordinal);
+        Assert.DoesNotContain(MaliciousName, command, StringComparison.Ordinal);
+        Assert.DoesNotContain("Invoke-Expression", script, StringComparison.Ordinal);
+        Assert.DoesNotContain("gnome-terminal", command, StringComparison.Ordinal);
+        Assert.DoesNotContain("osascript", command, StringComparison.Ordinal);
+        AssertOwnerExecutable(scriptPath);
+    }
+
     [Theory]
     [InlineData(true, false, SessionRecordingStatus.Rejected)]
     public async Task StartAsync_RejectsElevationAndInvalidConfiguration(bool administrator, bool validNames, SessionRecordingStatus expected)
@@ -220,13 +307,44 @@ public class SessionRecordingServiceTests
         Assert.Null(ExecutableLocator.Find("pwsh", "", _ => true));
     }
 
+    private static SessionRecordingService CreateMacService(
+        string logDirectory,
+        FakeRunner runner,
+        FakeWatcher watcher,
+        IReadOnlyList<MacPowerShellInstall>? engines = null,
+        bool terminalAvailable = true)
+        => CreateService(
+            logDirectory,
+            ReadyProbe(),
+            runner,
+            watcher,
+            host: RecordingHost.Mac,
+            macEngines: () => engines ?? [MacEngine()],
+            macTerminalAvailable: () => terminalAvailable);
+
+    private static MacPowerShellInstall MacEngine()
+        => new("/opt/homebrew/bin/pwsh", "/opt/homebrew/Cellar/powershell/7.6.8/bin/pwsh");
+
+    private static void AssertOwnerExecutable(string path)
+    {
+        if (OperatingSystem.IsWindows())
+            return;
+
+        Assert.Equal(
+            UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute,
+            File.GetUnixFileMode(path));
+    }
+
     private static SessionRecordingService CreateService(
         string logDirectory,
         FakeProbe probe,
         FakeRunner runner,
         FakeWatcher watcher,
         Func<DateTimeOffset>? clock = null,
-        Func<string>? uniqueId = null)
+        Func<string>? uniqueId = null,
+        RecordingHost host = RecordingHost.Linux,
+        Func<IReadOnlyList<MacPowerShellInstall>>? macEngines = null,
+        Func<bool>? macTerminalAvailable = null)
         => new(
             probe,
             runner,
@@ -236,7 +354,12 @@ public class SessionRecordingServiceTests
             uniqueIdFactory: uniqueId,
             workingDirectory: () => logDirectory,
             windowsLauncher: new RecordingWindowsLauncher(runner),
-            windowsEngines: () => WindowsEngines(probe, logDirectory));
+            windowsEngines: () => WindowsEngines(probe, logDirectory),
+            macEngines: macEngines,
+            macTerminalAvailable: macTerminalAvailable,
+            host: OperatingSystem.IsWindows() && host == RecordingHost.Linux
+                ? RecordingHost.Windows
+                : host);
 
     private static FakeProbe ReadyProbe() => new();
 

@@ -302,7 +302,7 @@ public class Checkpoint41Tests
         }
         else if (kind == "symlink")
         {
-            if (!OperatingSystem.IsLinux())
+            if (!OperatingSystem.IsLinux() && !OperatingSystem.IsMacOS())
                 return;
 
             var secret = Path.Combine(directory.Path, "secret.txt");

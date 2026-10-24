@@ -48,6 +48,7 @@ public sealed class SessionRecordingService : ISessionRecordingService
     private readonly Func<IReadOnlyList<PowerShellEngineLocation>> _windowsEngines;
     private readonly Func<IReadOnlyList<MacPowerShellInstall>> _macEngines;
     private readonly Func<bool> _macTerminalAvailable;
+    private readonly RecordingHost _host;
 
     public SessionRecordingService(
         IExecutableProbe probe,
@@ -61,7 +62,8 @@ public sealed class SessionRecordingService : ISessionRecordingService
         IWindowsSessionLauncher? windowsLauncher = null,
         Func<IReadOnlyList<PowerShellEngineLocation>>? windowsEngines = null,
         Func<IReadOnlyList<MacPowerShellInstall>>? macEngines = null,
-        Func<bool>? macTerminalAvailable = null)
+        Func<bool>? macTerminalAvailable = null,
+        RecordingHost? host = null)
     {
         _probe = probe;
         _processRunner = processRunner;
@@ -75,13 +77,14 @@ public sealed class SessionRecordingService : ISessionRecordingService
         _windowsEngines = windowsEngines ?? DiscoverWindowsEngines;
         _macEngines = macEngines ?? DiscoverMacEngines;
         _macTerminalAvailable = macTerminalAvailable ?? MacTerminalBundleExists;
+        _host = host ?? RecordingPlatform.CurrentHost();
     }
 
     public SessionRuntimeCapabilities Capabilities
     {
         get
         {
-            if (OperatingSystem.IsWindows())
+            if (_host == RecordingHost.Windows)
             {
                 var engines = _windowsEngines();
                 return new SessionRuntimeCapabilities(
@@ -92,7 +95,7 @@ public sealed class SessionRecordingService : ISessionRecordingService
                     true);
             }
 
-            if (OperatingSystem.IsMacOS())
+            if (_host == RecordingHost.Mac)
             {
                 return new SessionRuntimeCapabilities(
                     _macEngines().Count > 0,
@@ -145,10 +148,10 @@ public sealed class SessionRecordingService : ISessionRecordingService
 
         try
         {
-            if (OperatingSystem.IsWindows())
+            if (_host == RecordingHost.Windows)
                 return await StartWindowsAsync(configuration, language, transcriptPath, cancellationToken);
 
-            if (OperatingSystem.IsMacOS())
+            if (_host == RecordingHost.Mac)
                 return await StartMacAsync(configuration, language, transcriptPath, cancellationToken);
 
             var powerShell = _probe.FindExecutable(RecordingPlatform.PowerShellExecutable);
@@ -320,7 +323,7 @@ public sealed class SessionRecordingService : ISessionRecordingService
 
     private bool CanAttempt(SessionConfiguration configuration)
     {
-        if (OperatingSystem.IsWindows())
+        if (_host == RecordingHost.Windows)
             return CanAttemptWindows(configuration);
 
         if (configuration.RunAsAdministrator)

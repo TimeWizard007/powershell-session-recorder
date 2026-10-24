@@ -51,6 +51,36 @@ public class SessionSetupRecordingViewModelTests
     }
 
     [Fact]
+    public void CanStartSession_IsFalseWhenTerminalAppIsMissing()
+    {
+        using var fixture = new RecordingFixture(RecordingHost.Mac);
+        fixture.Service.TerminalAvailable = false;
+        Fill(fixture);
+
+        Assert.False(fixture.ViewModel.CanStartSession);
+        Assert.Equal("Terminal.app was not found.", fixture.ViewModel.StartSessionHint);
+        Assert.True(fixture.ViewModel.ShowMacTerminalMissing);
+        Assert.False(fixture.ViewModel.ShowLinuxTerminalInstall);
+        Assert.DoesNotContain("GNOME Terminal", fixture.ViewModel.StartSessionHint, StringComparison.Ordinal);
+        Assert.DoesNotContain("sudo apt", fixture.ViewModel.StartSessionHint, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void CanStartSession_DescribesTerminalAppWhenTheMacHostIsReady()
+    {
+        using var fixture = new RecordingFixture(RecordingHost.Mac);
+        Fill(fixture);
+
+        Assert.True(fixture.ViewModel.CanStartSession);
+        Assert.Equal(
+            "Terminal.app will open PowerShell 7 with transcript recording already started.",
+            fixture.ViewModel.StartSessionHint);
+        Assert.False(fixture.ViewModel.ShowLinuxTerminalInstall);
+        Assert.False(fixture.ViewModel.ShowMacTerminalMissing);
+        Assert.False(fixture.ViewModel.ShowElevationOption);
+    }
+
+    [Fact]
     public void CanStartSession_IsFalseWhenTheRecordingServiceIsMissing()
     {
         using var directory = new TempDirectory();
@@ -178,11 +208,12 @@ public class SessionSetupRecordingViewModelTests
 
     public sealed class RecordingFixture : IDisposable
     {
-        public RecordingFixture()
+        public RecordingFixture(RecordingHost? host = null)
         {
             Directory = System.IO.Directory.CreateTempSubdirectory("psr-vm-").FullName;
             Localization = new LocalizationService(LocalizationDirectory());
             Service = new FakeRecordingService();
+            Host = host ?? (OperatingSystem.IsWindows() ? RecordingHost.Windows : RecordingHost.Linux);
             var store = new JsonSettingsStore(Path.Combine(Directory, "settings.json"));
             ViewModel = new SessionSetupViewModel(
                 Localization,
@@ -190,8 +221,11 @@ public class SessionSetupRecordingViewModelTests
                 store,
                 new ObservableCollection<string>(),
                 Statuses.Add,
-                Service);
+                Service,
+                host: Host);
         }
+
+        public RecordingHost Host { get; }
 
         public string Directory { get; }
 

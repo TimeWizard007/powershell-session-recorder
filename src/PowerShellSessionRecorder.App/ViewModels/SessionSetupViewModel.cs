@@ -20,6 +20,7 @@ public partial class SessionSetupViewModel : ViewModelBase
     private readonly ISessionHistoryStore? _history;
     private readonly Action? _historyChanged;
     private readonly Func<DateTimeOffset> _utcNow;
+    private readonly RecordingHost _host;
     private readonly string _previewUniqueId = Guid.NewGuid().ToString("N")[..8].ToUpperInvariant();
     private IFolderPicker? _folderPicker;
     private bool _suspendPersistence;
@@ -35,7 +36,8 @@ public partial class SessionSetupViewModel : ViewModelBase
         ISessionHistoryStore? history = null,
         Action? historyChanged = null,
         Func<DateTimeOffset>? utcNow = null,
-        ICustomerCatalog? customers = null)
+        ICustomerCatalog? customers = null,
+        RecordingHost? host = null)
     {
         _localization = localization;
         _settings = settings;
@@ -46,6 +48,7 @@ public partial class SessionSetupViewModel : ViewModelBase
         _history = history;
         _historyChanged = historyChanged;
         _utcNow = utcNow ?? (() => DateTimeOffset.UtcNow);
+        _host = host ?? RecordingPlatform.CurrentHost();
         RecentCustomerTags = recentCustomerTags;
         // Generated property setters invoke change callbacks immediately. The choice list
         // must exist before hydration, because those callbacks refresh the preview.
@@ -75,12 +78,12 @@ public partial class SessionSetupViewModel : ViewModelBase
 
     public IReadOnlyList<PowerShellChoice> PowerShellChoices { get; }
 
-    public bool ShowWindowsPowerShellNote => !OperatingSystem.IsWindows();
+    public bool ShowWindowsPowerShellNote => _host != RecordingHost.Windows;
 
-    public bool ShowElevationOption => OperatingSystem.IsWindows();
+    public bool ShowElevationOption => _host == RecordingHost.Windows;
 
     public bool ShowSelectedEngineMissing =>
-        OperatingSystem.IsWindows()
+        _host == RecordingHost.Windows
         && _recordingService is not null
         && !SelectedEngineAvailable;
 
@@ -151,7 +154,7 @@ public partial class SessionSetupViewModel : ViewModelBase
     public bool CanStartSession =>
         _recordingService is not null
         && SessionStartPolicy.CanStart(
-            OperatingSystem.IsWindows(),
+            _host == RecordingHost.Windows,
             _recordingService.Capabilities,
             SelectedPowerShellVersion,
             RunAsAdministrator,
@@ -168,9 +171,9 @@ public partial class SessionSetupViewModel : ViewModelBase
     public bool ShowTerminalMissing =>
         _recordingService?.Capabilities is { PlatformSupported: true, TerminalAvailable: false };
 
-    public bool ShowLinuxTerminalInstall => ShowTerminalMissing && OperatingSystem.IsLinux();
+    public bool ShowLinuxTerminalInstall => ShowTerminalMissing && _host == RecordingHost.Linux;
 
-    public bool ShowMacTerminalMissing => ShowTerminalMissing && OperatingSystem.IsMacOS();
+    public bool ShowMacTerminalMissing => ShowTerminalMissing && _host == RecordingHost.Mac;
 
     public bool ShowUnsupportedPlatform =>
         _recordingService is not null && !_recordingService.Capabilities.PlatformSupported;
@@ -187,27 +190,30 @@ public partial class SessionSetupViewModel : ViewModelBase
                 return _localization.Get(L.ReasonRecordingRuntimeUnavailable);
 
             var capabilities = _recordingService.Capabilities;
+            var windows = _host == RecordingHost.Windows;
+            var mac = _host == RecordingHost.Mac;
+            var linux = _host == RecordingHost.Linux;
             if (!capabilities.PlatformSupported)
                 return _localization.Get(L.DependencyUnsupportedPlatform);
-            if (OperatingSystem.IsMacOS() && !capabilities.PowerShell7Available && !capabilities.TerminalAvailable)
+            if (mac && !capabilities.PowerShell7Available && !capabilities.TerminalAvailable)
                 return _localization.Get(L.ReasonPowerShellMissing) + " " + _localization.Get(L.ReasonMacTerminalMissing);
-            if (OperatingSystem.IsMacOS() && !capabilities.PowerShell7Available)
+            if (mac && !capabilities.PowerShell7Available)
                 return _localization.Get(L.ReasonPowerShellMissing);
-            if (OperatingSystem.IsMacOS() && !capabilities.TerminalAvailable)
+            if (mac && !capabilities.TerminalAvailable)
                 return _localization.Get(L.ReasonMacTerminalMissing);
-            if (OperatingSystem.IsLinux() && !capabilities.PowerShell7Available && !capabilities.TerminalAvailable)
+            if (linux && !capabilities.PowerShell7Available && !capabilities.TerminalAvailable)
                 return _localization.Get(L.ReasonPowerShellMissing) + " " + _localization.Get(L.ReasonTerminalMissing);
-            if (OperatingSystem.IsLinux() && !capabilities.PowerShell7Available)
+            if (linux && !capabilities.PowerShell7Available)
                 return _localization.Get(L.ReasonPowerShellMissing);
-            if (OperatingSystem.IsLinux() && !capabilities.TerminalAvailable)
+            if (linux && !capabilities.TerminalAvailable)
                 return _localization.Get(L.ReasonTerminalMissing);
-            if (OperatingSystem.IsWindows() && !SelectedEngineAvailable)
+            if (windows && !SelectedEngineAvailable)
                 return SelectedEngineMissingText;
-            if (!OperatingSystem.IsWindows() && RunAsAdministrator)
+            if (!windows && RunAsAdministrator)
                 return _localization.Get(L.ReasonElevationUnavailable);
-            if (OperatingSystem.IsWindows() && RunAsAdministrator && !capabilities.ElevationAvailable)
+            if (windows && RunAsAdministrator && !capabilities.ElevationAvailable)
                 return _localization.Get(L.ReasonElevationUnavailable);
-            if (!OperatingSystem.IsWindows() && SelectedPowerShellVersion != PowerShellVersion.PowerShell7)
+            if (!windows && SelectedPowerShellVersion != PowerShellVersion.PowerShell7)
                 return _localization.Get(L.ReasonWindowsPowerShellUnsupported);
             if (string.IsNullOrWhiteSpace(LogDirectory))
                 return _localization.Get(L.ValidationLogDirectoryRequired);
@@ -216,9 +222,9 @@ public partial class SessionSetupViewModel : ViewModelBase
             if (!CurrentValidation().IsValid)
                 return _localization.Get(L.ReasonConfigurationInvalid);
 
-            return _localization.Get(OperatingSystem.IsWindows()
+            return _localization.Get(windows
                 ? L.StartSessionReadyHintWindows
-                : OperatingSystem.IsMacOS()
+                : mac
                     ? L.StartSessionReadyHintMac
                     : L.StartSessionReadyHint);
         }
@@ -254,7 +260,7 @@ public partial class SessionSetupViewModel : ViewModelBase
     public string PreviewPrivilege => _localization.Get(
         !RunAsAdministrator
             ? L.PrivilegeStandard
-            : OperatingSystem.IsWindows()
+            : _host == RecordingHost.Windows
                 ? L.PrivilegeAdministratorRequested
                 : L.PrivilegeAdministrator);
 
@@ -426,7 +432,7 @@ public partial class SessionSetupViewModel : ViewModelBase
             new(PowerShellVersion.PowerShell7, _localization)
         };
 
-        if (OperatingSystem.IsWindows())
+        if (_host == RecordingHost.Windows)
             choices.Add(new PowerShellChoice(PowerShellVersion.WindowsPowerShell51, _localization));
 
         return choices;
@@ -553,7 +559,7 @@ public partial class SessionSetupViewModel : ViewModelBase
         => result.Status switch
         {
             SessionRecordingStatus.Started => _localization.Get(
-                    RunAsAdministrator && OperatingSystem.IsWindows()
+                    RunAsAdministrator && _host == RecordingHost.Windows
                         ? L.StatusRecordingStartedElevated
                         : L.StatusRecordingStarted)
                 .Replace("{0}", result.TranscriptPath ?? "", StringComparison.Ordinal),

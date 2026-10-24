@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using PowerShellSessionRecorder.App.Localization;
 using PowerShellSessionRecorder.App.Services.Recording;
 using PowerShellSessionRecorder.App.Services.Updates;
@@ -71,6 +72,24 @@ public class Checkpoint6Tests
             _ => null);
 
         Assert.Empty(found);
+    }
+
+    [Fact]
+    public void MacDiscovery_IgnoresPowerShellInsideTheCurrentDirectory()
+    {
+        var regular = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "/tmp/cwd/pwsh",
+            "/usr/local/custom/bin/pwsh"
+        };
+        var found = MacPowerShellDiscovery.Discover(
+            "/tmp/cwd" + Path.PathSeparator + "/usr/local/custom/bin/.",
+            "/tmp/cwd",
+            path => new EngineFileInspection(regular.Contains(path), false),
+            _ => null);
+
+        Assert.Equal(["/usr/local/custom/bin/pwsh"], found.Select(install => install.DisplayPath).ToArray());
+        Assert.Equal("/usr/local/custom/bin/pwsh", found[0].ExecutablePath);
     }
 
     [Fact]
@@ -218,8 +237,12 @@ public class Checkpoint6Tests
         Assert.NotEqual(0x20000, MacTranscriptDeletion.NoFollowFlag);
         Assert.Equal(0x0020, MacTranscriptDeletion.SymlinkNoFollow);
         Assert.Equal(62, MacTranscriptDeletion.ErrorLoop);
-        Assert.Equal("fstat$INODE64", MacTranscriptDeletion.FileStatEntryPoint);
-        Assert.Equal("fstatat$INODE64", MacTranscriptDeletion.FileStatAtEntryPoint);
+        Assert.Equal(144, MacTranscriptDeletion.StatSize);
+        Assert.Equal(0, MacTranscriptDeletion.DeviceOffset);
+        Assert.Equal(4, MacTranscriptDeletion.ModeOffset);
+        Assert.Equal(8, MacTranscriptDeletion.InodeOffset);
+        Assert.Equal("fstat", MacTranscriptDeletion.FileStatEntryPoint);
+        Assert.Equal("fstatat", MacTranscriptDeletion.FileStatAtEntryPoint);
     }
 
     [Fact]
@@ -227,6 +250,10 @@ public class Checkpoint6Tests
     {
         if (!OperatingSystem.IsMacOS())
             return;
+
+        var library = NativeLibrary.Load("libSystem.dylib");
+        Assert.True(NativeLibrary.TryGetExport(library, MacTranscriptDeletion.FileStatEntryPoint, out _));
+        Assert.True(NativeLibrary.TryGetExport(library, MacTranscriptDeletion.FileStatAtEntryPoint, out _));
 
         using var directory = new TempDirectory();
         var finished = Path.GetFullPath(Path.Combine(directory.Path, "done.txt"));
