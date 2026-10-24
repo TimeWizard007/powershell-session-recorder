@@ -558,11 +558,14 @@ public class Checkpoint41Tests
     public void WindowsFileInformation_UsesTheWin32FieldOrder()
     {
         var type = typeof(WindowsTranscriptDeletion.ByHandleFileInformation);
-        Assert.Equal(28, Marshal.OffsetOf(type, nameof(WindowsTranscriptDeletion.ByHandleFileInformation.FileSizeHigh)).ToInt32());
-        Assert.Equal(32, Marshal.OffsetOf(type, nameof(WindowsTranscriptDeletion.ByHandleFileInformation.FileSizeLow)).ToInt32());
-        Assert.Equal(36, Marshal.OffsetOf(type, nameof(WindowsTranscriptDeletion.ByHandleFileInformation.NumberOfLinks)).ToInt32());
-        Assert.Equal(48, Marshal.OffsetOf(type, nameof(WindowsTranscriptDeletion.ByHandleFileInformation.VolumeSerialNumber)).ToInt32());
+        Assert.Equal(28, Marshal.OffsetOf(type, nameof(WindowsTranscriptDeletion.ByHandleFileInformation.VolumeSerialNumber)).ToInt32());
+        Assert.Equal(32, Marshal.OffsetOf(type, nameof(WindowsTranscriptDeletion.ByHandleFileInformation.FileSizeHigh)).ToInt32());
+        Assert.Equal(36, Marshal.OffsetOf(type, nameof(WindowsTranscriptDeletion.ByHandleFileInformation.FileSizeLow)).ToInt32());
+        Assert.Equal(40, Marshal.OffsetOf(type, nameof(WindowsTranscriptDeletion.ByHandleFileInformation.NumberOfLinks)).ToInt32());
+        Assert.Equal(44, Marshal.OffsetOf(type, nameof(WindowsTranscriptDeletion.ByHandleFileInformation.FileIndexHigh)).ToInt32());
+        Assert.Equal(48, Marshal.OffsetOf(type, nameof(WindowsTranscriptDeletion.ByHandleFileInformation.FileIndexLow)).ToInt32());
         Assert.Equal(52, Marshal.SizeOf(type));
+        Assert.Equal(21, WindowsTranscriptDeletion.FileDispositionInfoExClass);
     }
 
     private static CustomerDirectoryViewModel DirectoryFor(JsonCustomerCatalog catalog)

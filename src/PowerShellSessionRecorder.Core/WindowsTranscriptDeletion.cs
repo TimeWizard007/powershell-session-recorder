@@ -20,7 +20,8 @@ internal static partial class WindowsTranscriptDeletion
     private const uint FileAttributeDirectory = 0x00000010;
     private const uint FileAttributeReparsePoint = 0x00000400;
     private const uint FileBegin = 0;
-    private const int FileDispositionInfoExClass = 64;
+    // FILE_INFO_BY_HANDLE_CLASS.FileDispositionInfoEx. 64 is the unrelated NT class.
+    internal const int FileDispositionInfoExClass = 21;
     private const uint DispositionDelete = 0x1;
     private const uint DispositionPosix = 0x2;
     private const int ErrorFileNotFound = 2;
@@ -122,7 +123,7 @@ internal static partial class WindowsTranscriptDeletion
     }
 
     /// <summary>
-    /// Matches the Win32 BY_HANDLE_FILE_INFORMATION layout. Volume serial number is last.
+    /// Matches Win32 BY_HANDLE_FILE_INFORMATION. The volume serial number precedes the size.
     /// </summary>
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     internal struct ByHandleFileInformation
@@ -131,12 +132,12 @@ internal static partial class WindowsTranscriptDeletion
         public long CreationTime;
         public long LastAccessTime;
         public long LastWriteTime;
+        public uint VolumeSerialNumber;
         public uint FileSizeHigh;
         public uint FileSizeLow;
         public uint NumberOfLinks;
         public uint FileIndexHigh;
         public uint FileIndexLow;
-        public uint VolumeSerialNumber;
     }
 
     [StructLayout(LayoutKind.Sequential)]
