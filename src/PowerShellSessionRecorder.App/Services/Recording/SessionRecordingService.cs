@@ -45,6 +45,7 @@ public sealed class SessionRecordingService : ISessionRecordingService
     private readonly Func<string> _uniqueIdFactory;
     private readonly Func<string?> _workingDirectory;
     private readonly IWindowsSessionLauncher _windowsLauncher;
+    private readonly Func<IReadOnlyList<PowerShellEngineLocation>> _windowsEngines;
 
     public SessionRecordingService(
         IExecutableProbe probe,
@@ -55,7 +56,8 @@ public sealed class SessionRecordingService : ISessionRecordingService
         Func<DateTimeOffset>? clock = null,
         Func<string>? uniqueIdFactory = null,
         Func<string?>? workingDirectory = null,
-        IWindowsSessionLauncher? windowsLauncher = null)
+        IWindowsSessionLauncher? windowsLauncher = null,
+        Func<IReadOnlyList<PowerShellEngineLocation>>? windowsEngines = null)
     {
         _probe = probe;
         _processRunner = processRunner;
@@ -66,6 +68,7 @@ public sealed class SessionRecordingService : ISessionRecordingService
         _uniqueIdFactory = uniqueIdFactory ?? (() => Guid.NewGuid().ToString("N")[..16].ToUpperInvariant());
         _workingDirectory = workingDirectory ?? DefaultWorkingDirectory;
         _windowsLauncher = windowsLauncher ?? new WindowsConsoleLauncher();
+        _windowsEngines = windowsEngines ?? DiscoverWindowsEngines;
     }
 
     public SessionRuntimeCapabilities Capabilities
@@ -74,7 +77,7 @@ public sealed class SessionRecordingService : ISessionRecordingService
         {
             if (OperatingSystem.IsWindows())
             {
-                var engines = DiscoverWindowsEngines();
+                var engines = _windowsEngines();
                 return new SessionRuntimeCapabilities(
                     engines.Any(engine => engine.Version == PowerShellVersion.PowerShell7),
                     true,
@@ -180,7 +183,7 @@ public sealed class SessionRecordingService : ISessionRecordingService
         string transcriptPath,
         CancellationToken cancellationToken)
     {
-        var engine = DiscoverWindowsEngines().FirstOrDefault(item => item.Version == configuration.PowerShellVersion);
+        var engine = _windowsEngines().FirstOrDefault(item => item.Version == configuration.PowerShellVersion);
         if (engine is null)
         {
             TranscriptFileAllocator.DeleteIfStillEmpty(transcriptPath);
@@ -243,7 +246,7 @@ public sealed class SessionRecordingService : ISessionRecordingService
         if (!SessionConfigurationValidator.Validate(configuration).IsValid)
             return false;
 
-        return DiscoverWindowsEngines().Any(engine => engine.Version == configuration.PowerShellVersion);
+        return _windowsEngines().Any(engine => engine.Version == configuration.PowerShellVersion);
     }
 
     private static string BuildTitle(string? customerTag)

@@ -5,8 +5,9 @@ namespace PowerShellSessionRecorder.Core;
 
 /// <summary>
 /// Deletes one regular transcript on Windows 10 or later.
-/// The handle is opened without following a reparse point. A sharing violation
-/// or a missing disposition API refuses the delete.
+/// The handle is opened without following a reparse point. Backup semantics let a
+/// directory be classified as unsafe; the directory itself is not deleted.
+/// A sharing violation or a missing disposition API refuses the delete.
 /// </summary>
 internal static partial class WindowsTranscriptDeletion
 {
@@ -15,6 +16,7 @@ internal static partial class WindowsTranscriptDeletion
     private const uint FileShareRead = 0x00000001;
     private const uint OpenExisting = 3;
     private const uint FileFlagOpenReparsePoint = 0x00200000;
+    private const uint FileFlagBackupSemantics = 0x02000000;
     private const uint FileAttributeDirectory = 0x00000010;
     private const uint FileAttributeReparsePoint = 0x00000400;
     private const uint FileBegin = 0;
@@ -37,7 +39,7 @@ internal static partial class WindowsTranscriptDeletion
             FileShareRead,
             IntPtr.Zero,
             OpenExisting,
-            FileFlagOpenReparsePoint,
+            FileFlagOpenReparsePoint | FileFlagBackupSemantics,
             IntPtr.Zero);
         if (handle == InvalidHandle || handle == IntPtr.Zero)
             return MapOpenError(Marshal.GetLastPInvokeError());
@@ -119,19 +121,22 @@ internal static partial class WindowsTranscriptDeletion
         return Utf8.GetString(buffer, 0, read);
     }
 
+    /// <summary>
+    /// Matches the Win32 BY_HANDLE_FILE_INFORMATION layout. Volume serial number is last.
+    /// </summary>
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
-    private struct ByHandleFileInformation
+    internal struct ByHandleFileInformation
     {
         public uint FileAttributes;
         public long CreationTime;
         public long LastAccessTime;
         public long LastWriteTime;
-        public uint VolumeSerialNumber;
         public uint FileSizeHigh;
         public uint FileSizeLow;
         public uint NumberOfLinks;
         public uint FileIndexHigh;
         public uint FileIndexLow;
+        public uint VolumeSerialNumber;
     }
 
     [StructLayout(LayoutKind.Sequential)]

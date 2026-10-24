@@ -33,7 +33,7 @@ jobs:
       debian: ${{ steps.tag.outputs.debian }}
     steps:
       - name: Check out the tag
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
         with:
           ref: ${{ inputs.tag }}
           fetch-depth: 0
@@ -50,13 +50,13 @@ jobs:
       SOURCE_REVISION_ID: ${{ needs.resolve.outputs.sha }}
     steps:
       - name: Check out the resolved commit
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
         with:
           ref: ${{ needs.resolve.outputs.sha }}
           fetch-depth: 1
 
       - name: Install the .NET 10 SDK
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6.0.0
         with:
           dotnet-version: 10.0.x
 
@@ -70,7 +70,7 @@ jobs:
         run: packaging/ci/validate-linux-release.sh
 
       - name: Upload Linux release assets
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: release-linux
           retention-days: 14
@@ -89,18 +89,18 @@ jobs:
       SOURCE_REVISION_ID: ${{ needs.resolve.outputs.sha }}
     steps:
       - name: Check out the resolved commit
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
         with:
           ref: ${{ needs.resolve.outputs.sha }}
           fetch-depth: 1
 
       - name: Install the .NET 10 SDK
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6.0.0
         with:
           dotnet-version: 10.0.x
 
       - name: Install Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7.1.0
         with:
           python-version: "3.12"
 
@@ -124,7 +124,7 @@ jobs:
         run: ./packaging/windows/verify-release.ps1
 
       - name: Upload the Windows installer
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: release-windows
           retention-days: 14
@@ -142,13 +142,13 @@ jobs:
       - windows
     steps:
       - name: Check out the resolved commit
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
         with:
           ref: ${{ needs.resolve.outputs.sha }}
           fetch-depth: 1
 
       - name: Download the platform assets
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8.0.2
         with:
           pattern: release-*
           path: release-assets
@@ -161,7 +161,7 @@ jobs:
             release-assets/release-windows/PowerShellSessionRecorder-${{ needs.resolve.outputs.version }}-win-x64-setup.exe
 
       - name: Upload the review bundle
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: release-review-${{ inputs.tag }}
           retention-days: 14
@@ -180,13 +180,13 @@ jobs:
       contents: write
     steps:
       - name: Check out the resolved commit
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
         with:
           ref: ${{ needs.resolve.outputs.sha }}
           fetch-depth: 1
 
       - name: Download the reviewed assets
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8.0.2
         with:
           name: release-review-${{ inputs.tag }}
           path: release-assets

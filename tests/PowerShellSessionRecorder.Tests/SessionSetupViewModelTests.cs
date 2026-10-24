@@ -42,14 +42,18 @@ public class SessionSetupViewModelTests
         Assert.Equal("Standard user", viewModel.PreviewPrivilege);
 
         viewModel.RunAsAdministrator = true;
-        Assert.Equal("Administrator", viewModel.PreviewPrivilege);
+        Assert.Equal(
+            OperatingSystem.IsWindows() ? "Administrator (requested, not confirmed)" : "Administrator",
+            viewModel.PreviewPrivilege);
         viewModel.RunAsAdministrator = false;
 
         localization.SetLanguage("pl-PL");
 
         Assert.Equal("Użytkownik standardowy", viewModel.PreviewPrivilege);
         viewModel.RunAsAdministrator = true;
-        Assert.Equal("Administrator", viewModel.PreviewPrivilege);
+        Assert.Equal(
+            OperatingSystem.IsWindows() ? "Administrator (żądany, niepotwierdzony)" : "Administrator",
+            viewModel.PreviewPrivilege);
         viewModel.CustomerTag = " ";
         Assert.Equal("TAG klienta jest wymagany.", viewModel.CustomerTagError);
 

@@ -8,8 +8,8 @@ public class CheckpointReleaseTests
     public void Workflows_ParseAndKeepReleasePublishingGated()
     {
         var root = RepositoryRoot();
-        var ci = LoadYaml(Path.Combine(root, ".github/workflows/ci.yml"));
-        var release = LoadYaml(Path.Combine(root, ".github/workflows/release.yml"));
+        var ci = LoadWorkflow(Path.Combine(root, ".github/workflows/ci.yml"));
+        var release = LoadWorkflow(Path.Combine(root, ".github/workflows/release.yml"));
 
         Assert.True(ci.Contains("pull_request", StringComparison.Ordinal));
         Assert.Contains("branches:\n      - main", ci, StringComparison.Ordinal);
@@ -40,7 +40,7 @@ public class CheckpointReleaseTests
     [Fact]
     public void VersionFiles_AgreeOnBeta2()
     {
-        var output = Run(RepositoryRoot(), "packaging/ci/assert-version-files.sh", "0.1.0-beta.2");
+        var output = RunShell(RepositoryRoot(), "packaging/ci/assert-version-files.sh", "0.1.0-beta.2");
         Assert.Equal(0, output.ExitCode);
         var lines = output.Text.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         Assert.Equal("0.1.0-beta.2", lines[0]);
@@ -55,7 +55,7 @@ public class CheckpointReleaseTests
         if (branch.ExitCode != 0)
             return;
 
-        var resolved = Run(root, "packaging/ci/resolve-release-tag.sh", "v0.1.0-beta.2");
+        var resolved = RunShell(root, "packaging/ci/resolve-release-tag.sh", "v0.1.0-beta.2");
         Assert.NotEqual(0, resolved.ExitCode);
         Assert.Contains("Refusing to build from a branch", resolved.Text, StringComparison.Ordinal);
     }
@@ -113,16 +113,55 @@ public class CheckpointReleaseTests
             "packaging/windows/publish-win-x64.sh"
         })
         {
-            var syntax = Run(root, "bash", "-n", script);
-            Assert.Equal(0, syntax.ExitCode);
+            var syntax = Run(root, RequireBash(), "-n", Path.Combine(root, script));
+            Assert.True(syntax.ExitCode == 0, script + Environment.NewLine + syntax.Text);
         }
     }
 
-    private static string LoadYaml(string path)
+    private static string LoadWorkflow(string path)
     {
-        var parsed = Run(Path.GetDirectoryName(path)!, "python3", "-c", "import pathlib, yaml, sys; yaml.safe_load(pathlib.Path(sys.argv[1]).read_text()); print('ok')", path);
-        Assert.Equal(0, parsed.ExitCode);
-        return File.ReadAllText(path);
+        var text = File.ReadAllText(path).Replace("\r\n", "\n", StringComparison.Ordinal);
+        Assert.False(string.IsNullOrWhiteSpace(text));
+        Assert.DoesNotContain("\t", text, StringComparison.Ordinal);
+        Assert.StartsWith("name:", text, StringComparison.Ordinal);
+        Assert.Contains("\njobs:\n", text, StringComparison.Ordinal);
+        return text;
+    }
+
+    private static (int ExitCode, string Text) RunShell(string root, string script, params string[] args)
+    {
+        var arguments = new string[args.Length + 1];
+        arguments[0] = Path.Combine(root, script);
+        args.CopyTo(arguments, 1);
+        return Run(root, RequireBash(), arguments);
+    }
+
+    private static string RequireBash()
+    {
+        if (!OperatingSystem.IsWindows())
+            return "bash";
+
+        var gitBash = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+            "Git",
+            "bin",
+            "bash.exe");
+        if (File.Exists(gitBash))
+            return gitBash;
+
+        var path = Environment.GetEnvironmentVariable("PATH") ?? "";
+        foreach (var directory in path.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries))
+        {
+            var candidate = Path.Combine(directory.Trim(), "bash.exe");
+            if (!File.Exists(candidate))
+                continue;
+            if (candidate.Contains("System32", StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            return candidate;
+        }
+
+        throw new InvalidOperationException("Bash was not found. Git Bash is required to check the release scripts on Windows.");
     }
 
     private static (int ExitCode, string Text) Run(string root, string fileName, params string[] args)
@@ -143,9 +182,10 @@ public class CheckpointReleaseTests
             start.ArgumentList.Add(arg);
         using var process = Process.Start(start);
         Assert.NotNull(process);
-        var text = process.StandardOutput.ReadToEnd() + process.StandardError.ReadToEnd();
+        var output = process.StandardOutput.ReadToEndAsync();
+        var error = process.StandardError.ReadToEndAsync();
         process.WaitForExit();
-        return (process.ExitCode, text);
+        return (process.ExitCode, output.GetAwaiter().GetResult() + error.GetAwaiter().GetResult());
     }
 
     private static string RepositoryRoot()

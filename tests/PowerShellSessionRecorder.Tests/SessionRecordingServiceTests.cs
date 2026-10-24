@@ -30,12 +30,23 @@ public class SessionRecordingServiceTests
         using var root = new TempDirectory();
         var probe = ReadyProbe();
         probe.Terminal = null;
-        var service = CreateService(root.Path, probe, new FakeRunner(), new FakeWatcher());
+        var runner = new FakeRunner();
+        var service = CreateService(root.Path, probe, runner, new FakeWatcher());
 
         var result = await service.StartAsync(Valid(root.Path), "en-US", CancellationToken.None);
 
+        if (OperatingSystem.IsWindows())
+        {
+            Assert.Equal(SessionRecordingStatus.Unconfirmed, result.Status);
+            Assert.NotNull(result.TranscriptPath);
+            Assert.True(File.Exists(result.TranscriptPath));
+            Assert.EndsWith("pwsh.exe", runner.FileNames.Single(), StringComparison.OrdinalIgnoreCase);
+            return;
+        }
+
         Assert.Equal(SessionRecordingStatus.Rejected, result.Status);
         Assert.Empty(Directory.EnumerateFiles(root.Path));
+        Assert.Empty(runner.Calls);
     }
 
     [Fact]
@@ -118,7 +129,10 @@ public class SessionRecordingServiceTests
         Assert.DoesNotContain("Invoke-Expression", script, StringComparison.Ordinal);
         Assert.DoesNotContain("-e", arguments);
         Assert.DoesNotContain("sh", arguments);
-        Assert.Equal("/usr/bin/gnome-terminal", runner.FileNames.Single());
+        if (OperatingSystem.IsWindows())
+            Assert.EndsWith("pwsh.exe", runner.FileNames.Single(), StringComparison.OrdinalIgnoreCase);
+        else
+            Assert.Equal("/usr/bin/gnome-terminal", runner.FileNames.Single());
     }
 
     [Theory]
@@ -220,9 +234,23 @@ public class SessionRecordingServiceTests
             new BootstrapFileStore(Path.Combine(logDirectory, "bootstrap")),
             clock: clock,
             uniqueIdFactory: uniqueId,
-            workingDirectory: () => logDirectory);
+            workingDirectory: () => logDirectory,
+            windowsLauncher: new RecordingWindowsLauncher(runner),
+            windowsEngines: () => WindowsEngines(probe, logDirectory));
 
     private static FakeProbe ReadyProbe() => new();
+
+    private static IReadOnlyList<PowerShellEngineLocation> WindowsEngines(FakeProbe probe, string logDirectory)
+    {
+        if (!OperatingSystem.IsWindows() || probe.PowerShell is null)
+            return [];
+
+        var engine = Path.GetFullPath(Path.Combine(logDirectory, "pwsh.exe"));
+        if (!File.Exists(engine))
+            File.WriteAllBytes(engine, []);
+
+        return [new PowerShellEngineLocation(PowerShellVersion.PowerShell7, engine)];
+    }
 
     private static SessionConfiguration Valid(string directory, string tag = "HOWE", string name = "Session")
         => new()
@@ -271,6 +299,23 @@ public class SessionRecordingServiceTests
                 throw Exception;
 
             return Task.FromResult(ExitCode);
+        }
+    }
+
+    private sealed class RecordingWindowsLauncher : IWindowsSessionLauncher
+    {
+        private readonly FakeRunner _runner;
+
+        public RecordingWindowsLauncher(FakeRunner runner) => _runner = runner;
+
+        public WindowsSessionStart Start(WindowsLaunchPlan plan)
+        {
+            _runner.FileNames.Add(plan.ExecutablePath);
+            _runner.Calls.Add(plan.Arguments);
+            if (_runner.Exception is not null)
+                throw _runner.Exception;
+
+            return _runner.ExitCode == 0 ? WindowsSessionStart.Started : WindowsSessionStart.Failed;
         }
     }
 

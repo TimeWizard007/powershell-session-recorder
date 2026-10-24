@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Runtime.InteropServices;
 using PowerShellSessionRecorder.App.Localization;
 using PowerShellSessionRecorder.App.Services;
 using PowerShellSessionRecorder.App.ViewModels;
@@ -407,13 +408,22 @@ public class Checkpoint41Tests
         try
         {
             var report = HistoryCleanup.Remove(store, [done, open, denied], deleteFiles: true);
-            Assert.Equal(1, report.FilesDeleted);
             Assert.Equal(1, report.FilesPreserved);
             if (OperatingSystem.IsLinux())
             {
+                Assert.Equal(1, report.FilesDeleted);
                 Assert.Equal(1, report.FilesRefused);
                 Assert.Equal(1, report.HistoryRemoved);
+                Assert.True(File.Exists(locked));
                 Assert.Equal(["Locked", "Open"], store.Load().Sessions.Select(entry => entry.SessionName).OrderBy(name => name));
+            }
+            else
+            {
+                Assert.Equal(2, report.FilesDeleted);
+                Assert.Equal(0, report.FilesRefused);
+                Assert.Equal(2, report.HistoryRemoved);
+                Assert.False(File.Exists(locked));
+                Assert.Equal("Open", store.Load().Sessions.Single().SessionName);
             }
 
             Assert.False(File.Exists(finished));
@@ -542,6 +552,17 @@ public class Checkpoint41Tests
         Assert.Contains("Wybrany TAG", localization.Get(L.CustomerSelectedTag));
         Assert.Contains("nie dowodzi", localization.Get(L.HistoryCleanupFooterNote), StringComparison.OrdinalIgnoreCase);
         Assert.Contains("Usuń i skasuj transkrypcję", localization.Get(L.HistoryRemoveAndFile));
+    }
+
+    [Fact]
+    public void WindowsFileInformation_UsesTheWin32FieldOrder()
+    {
+        var type = typeof(WindowsTranscriptDeletion.ByHandleFileInformation);
+        Assert.Equal(28, Marshal.OffsetOf(type, nameof(WindowsTranscriptDeletion.ByHandleFileInformation.FileSizeHigh)).ToInt32());
+        Assert.Equal(32, Marshal.OffsetOf(type, nameof(WindowsTranscriptDeletion.ByHandleFileInformation.FileSizeLow)).ToInt32());
+        Assert.Equal(36, Marshal.OffsetOf(type, nameof(WindowsTranscriptDeletion.ByHandleFileInformation.NumberOfLinks)).ToInt32());
+        Assert.Equal(48, Marshal.OffsetOf(type, nameof(WindowsTranscriptDeletion.ByHandleFileInformation.VolumeSerialNumber)).ToInt32());
+        Assert.Equal(52, Marshal.SizeOf(type));
     }
 
     private static CustomerDirectoryViewModel DirectoryFor(JsonCustomerCatalog catalog)

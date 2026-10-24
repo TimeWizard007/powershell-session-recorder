@@ -118,6 +118,7 @@ public class Checkpoint51Tests
         {
             FileName = executable,
             UseShellExecute = false,
+            RedirectStandardInput = true,
             RedirectStandardOutput = true,
             RedirectStandardError = true
         };
@@ -128,12 +129,24 @@ public class Checkpoint51Tests
         start.ArgumentList.Add("-Command");
         start.ArgumentList.Add("$errors = $null; $tokens = $null; [void][System.Management.Automation.Language.Parser]::ParseFile($env:PSR_BOOTSTRAP, [ref]$tokens, [ref]$errors); if (@($errors).Count -gt 0) { exit 1 }; exit 0");
         using var process = Process.Start(start) ?? throw new InvalidOperationException("PowerShell did not start.");
+        process.StandardInput.Close();
+        var output = process.StandardOutput.ReadToEndAsync();
+        var error = process.StandardError.ReadToEndAsync();
         if (!process.WaitForExit(20_000))
         {
-            process.Kill(entireProcessTree: true);
-            throw new TimeoutException(process.StandardError.ReadToEnd());
+            try
+            {
+                process.Kill(entireProcessTree: true);
+            }
+            catch (InvalidOperationException)
+            {
+            }
+
+            throw new TimeoutException(error.IsCompletedSuccessfully ? error.Result : "");
         }
 
+        _ = output.GetAwaiter().GetResult();
+        _ = error.GetAwaiter().GetResult();
         return process.ExitCode;
     }
 }

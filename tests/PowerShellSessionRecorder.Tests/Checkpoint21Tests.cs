@@ -97,6 +97,16 @@ public class Checkpoint21Tests
         Assert.True(fixture.ViewModel.ShowTerminalMissing);
         Assert.Equal(RecordingPlatform.UbuntuTerminalInstallCommand, fixture.ViewModel.UbuntuTerminalInstallCommand);
         Assert.Equal("sudo apt install gnome-terminal", fixture.ViewModel.UbuntuTerminalInstallCommand);
+        if (OperatingSystem.IsWindows())
+        {
+            fixture.ViewModel.CustomerTag = "HOWE";
+            fixture.ViewModel.SessionName = "Diagnostyka VPN";
+            fixture.ViewModel.LogDirectory = fixture.Directory;
+            Assert.True(fixture.ViewModel.CanStartSession);
+            Assert.DoesNotContain("GNOME Terminal", fixture.ViewModel.StartSessionHint, StringComparison.Ordinal);
+            return;
+        }
+
         Assert.Contains("GNOME Terminal", fixture.ViewModel.StartSessionHint, StringComparison.Ordinal);
     }
 

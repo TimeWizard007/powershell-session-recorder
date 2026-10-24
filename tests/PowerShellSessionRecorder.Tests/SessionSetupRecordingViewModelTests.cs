@@ -38,6 +38,14 @@ public class SessionSetupRecordingViewModelTests
         fixture.Service.TerminalAvailable = false;
         Fill(fixture);
 
+        if (OperatingSystem.IsWindows())
+        {
+            Assert.True(fixture.ViewModel.CanStartSession);
+            Assert.DoesNotContain("GNOME Terminal", fixture.ViewModel.StartSessionHint, StringComparison.Ordinal);
+            Assert.Contains("PowerShell window", fixture.ViewModel.StartSessionHint, StringComparison.Ordinal);
+            return;
+        }
+
         Assert.False(fixture.ViewModel.CanStartSession);
         Assert.Contains("GNOME Terminal", fixture.ViewModel.StartSessionHint, StringComparison.Ordinal);
     }

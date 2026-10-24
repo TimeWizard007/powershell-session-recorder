@@ -202,7 +202,7 @@ public class JsonSettingsStoreTests
                 windowsApplicationData: @"C:\Users\admin\AppData\Local"));
 
         Assert.Equal(
-            Path.Combine("/Users/admin/Library/Application Support/PowerShellSessionRecorder"),
+            Path.Combine("/Users/admin", "Library", "Application Support", "PowerShellSessionRecorder"),
             SettingsPathResolver.GetSettingsDirectory(
                 SettingsPlatform.MacOS,
                 "/Users/admin",
@@ -210,7 +210,7 @@ public class JsonSettingsStoreTests
                 windowsApplicationData: null));
 
         Assert.Equal(
-            "/home/admin/.config/powershell-session-recorder",
+            Path.Combine("/home/admin", ".config", "powershell-session-recorder"),
             SettingsPathResolver.GetSettingsDirectory(
                 SettingsPlatform.Linux,
                 "/home/admin",
@@ -218,7 +218,7 @@ public class JsonSettingsStoreTests
                 windowsApplicationData: null));
 
         Assert.Equal(
-            "/custom/config/powershell-session-recorder/settings.json",
+            Path.Combine("/custom/config", "powershell-session-recorder", "settings.json"),
             SettingsPathResolver.GetSettingsFilePath(
                 SettingsPlatform.Linux,
                 homeDirectory: null,
