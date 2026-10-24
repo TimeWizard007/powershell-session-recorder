@@ -42,6 +42,14 @@ public partial class App : Application
             new GitHubReleaseClient(GitHubReleaseClient.CreateClient(ProductVersion.Current)),
             () => DateTimeOffset.UtcNow,
             ProductVersion.Current);
+        var powerShellVersions = new PowerShellVersionStatusViewModel(
+            localization,
+            settings,
+            store,
+            new InstalledPowerShellInspector(),
+            new PowerShellReleaseClient(PowerShellReleaseClient.CreateClient(ProductVersion.Current)),
+            new AvaloniaUiInvoker(),
+            () => DateTimeOffset.UtcNow);
         var history = new JsonHistoryStore(JsonHistoryStore.GetFilePath(store.FilePath));
         var mainViewModel = new MainWindowViewModel(
             localization,
@@ -53,7 +61,8 @@ public partial class App : Application
             updates,
             history,
             new TranscriptLocationOpener(),
-            new AvaloniaTextClipboard());
+            new AvaloniaTextClipboard(),
+            powerShellVersions);
         var updateCancellation = new CancellationTokenSource();
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
@@ -68,6 +77,7 @@ public partial class App : Application
                 DataContext = mainViewModel
             };
             mainViewModel.BeginAutomaticUpdateCheck(updateCancellation.Token);
+            mainViewModel.BeginPowerShellVersionInspection(updateCancellation.Token);
         }
 
         base.OnFrameworkInitializationCompleted();

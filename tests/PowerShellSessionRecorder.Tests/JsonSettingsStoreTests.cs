@@ -46,6 +46,7 @@ public class JsonSettingsStoreTests
 
         Assert.Equal(
             [
+                "cachedPowerShell7StableVersion",
                 "cachedUpdateChannel",
                 "checkForUpdatesAutomatically",
                 "includeDateAndTime",
@@ -53,6 +54,7 @@ public class JsonSettingsStoreTests
                 "lastKnownReleaseUrl",
                 "lastKnownStableVersion",
                 "lastLogDirectory",
+                "lastPowerShellReleaseCheckUtc",
                 "lastPowerShellVersion",
                 "lastUpdateCheckUtc",
                 "recentCustomerTags",

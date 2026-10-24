@@ -222,5 +222,19 @@
   "StatusHistoryDeleteRefused": "{0} plików transkrypcji nie skasowano. Ich wpisy historii zostały zachowane.",
   "StatusHistoryWriteFailedAfterFiles": "Niektóre pliki transkrypcji zostały skasowane, ale Historii nie udało się zaktualizować. Te wpisy nadal są na liście.",
   "StatusHistoryCleanupWriteFailed": "Nie można zaktualizować Historii. Żadne wpisy nie zostały usunięte.",
-  "StatusHistoryNothingRemoved": "Nic nie zostało usunięte."
+  "StatusHistoryNothingRemoved": "Nic nie zostało usunięte.",
+  "SectionPowerShellVersions": "Wersje PowerShell",
+  "PowerShellInstalledVersion": "Zainstalowana wersja",
+  "PowerShellLatestVersion": "Najnowsza dostępna wersja",
+  "PowerShellNotInstalled": "Nie zainstalowano",
+  "PowerShellLatestUnavailable": "Nie można sprawdzić najnowszej wersji",
+  "PowerShellVersionsChecking": "Sprawdzanie…",
+  "PowerShellVersionsInformational": "To tylko informacja. Aplikacja nie pobiera ani nie instaluje programu PowerShell.",
+  "PowerShellVersionUnreadable": "Nie można odczytać zainstalowanej wersji",
+  "PowerShell7RecordingUse": "używana do nagrań w PowerShell 7",
+  "PowerShell51RecordingUse": "używana do nagrań w Windows PowerShell 5.1",
+  "ReasonMacTerminalMissing": "Nie znaleziono programu Terminal.app.",
+  "DependencyMacTerminalMissing": "Nie znaleziono programu Terminal.app. Sesje w macOS są otwierane w Terminal.app.",
+  "DependencyMacTerminalHelp": "Terminal.app jest częścią systemu macOS. Ta aplikacja nie instaluje terminala.",
+  "StartSessionReadyHintMac": "Terminal.app otworzy PowerShell 7 z już uruchomionym rejestrowaniem transkrypcji."
 }

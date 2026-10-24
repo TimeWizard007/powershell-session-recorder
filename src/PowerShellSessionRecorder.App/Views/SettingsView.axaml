@@ -60,6 +60,21 @@
     </Border>
 
     <Border Classes="card">
+      <StackPanel Spacing="12">
+        <TextBlock Classes="section" Text="{loc:Tr SectionPowerShellVersions}" />
+        <TextBlock Classes="hint" Text="{loc:Tr PowerShellVersionsInformational}" TextWrapping="Wrap" />
+        <StackPanel Spacing="4">
+          <TextBlock Classes="label" Text="{loc:Tr PowerShellInstalledVersion}" />
+          <TextBlock Foreground="{DynamicResource AppText}" Text="{Binding PowerShellVersions.InstalledText}" TextWrapping="Wrap" />
+        </StackPanel>
+        <StackPanel Spacing="4">
+          <TextBlock Classes="label" Text="{loc:Tr PowerShellLatestVersion}" />
+          <TextBlock Foreground="{DynamicResource AppText}" Text="{Binding PowerShellVersions.LatestText}" TextWrapping="Wrap" />
+        </StackPanel>
+      </StackPanel>
+    </Border>
+
+    <Border Classes="card">
       <StackPanel Spacing="16">
         <TextBlock Classes="section" Text="{loc:Tr SectionUpdates}" />
         <StackPanel Spacing="4">

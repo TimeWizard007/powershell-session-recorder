@@ -46,6 +46,8 @@ public sealed class SessionRecordingService : ISessionRecordingService
     private readonly Func<string?> _workingDirectory;
     private readonly IWindowsSessionLauncher _windowsLauncher;
     private readonly Func<IReadOnlyList<PowerShellEngineLocation>> _windowsEngines;
+    private readonly Func<IReadOnlyList<MacPowerShellInstall>> _macEngines;
+    private readonly Func<bool> _macTerminalAvailable;
 
     public SessionRecordingService(
         IExecutableProbe probe,
@@ -57,7 +59,9 @@ public sealed class SessionRecordingService : ISessionRecordingService
         Func<string>? uniqueIdFactory = null,
         Func<string?>? workingDirectory = null,
         IWindowsSessionLauncher? windowsLauncher = null,
-        Func<IReadOnlyList<PowerShellEngineLocation>>? windowsEngines = null)
+        Func<IReadOnlyList<PowerShellEngineLocation>>? windowsEngines = null,
+        Func<IReadOnlyList<MacPowerShellInstall>>? macEngines = null,
+        Func<bool>? macTerminalAvailable = null)
     {
         _probe = probe;
         _processRunner = processRunner;
@@ -69,6 +73,8 @@ public sealed class SessionRecordingService : ISessionRecordingService
         _workingDirectory = workingDirectory ?? DefaultWorkingDirectory;
         _windowsLauncher = windowsLauncher ?? new WindowsConsoleLauncher();
         _windowsEngines = windowsEngines ?? DiscoverWindowsEngines;
+        _macEngines = macEngines ?? DiscoverMacEngines;
+        _macTerminalAvailable = macTerminalAvailable ?? MacTerminalBundleExists;
     }
 
     public SessionRuntimeCapabilities Capabilities
@@ -83,6 +89,14 @@ public sealed class SessionRecordingService : ISessionRecordingService
                     true,
                     true,
                     engines.Any(engine => engine.Version == PowerShellVersion.WindowsPowerShell51),
+                    true);
+            }
+
+            if (OperatingSystem.IsMacOS())
+            {
+                return new SessionRuntimeCapabilities(
+                    _macEngines().Count > 0,
+                    _macTerminalAvailable(),
                     true);
             }
 
@@ -133,6 +147,9 @@ public sealed class SessionRecordingService : ISessionRecordingService
         {
             if (OperatingSystem.IsWindows())
                 return await StartWindowsAsync(configuration, language, transcriptPath, cancellationToken);
+
+            if (OperatingSystem.IsMacOS())
+                return await StartMacAsync(configuration, language, transcriptPath, cancellationToken);
 
             var powerShell = _probe.FindExecutable(RecordingPlatform.PowerShellExecutable);
             var terminal = _probe.FindExecutable(GnomeTerminalCommand.ExecutableName);
@@ -211,6 +228,95 @@ public sealed class SessionRecordingService : ISessionRecordingService
             Environment.GetEnvironmentVariable("SystemRoot") ?? Environment.GetFolderPath(Environment.SpecialFolder.Windows),
             Environment.CurrentDirectory,
             WindowsPrivateMetadata.Inspect);
+
+    private static IReadOnlyList<MacPowerShellInstall> DiscoverMacEngines()
+        => MacPowerShellDiscovery.Discover(
+            Environment.GetEnvironmentVariable("PATH"),
+            Environment.CurrentDirectory,
+            MacPowerShellDiscovery.InspectFile,
+            MacPowerShellDiscovery.ReadLink);
+
+    private static bool MacTerminalBundleExists()
+        => Directory.Exists(MacTerminalCommand.TerminalBundlePath);
+
+    private async Task<SessionRecordingResult> StartMacAsync(
+        SessionConfiguration configuration,
+        string? language,
+        string transcriptPath,
+        CancellationToken cancellationToken)
+    {
+        var engine = _macEngines().FirstOrDefault();
+        if (engine is null || !_macTerminalAvailable())
+        {
+            TranscriptFileAllocator.DeleteIfStillEmpty(transcriptPath);
+            return new SessionRecordingResult(SessionRecordingStatus.Rejected, null);
+        }
+
+        var workingDirectory = _workingDirectory() ?? Path.GetDirectoryName(transcriptPath) ?? configuration.LogDirectory;
+        var bootstrapPath = _bootstrapFiles.WriteScript();
+        var arguments = RecordingBootstrap.BuildPowerShellArguments(
+            workingDirectory,
+            bootstrapPath,
+            transcriptPath,
+            language);
+        var scriptPath = Path.Combine(_bootstrapFiles.DirectoryPath, "session-" + _uniqueIdFactory() + ".command");
+        if (!MacTerminalCommand.TryBuildScript(engine.ExecutablePath, arguments, scriptPath, out var script))
+        {
+            TranscriptFileAllocator.DeleteIfStillEmpty(transcriptPath);
+            return new SessionRecordingResult(SessionRecordingStatus.Rejected, null);
+        }
+
+        try
+        {
+            Directory.CreateDirectory(_bootstrapFiles.DirectoryPath);
+            File.WriteAllText(scriptPath, script, new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+            if (!OperatingSystem.IsWindows())
+            {
+                File.SetUnixFileMode(
+                    scriptPath,
+                    UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+            }
+
+            var exitCode = await _processRunner.RunAsync(
+                MacTerminalCommand.OpenExecutable,
+                MacTerminalCommand.OpenArguments(scriptPath),
+                cancellationToken);
+            if (exitCode != 0)
+            {
+                DeleteCommandFile(scriptPath);
+                TranscriptFileAllocator.DeleteIfStillEmpty(transcriptPath);
+                return new SessionRecordingResult(SessionRecordingStatus.LaunchFailed, null);
+            }
+
+            var confirmed = await _transcriptWatcher.WaitForHeaderAsync(
+                transcriptPath,
+                TimeSpan.FromSeconds(10),
+                cancellationToken);
+            if (confirmed)
+                TranscriptFileAllocator.RestrictToCurrentUser(transcriptPath);
+
+            return new SessionRecordingResult(
+                confirmed ? SessionRecordingStatus.Started : SessionRecordingStatus.Unconfirmed,
+                transcriptPath);
+        }
+        catch (Exception)
+        {
+            DeleteCommandFile(scriptPath);
+            throw;
+        }
+    }
+
+    private static void DeleteCommandFile(string path)
+    {
+        try
+        {
+            if (File.Exists(path))
+                File.Delete(path);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+        }
+    }
 
     private bool CanAttempt(SessionConfiguration configuration)
     {

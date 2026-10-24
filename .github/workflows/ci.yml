@@ -61,3 +61,33 @@ jobs:
 
       - name: Release tests
         run: dotnet test -c Release --no-build --nologo
+
+  macos:
+    name: macOS build, tests, and packages
+    runs-on: macos-15
+    steps:
+      - name: Check out the pull request or main commit
+        uses: actions/checkout@v7.0.1
+
+      - name: Install the .NET 10 SDK
+        uses: actions/setup-dotnet@v6.0.0
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Debug build
+        run: dotnet build -c Debug --nologo
+
+      - name: Debug tests
+        run: dotnet test -c Debug --no-build --nologo
+
+      - name: Release build
+        run: dotnet build -c Release --nologo
+
+      - name: Release tests
+        run: dotnet test -c Release --no-build --nologo
+
+      - name: Package Intel and Apple Silicon disk images
+        run: sh packaging/macos/build-dmg.sh all
+
+      - name: Verify package checksums
+        run: sh packaging/ci/verify-checksum-files.sh artifacts 4

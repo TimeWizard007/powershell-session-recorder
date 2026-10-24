@@ -168,6 +168,10 @@ public partial class SessionSetupViewModel : ViewModelBase
     public bool ShowTerminalMissing =>
         _recordingService?.Capabilities is { PlatformSupported: true, TerminalAvailable: false };
 
+    public bool ShowLinuxTerminalInstall => ShowTerminalMissing && OperatingSystem.IsLinux();
+
+    public bool ShowMacTerminalMissing => ShowTerminalMissing && OperatingSystem.IsMacOS();
+
     public bool ShowUnsupportedPlatform =>
         _recordingService is not null && !_recordingService.Capabilities.PlatformSupported;
 
@@ -185,11 +189,17 @@ public partial class SessionSetupViewModel : ViewModelBase
             var capabilities = _recordingService.Capabilities;
             if (!capabilities.PlatformSupported)
                 return _localization.Get(L.DependencyUnsupportedPlatform);
-            if (!OperatingSystem.IsWindows() && !capabilities.PowerShell7Available && !capabilities.TerminalAvailable)
-                return _localization.Get(L.ReasonPowerShellMissing) + " " + _localization.Get(L.ReasonTerminalMissing);
-            if (!OperatingSystem.IsWindows() && !capabilities.PowerShell7Available)
+            if (OperatingSystem.IsMacOS() && !capabilities.PowerShell7Available && !capabilities.TerminalAvailable)
+                return _localization.Get(L.ReasonPowerShellMissing) + " " + _localization.Get(L.ReasonMacTerminalMissing);
+            if (OperatingSystem.IsMacOS() && !capabilities.PowerShell7Available)
                 return _localization.Get(L.ReasonPowerShellMissing);
-            if (!OperatingSystem.IsWindows() && !capabilities.TerminalAvailable)
+            if (OperatingSystem.IsMacOS() && !capabilities.TerminalAvailable)
+                return _localization.Get(L.ReasonMacTerminalMissing);
+            if (OperatingSystem.IsLinux() && !capabilities.PowerShell7Available && !capabilities.TerminalAvailable)
+                return _localization.Get(L.ReasonPowerShellMissing) + " " + _localization.Get(L.ReasonTerminalMissing);
+            if (OperatingSystem.IsLinux() && !capabilities.PowerShell7Available)
+                return _localization.Get(L.ReasonPowerShellMissing);
+            if (OperatingSystem.IsLinux() && !capabilities.TerminalAvailable)
                 return _localization.Get(L.ReasonTerminalMissing);
             if (OperatingSystem.IsWindows() && !SelectedEngineAvailable)
                 return SelectedEngineMissingText;
@@ -208,7 +218,9 @@ public partial class SessionSetupViewModel : ViewModelBase
 
             return _localization.Get(OperatingSystem.IsWindows()
                 ? L.StartSessionReadyHintWindows
-                : L.StartSessionReadyHint);
+                : OperatingSystem.IsMacOS()
+                    ? L.StartSessionReadyHintMac
+                    : L.StartSessionReadyHint);
         }
     }
 
@@ -441,6 +453,8 @@ public partial class SessionSetupViewModel : ViewModelBase
         OnPropertyChanged(nameof(ShowDependencyNotice));
         OnPropertyChanged(nameof(ShowPowerShellMissing));
         OnPropertyChanged(nameof(ShowTerminalMissing));
+        OnPropertyChanged(nameof(ShowLinuxTerminalInstall));
+        OnPropertyChanged(nameof(ShowMacTerminalMissing));
         OnPropertyChanged(nameof(ShowUnsupportedPlatform));
         OnPropertyChanged(nameof(ShowDependencyRefresh));
         StartSessionCommand.NotifyCanExecuteChanged();

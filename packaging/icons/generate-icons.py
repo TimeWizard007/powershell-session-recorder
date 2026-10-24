@@ -28,6 +28,38 @@ def write_png(image: Image.Image, path: Path) -> None:
     image.save(path, format="PNG", optimize=True)
 
 
+ICNS_CHUNKS = (
+    ("icp4", 16),
+    ("icp5", 32),
+    ("icp6", 64),
+    ("ic07", 128),
+    ("ic08", 256),
+    ("ic09", 512),
+    ("ic10", 1024),
+    ("ic11", 32),
+    ("ic12", 64),
+    ("ic13", 256),
+    ("ic14", 512),
+)
+
+
+def png_bytes(image: Image.Image) -> bytes:
+    buffer = io.BytesIO()
+    image.save(buffer, format="PNG", optimize=True)
+    return buffer.getvalue()
+
+
+def write_icns(source: Image.Image, path: Path) -> None:
+    body = bytearray()
+    for kind, size in ICNS_CHUNKS:
+        blob = png_bytes(resized(source, size))
+        body.extend(kind.encode("ascii"))
+        body.extend(struct.pack(">I", 8 + len(blob)))
+        body.extend(blob)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(b"icns" + struct.pack(">I", 8 + len(body)) + body)
+
+
 def write_ico(images: list[Image.Image], path: Path) -> None:
     blobs = []
     for image in images:
@@ -80,6 +112,7 @@ def main() -> None:
         resized(source, 1024),
         ROOT / "assets" / "branding" / "macos" / "app-icon-1024.png",
     )
+    write_icns(source, ROOT / "assets" / "branding" / "macos" / "AppIcon.icns")
     write_ico(
         [resized(source, size) for size in ICO_SIZES],
         ROOT / "assets" / "branding" / "app-icon.ico",

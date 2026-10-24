@@ -229,4 +229,18 @@ public static class L
     public const string StatusHistoryWriteFailedAfterFiles = "StatusHistoryWriteFailedAfterFiles";
     public const string StatusHistoryCleanupWriteFailed = "StatusHistoryCleanupWriteFailed";
     public const string StatusHistoryNothingRemoved = "StatusHistoryNothingRemoved";
+    public const string SectionPowerShellVersions = "SectionPowerShellVersions";
+    public const string PowerShellInstalledVersion = "PowerShellInstalledVersion";
+    public const string PowerShellLatestVersion = "PowerShellLatestVersion";
+    public const string PowerShellNotInstalled = "PowerShellNotInstalled";
+    public const string PowerShellLatestUnavailable = "PowerShellLatestUnavailable";
+    public const string PowerShellVersionsChecking = "PowerShellVersionsChecking";
+    public const string PowerShellVersionsInformational = "PowerShellVersionsInformational";
+    public const string PowerShellVersionUnreadable = "PowerShellVersionUnreadable";
+    public const string PowerShell7RecordingUse = "PowerShell7RecordingUse";
+    public const string PowerShell51RecordingUse = "PowerShell51RecordingUse";
+    public const string ReasonMacTerminalMissing = "ReasonMacTerminalMissing";
+    public const string DependencyMacTerminalMissing = "DependencyMacTerminalMissing";
+    public const string DependencyMacTerminalHelp = "DependencyMacTerminalHelp";
+    public const string StartSessionReadyHintMac = "StartSessionReadyHintMac";
 }

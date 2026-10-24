@@ -7,6 +7,7 @@ using PowerShellSessionRecorder.App.Services;
 using PowerShellSessionRecorder.App.Services.Recording;
 using PowerShellSessionRecorder.App.Services.Updates;
 using PowerShellSessionRecorder.Core;
+using PowerShellSessionRecorder.Core.Updates;
 
 namespace PowerShellSessionRecorder.App.ViewModels;
 
@@ -30,7 +31,8 @@ public partial class MainWindowViewModel : ViewModelBase
         UpdateCheckCoordinator? updates = null,
         ISessionHistoryStore? history = null,
         ITranscriptLocationOpener? transcriptOpener = null,
-        ITextClipboard? clipboard = null)
+        ITextClipboard? clipboard = null,
+        PowerShellVersionStatusViewModel? powerShellVersions = null)
     {
         _localization = localization;
         _settings = settings;
@@ -49,6 +51,14 @@ public partial class MainWindowViewModel : ViewModelBase
             links,
             SetStatus,
             new AvaloniaUiInvoker());
+        PowerShellVersions = powerShellVersions ?? new PowerShellVersionStatusViewModel(
+            localization,
+            settings,
+            store,
+            new NoPowerShellInspector(),
+            new NoPowerShellReleaseLookup(),
+            new InlineUiInvoker(),
+            () => DateTimeOffset.UtcNow);
         RecentCustomerTags = new ObservableCollection<string>(settings.RecentCustomerTags);
         Languages =
         [
@@ -104,8 +114,13 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public UpdateStatusViewModel Updates { get; }
 
+    public PowerShellVersionStatusViewModel PowerShellVersions { get; }
+
     public void BeginAutomaticUpdateCheck(CancellationToken cancellationToken)
         => Updates.BeginAutomaticCheck(cancellationToken);
+
+    public void BeginPowerShellVersionInspection(CancellationToken cancellationToken)
+        => PowerShellVersions.Begin(cancellationToken);
 
     public ObservableCollection<string> RecentCustomerTags { get; }
 
@@ -248,5 +263,16 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         OnPropertyChanged(nameof(HasRecentTags));
         OnPropertyChanged(nameof(ShowEmptyRecentTags));
+    }
+
+    private sealed class NoPowerShellInspector : IInstalledPowerShellInspector
+    {
+        public IReadOnlyList<PowerShellInstallInspection> Inspect() => [];
+    }
+
+    private sealed class NoPowerShellReleaseLookup : IPowerShellReleaseLookup
+    {
+        public Task<GitHubFetchResult> GetLatestStableAsync(CancellationToken cancellationToken)
+            => Task.FromResult(new GitHubFetchResult(GitHubFetchStatus.Offline, null, null));
     }
 }

@@ -51,6 +51,35 @@ public static class PowerShellEngineDiscovery
         return FirstOnPath(pathVariable, PowerShell7FileName, currentDirectory, inspect);
     }
 
+    public static IReadOnlyList<string> FindAllPowerShell7(
+        string? pathVariable,
+        string? programFiles,
+        string? currentDirectory,
+        Func<string, EngineFileInspection> inspect)
+    {
+        ArgumentNullException.ThrowIfNull(inspect);
+        var found = new List<string>();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        if (!string.IsNullOrWhiteSpace(programFiles) && Path.IsPathRooted(programFiles))
+        {
+            var installed = Path.Combine(programFiles.Trim(), "PowerShell", "7", PowerShell7FileName);
+            AddAccepted(installed, currentDirectory, inspect, found, seen);
+        }
+
+        if (!string.IsNullOrWhiteSpace(pathVariable))
+        {
+            foreach (var directory in pathVariable.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                if (!Path.IsPathRooted(directory))
+                    continue;
+
+                AddAccepted(Path.Combine(directory, PowerShell7FileName), currentDirectory, inspect, found, seen);
+            }
+        }
+
+        return found;
+    }
+
     public static string? FindWindowsPowerShell51(
         string? systemRoot,
         string? currentDirectory,
@@ -99,6 +128,21 @@ public static class PowerShellEngineDiscovery
         }
 
         return null;
+    }
+
+    private static void AddAccepted(
+        string candidate,
+        string? currentDirectory,
+        Func<string, EngineFileInspection> inspect,
+        List<string> found,
+        HashSet<string> seen)
+    {
+        if (!Accept(candidate, currentDirectory, inspect))
+            return;
+
+        var fullPath = Path.GetFullPath(candidate);
+        if (seen.Add(fullPath))
+            found.Add(fullPath);
     }
 
     private static bool Accept(string candidate, string? currentDirectory, Func<string, EngineFileInspection> inspect)

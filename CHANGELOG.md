@@ -13,7 +13,8 @@ Prepared `0.1.0-beta.2`. It is not published. The published GitHub release remai
 
 ### Added
 
-- GitHub Actions CI for pull requests and `main`, and a manual release workflow that builds the Ubuntu `.deb`, Linux `.tar.gz`, and Windows installer from one tag. Publishing a GitHub Release stays behind an environment approval and does not run on push.
+- Unsigned macOS bundles for Intel (`osx-x64`) and Apple Silicon (`osx-arm64`): a self-contained `.app`, a `.dmg`, and SHA-256 files whose names match those artifacts. The packages are not signed or notarized. Gatekeeper stays enabled. The release workflow does not publish them yet.
+- GitHub Actions CI for pull requests and `main`, and a manual release workflow that builds the Ubuntu `.deb`, Linux `.tar.gz`, and Windows installer from one tag. Publishing a GitHub Release stays behind an environment approval and does not run on push. The CI workflow also builds and tests on `macos-15`.
 - Stable and Beta update channels. Stable stays the default and still reads GitHub’s latest stable release. Beta compares published stable and prerelease tags, skips drafts, and looks at most three pages of 100 releases. A lower version is not offered. Changing the channel clears the cached result. Nothing is downloaded or installed.
 - A self-contained Linux x64 `.tar.gz` with `install-user.sh` and `uninstall-user.sh`. The default directory is `~/.local/opt/powershell-session-recorder`. The desktop entry is separate from the system `.deb`. User settings, customers, history, and transcripts are not removed.
 - Inno Setup choices for a per-user install, the default, and an all-users install. The script was not compiled on Ubuntu.

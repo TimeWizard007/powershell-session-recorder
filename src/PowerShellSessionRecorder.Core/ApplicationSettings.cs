@@ -38,6 +38,10 @@ public sealed class ApplicationSettings
 
     public string LastKnownReleaseUrl { get; set; } = "";
 
+    public DateTimeOffset? LastPowerShellReleaseCheckUtc { get; set; }
+
+    public string CachedPowerShell7StableVersion { get; set; } = "";
+
     public List<string> RecentCustomerTags { get; set; } = [];
 
     public static string CanonicalLanguage(string? language)
@@ -110,6 +114,18 @@ public sealed class ApplicationSettings
         if (!string.Equals(LastKnownReleaseUrl, releaseUrl, StringComparison.Ordinal))
         {
             LastKnownReleaseUrl = releaseUrl;
+            changed = true;
+        }
+
+        var powerShellVersion = (CachedPowerShell7StableVersion ?? "").Trim();
+        if (!PowerShellReleaseCatalog.TrySelectStable(
+                new GitHubFetchResult(GitHubFetchStatus.Ok, powerShellVersion, null),
+                out powerShellVersion))
+            powerShellVersion = "";
+
+        if (!string.Equals(CachedPowerShell7StableVersion, powerShellVersion, StringComparison.Ordinal))
+        {
+            CachedPowerShell7StableVersion = powerShellVersion;
             changed = true;
         }
 

@@ -13,7 +13,8 @@ Skrypt używa ponownego próbkowania Lanczos i zachowuje kanał alfa. Nie zmieni
 - `assets/branding/app-icon.ico` — ikona Windows z obrazami 16, 24, 32, 48, 64, 128 i 256 px.
 - `packaging/ubuntu/icons/hicolor/<rozmiar>/apps/powershell-session-recorder.png` — 16, 22, 24, 32, 48, 64, 128, 256 i 512 px.
 - `src/PowerShellSessionRecorder.App/Assets/app-icon.png` — obraz 256 px używany przez okno Avalonia.
-- `assets/branding/macos/app-icon-1024.png` — obraz 1024 px zostawiony na późniejszy plik `.icns` dla macOS. macOS nie jest zaimplementowany.
+- `assets/branding/macos/app-icon-1024.png` — obraz 1024 px używany przy budowie ikony macOS.
+- `assets/branding/macos/AppIcon.icns` — ikona macOS utworzona z tego samego źródła, ze standardowymi obrazami PNG od 16 px do 1024 px.
 
 Nie ma skalowalnego pliku SVG. Poprzedni SVG był innym znakiem zastępczym, a środowiska pulpitu wybierały go przed plikami PNG.
 

@@ -25,6 +25,11 @@ while IFS= read -r sum; do
   [ -n "$sum" ] || continue
   (
     cd "$(dirname "$sum")"
-    sha256sum -c "$(basename "$sum")"
+    name=$(basename "$sum")
+    if command -v sha256sum >/dev/null 2>&1; then
+      sha256sum -c "$name"
+    else
+      shasum -a 256 -c "$name"
+    fi
   ) || exit 1
 done < "$list"

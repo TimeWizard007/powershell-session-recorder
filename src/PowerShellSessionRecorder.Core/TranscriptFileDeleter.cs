@@ -59,6 +59,9 @@ public static partial class TranscriptFileDeleter
         if (OperatingSystem.IsLinux())
             return LinuxTranscriptDeletion.Delete(parent, name);
 
+        if (OperatingSystem.IsMacOS())
+            return MacTranscriptDeletion.Delete(parent, name);
+
         if (OperatingSystem.IsWindows())
             return WindowsTranscriptDeletion.Delete(fullPath);
 

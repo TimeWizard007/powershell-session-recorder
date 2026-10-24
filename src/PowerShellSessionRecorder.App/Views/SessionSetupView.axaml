@@ -246,10 +246,14 @@
                     Content="{loc:Tr ButtonOpenPowerShellDocs}"
                     Command="{Binding OpenPowerShellInstallDocsCommand}" />
           </StackPanel>
-          <StackPanel Spacing="4" IsVisible="{Binding ShowTerminalMissing}">
+          <StackPanel Spacing="4" IsVisible="{Binding ShowLinuxTerminalInstall}">
             <TextBlock FontWeight="SemiBold" Foreground="{DynamicResource AppText}" Text="{loc:Tr DependencyTerminalMissing}" TextWrapping="Wrap" />
             <TextBlock Classes="hint" Text="{loc:Tr DependencyTerminalInstall}" />
             <TextBox Text="{Binding UbuntuTerminalInstallCommand}" IsReadOnly="True" />
+          </StackPanel>
+          <StackPanel Spacing="4" IsVisible="{Binding ShowMacTerminalMissing}">
+            <TextBlock FontWeight="SemiBold" Foreground="{DynamicResource AppText}" Text="{loc:Tr DependencyMacTerminalMissing}" TextWrapping="Wrap" />
+            <TextBlock Classes="hint" Text="{loc:Tr DependencyMacTerminalHelp}" TextWrapping="Wrap" />
           </StackPanel>
           <Button HorizontalAlignment="Left"
                   Content="{loc:Tr ButtonRefreshDependencies}"

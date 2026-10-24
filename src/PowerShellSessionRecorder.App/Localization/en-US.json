@@ -222,5 +222,19 @@
   "StatusHistoryDeleteRefused": "{0} transcript files were not deleted. Their history entries were kept.",
   "StatusHistoryWriteFailedAfterFiles": "Some transcript files were deleted, but History could not be updated. Those entries are still listed.",
   "StatusHistoryCleanupWriteFailed": "History could not be updated. No entries were removed.",
-  "StatusHistoryNothingRemoved": "Nothing was removed."
+  "StatusHistoryNothingRemoved": "Nothing was removed.",
+  "SectionPowerShellVersions": "PowerShell versions",
+  "PowerShellInstalledVersion": "Installed version",
+  "PowerShellLatestVersion": "Latest available version",
+  "PowerShellNotInstalled": "Not installed",
+  "PowerShellLatestUnavailable": "Unable to check the latest version",
+  "PowerShellVersionsChecking": "Checking…",
+  "PowerShellVersionsInformational": "This is read-only. The application does not download or install PowerShell.",
+  "PowerShellVersionUnreadable": "Unable to read the installed version",
+  "PowerShell7RecordingUse": "used for PowerShell 7 recordings",
+  "PowerShell51RecordingUse": "used for Windows PowerShell 5.1 recordings",
+  "ReasonMacTerminalMissing": "Terminal.app was not found.",
+  "DependencyMacTerminalMissing": "Terminal.app was not found. macOS sessions open in Terminal.app.",
+  "DependencyMacTerminalHelp": "Terminal.app is part of macOS. This application does not install a terminal.",
+  "StartSessionReadyHintMac": "Terminal.app will open PowerShell 7 with transcript recording already started."
 }

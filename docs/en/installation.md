@@ -112,3 +112,7 @@ The `.deb` and the per-user `.tar.gz` use that same configuration directory. A n
 - `/usr/share/applications/powershell-session-recorder.desktop`
 - icons under `/usr/share/icons/hicolor/`
 - `/usr/share/doc/powershell-session-recorder/copyright`
+
+## macOS
+
+Intel and Apple Silicon disk images are built with `sh packaging/macos/build-dmg.sh all`. They are unsigned and are not notarized. Gatekeeper stays enabled. The manual testing steps, including what not to change on the system, are in [macOS](macos.md).

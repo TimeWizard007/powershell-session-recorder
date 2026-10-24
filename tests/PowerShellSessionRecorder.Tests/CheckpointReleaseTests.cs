@@ -15,6 +15,11 @@ public class CheckpointReleaseTests
         Assert.Contains("branches:\n      - main", ci, StringComparison.Ordinal);
         Assert.Contains("runs-on: ubuntu-24.04", ci, StringComparison.Ordinal);
         Assert.Contains("runs-on: windows-2022", ci, StringComparison.Ordinal);
+        Assert.Contains("runs-on: macos-15", ci, StringComparison.Ordinal);
+        Assert.Contains("sh packaging/macos/build-dmg.sh all", ci, StringComparison.Ordinal);
+        Assert.DoesNotContain("hdiutil", release, StringComparison.Ordinal);
+        Assert.DoesNotContain("osx-arm64", release, StringComparison.Ordinal);
+        Assert.DoesNotContain("osx-x64", release, StringComparison.Ordinal);
         Assert.Contains("dotnet-version: 10.0.x", ci, StringComparison.Ordinal);
         Assert.Contains("dotnet test -c Debug --no-build --nologo", ci, StringComparison.Ordinal);
         Assert.Contains("dotnet test -c Release --no-build --nologo", ci, StringComparison.Ordinal);

@@ -1,0 +1,50 @@
+PowerShell Session Recorder 0.1.0-beta.2
+
+This build is unsigned and has not been notarized. It is not a production-trusted
+application. Gatekeeper on macOS will warn the first time it is opened. That is
+expected.
+
+Opening this one application:
+
+1. Drag "PowerShell Session Recorder.app" to the Applications folder, or copy it
+   to another folder you choose. This replaces only that application bundle if
+   one is already there. It does not change settings, history, or transcripts.
+2. Control-click the app and choose Open, then Open again. This allows this app
+   through Gatekeeper. It does not turn Gatekeeper off.
+3. For this copy only, you can clear the download quarantine attribute:
+
+   xattr -dr com.apple.quarantine "PowerShell Session Recorder.app"
+
+Do not run "sudo spctl --master-disable". That would weaken Gatekeeper for
+every application, and this project does not ask for that.
+
+PowerShell 7 is not inside this disk image. Install it separately. The Intel
+image is osx-x64. The Apple Silicon image is osx-arm64. An image built for the
+other processor will not run.
+
+---
+
+Rejestrator sesji PowerShell 0.1.0-beta.2
+
+Ta kompilacja nie jest podpisana i nie została poświadczona (notarized). Nie jest
+aplikacją zaufaną produkcyjnie. Gatekeeper w macOS ostrzeże przy pierwszym
+otwarciu. To oczekiwane zachowanie.
+
+Aby otworzyć tylko tę aplikację:
+
+1. Przeciągnij "PowerShell Session Recorder.app" do folderu Applications albo
+   skopiuj ją w inne wybrane miejsce. Zastępuje to wyłącznie pakiet aplikacji,
+   jeśli już tam jest. Nie zmienia ustawień, historii ani transkrypcji.
+2. Kliknij aplikację z wciśniętym klawiszem Control, wybierz Otwórz, a potem
+   ponownie Otwórz. To dopuszcza tę aplikację w Gatekeeperze. Nie wyłącza
+   Gatekeepera.
+3. Dla tej kopii można usunąć atrybut kwarantanny pobrania:
+
+   xattr -dr com.apple.quarantine "PowerShell Session Recorder.app"
+
+Nie uruchamiaj "sudo spctl --master-disable". To osłabiłoby Gatekeepera dla
+każdej aplikacji, a ten projekt o to nie prosi.
+
+Program PowerShell 7 nie jest w tym obrazie dysku. Zainstaluj go osobno. Obraz
+dla procesora Intel to osx-x64. Obraz dla Apple Silicon to osx-arm64. Obraz
+zbudowany dla drugiego procesora nie zadziała.

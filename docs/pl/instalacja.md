@@ -112,3 +112,7 @@ Pakiet `.deb` i archiwum `.tar.gz` dla użytkownika korzystają z tego samego ka
 - `/usr/share/applications/powershell-session-recorder.desktop`
 - ikony w `/usr/share/icons/hicolor/`
 - `/usr/share/doc/powershell-session-recorder/copyright`
+
+## macOS
+
+Obrazy dysku dla procesorów Intel i Apple Silicon powstają poleceniem `sh packaging/macos/build-dmg.sh all`. Nie są podpisane ani poświadczone. Gatekeeper pozostaje włączony. Ręczne sprawdzenie, w tym czego nie zmieniać w systemie, opisuje [macOS](macos.md).

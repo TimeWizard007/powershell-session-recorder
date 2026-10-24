@@ -1,8 +1,8 @@
 namespace PowerShellSessionRecorder.Core;
 
 /// <summary>
-/// Facts about the recording host this checkpoint can actually launch.
-/// Windows and macOS checks can be added later without changing the transcript engine.
+/// Facts about the recording host. Linux uses GNOME Terminal, macOS uses Terminal.app,
+/// and Windows launches the PowerShell executable directly.
 /// </summary>
 public static class RecordingPlatform
 {
@@ -19,5 +19,5 @@ public static class RecordingPlatform
     public const string UbuntuTerminalInstallCommand = "sudo apt install gnome-terminal";
 
     public static bool IsCurrentPlatformSupported()
-        => OperatingSystem.IsLinux() || OperatingSystem.IsWindows();
+        => OperatingSystem.IsLinux() || OperatingSystem.IsWindows() || OperatingSystem.IsMacOS();
 }

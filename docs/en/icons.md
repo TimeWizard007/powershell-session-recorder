@@ -13,7 +13,8 @@ The script uses Lanczos resampling and keeps the alpha channel. It does not modi
 - `assets/branding/app-icon.ico` — Windows icon with 16, 24, 32, 48, 64, 128, and 256 px images.
 - `packaging/ubuntu/icons/hicolor/<size>/apps/powershell-session-recorder.png` — 16, 22, 24, 32, 48, 64, 128, 256, and 512 px.
 - `src/PowerShellSessionRecorder.App/Assets/app-icon.png` — 256 px image used by the Avalonia window.
-- `assets/branding/macos/app-icon-1024.png` — 1024 px image reserved for a later macOS `.icns`. macOS is not implemented.
+- `assets/branding/macos/app-icon-1024.png` — 1024 px image used while building the macOS icon.
+- `assets/branding/macos/AppIcon.icns` — macOS icon generated from the same source, with the standard PNG sizes from 16 px through 1024 px.
 
 There is no scalable SVG. The previous SVG was a different placeholder, and desktop environments preferred it over the PNG sizes.
 
