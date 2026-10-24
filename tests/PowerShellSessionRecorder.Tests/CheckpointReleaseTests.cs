@@ -27,6 +27,8 @@ public class CheckpointReleaseTests
         Assert.Contains("default: review-only", release, StringComparison.Ordinal);
         Assert.Contains("environment: release", release, StringComparison.Ordinal);
         Assert.Contains("if: inputs.mode == 'publish'", release, StringComparison.Ordinal);
+        Assert.Contains("contents: write", release, StringComparison.Ordinal);
+        Assert.Contains("GH_TOKEN: ${{ github.token }}", release, StringComparison.Ordinal);
         Assert.Contains("needs.resolve.outputs.sha", release, StringComparison.Ordinal);
         Assert.Contains("SOURCE_REVISION_ID:", release, StringComparison.Ordinal);
         Assert.Contains("packaging/windows/install-inno-setup.ps1", release, StringComparison.Ordinal);
