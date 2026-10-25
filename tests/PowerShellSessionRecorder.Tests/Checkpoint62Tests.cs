@@ -52,6 +52,13 @@ public class Checkpoint62Tests
         Assert.Contains("osx-arm64", script, StringComparison.Ordinal);
         Assert.Contains("hdiutil create", script, StringComparison.Ordinal);
         Assert.Contains("hdiutil verify", script, StringComparison.Ordinal);
+        Assert.Contains("scratch=\"$stage/$rid-rw.dmg\"", script, StringComparison.Ordinal);
+        Assert.Contains("mount=\"$stage/mnt\"", script, StringComparison.Ordinal);
+        Assert.Contains("-mountpoint \"$mount\"", script, StringComparison.Ordinal);
+        Assert.Contains("hdiutil convert", script, StringComparison.Ordinal);
+        Assert.Contains("hdiutil detach", script, StringComparison.Ordinal);
+        Assert.DoesNotContain("-srcfolder", script, StringComparison.Ordinal);
+        Assert.DoesNotContain("sleep ", script, StringComparison.Ordinal);
         Assert.Contains("layout-bundle.py", script, StringComparison.Ordinal);
         Assert.Contains("validate-bundle.py", script, StringComparison.Ordinal);
         Assert.True(script.IndexOf("layout-bundle.py", StringComparison.Ordinal)

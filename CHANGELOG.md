@@ -21,6 +21,7 @@ Prepared `0.1.0-beta.2`. It is not published. The published GitHub release remai
 
 ### Fixed
 
+- macOS disk images are built on a private per-architecture mount. `hdiutil create -srcfolder` failed on the macOS runner with `Resource busy` after the signed bundle was ready, because that command attaches a shared volume name while it copies. The mounted image is detached on both success and failure.
 - macOS bundles are ad-hoc signed after the `.app` is assembled. Managed assemblies live in `Contents/Resources` and Mach-O files stay in `Contents/MacOS`, because `codesign --verify --deep --strict` treats every file under `Contents/MacOS` as nested code. The host executable is bound to `../Resources/PowerShellSessionRecorder.dll`. Nested Mach-O files are signed first, then the bundle identifier `com.timewizard.powershellsessionrecorder` is sealed. This is internal testing only and is not notarization.
 - Checkpoint 5.2.2 does not ship sample customers, TAGs, history, or transcripts. A new profile starts empty, and an existing catalog is left unchanged on upgrade. Package builds refuse `settings.json`, `customers.json`, and `history.json`.
 - Checkpoint 5.2.1 uses the approved icon from `assets/branding/app-icon-source.png` for the window, the Windows executable, the Inno Setup installer, and the Linux hicolor icons. The Windows build script looks for Inno Setup 6 under Program Files, including `C:\Program Files (x86)\Inno Setup 6\ISCC.exe`.
