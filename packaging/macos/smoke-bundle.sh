@@ -106,7 +106,8 @@ for marker in \
   "libhostpolicy.dylib" \
   "libAvaloniaNative.dylib" \
   "libSkiaSharp.dylib" \
-  "libHarfBuzzSharp.dylib"
+  "libHarfBuzzSharp.dylib" \
+  "platform=Avalonia.Native.AvaloniaNativePlatform"
 do
   if ! grep -F -q "$marker" "$log"; then
     echo "Startup smoke test did not report $marker." >&2

@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 using Avalonia;
 using Avalonia.Native;
+using Avalonia.Platform;
 
 namespace PowerShellSessionRecorder.App;
 
@@ -10,6 +11,7 @@ static class StartupSmoke
 {
     internal const string Argument = "--smoke";
     internal const string Marker = "SMOKE_OK";
+    internal const string MacWindowingPlatform = "Avalonia.Native.AvaloniaNativePlatform";
 
     static readonly string[] NativeLibraries =
     [
@@ -47,11 +49,17 @@ static class StartupSmoke
                 throw new InvalidOperationException("Avalonia initialized without application styles.");
             RequireSubsystem(builder.RenderingSubsystemName, "Skia", "rendering");
             RequireSubsystem(builder.TextShapingSubsystemName, "HarfBuzz", "text shaping");
+            // UseAvaloniaNative calls UseWindowingSubsystem without a name, so
+            // WindowingSubsystemName stays empty after a successful macOS init.
+            // Skia and HarfBuzz pass their names. AvaloniaLocator.Current is
+            // internal; the platform service is registered only after
+            // AvaloniaNativePlatform.Initialize returns.
+            var platformTypeName = RegisteredWindowingPlatformTypeName();
             if (OperatingSystem.IsMacOS())
-                RequireSubsystem(builder.WindowingSubsystemName, "Native", "windowing");
+                RequireMacWindowingPlatform(platformTypeName);
 
             Console.WriteLine(
-                $"{Marker} dll=PowerShellSessionRecorder.dll runtimeconfig=net10.0 native={string.Join(',', native)} rendering={builder.RenderingSubsystemName} shaping={builder.TextShapingSubsystemName} windowing={builder.WindowingSubsystemName}");
+                $"{Marker} dll=PowerShellSessionRecorder.dll runtimeconfig=net10.0 native={string.Join(',', native)} rendering={builder.RenderingSubsystemName} shaping={builder.TextShapingSubsystemName} platform={platformTypeName}");
             Console.Out.Flush();
             return 0;
         }
@@ -108,6 +116,34 @@ static class StartupSmoke
             return builder;
 
         return builder.With(new MacOSPlatformOptions { ShowInDock = false });
+    }
+
+    static string? RegisteredWindowingPlatformTypeName()
+    {
+        var current = typeof(AvaloniaLocator).GetProperty(
+            "Current",
+            BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+        var resolver = current?.GetValue(null)
+            ?? throw new InvalidOperationException("AvaloniaLocator.Current is not available.");
+        var getService = resolver.GetType().GetMethod(
+            "GetService",
+            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
+            binder: null,
+            types: [typeof(Type)],
+            modifiers: null);
+        if (getService is null)
+            throw new InvalidOperationException("The Avalonia dependency resolver has no GetService method.");
+        var platform = getService.Invoke(resolver, [typeof(IWindowingPlatform)]);
+        return platform?.GetType().FullName;
+    }
+
+    internal static void RequireMacWindowingPlatform(string? platformTypeName)
+    {
+        if (!string.Equals(platformTypeName, MacWindowingPlatform, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException(
+                $"Avalonia windowing platform was '{platformTypeName ?? ""}', expected {MacWindowingPlatform}.");
+        }
     }
 
     static void RequireSubsystem(string? name, string expected, string kind)

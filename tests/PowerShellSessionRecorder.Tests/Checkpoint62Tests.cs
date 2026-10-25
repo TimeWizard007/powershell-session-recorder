@@ -81,6 +81,7 @@ public class Checkpoint62Tests
         Assert.Contains("Avalonia backend initialization failed.", smoke, StringComparison.Ordinal);
         Assert.Contains("Packaging or signing failed:", smoke, StringComparison.Ordinal);
         Assert.Contains("libAvaloniaNative.dylib", smoke, StringComparison.Ordinal);
+        Assert.Contains("platform=Avalonia.Native.AvaloniaNativePlatform", smoke, StringComparison.Ordinal);
         Assert.Contains("runtimeconfig=net10.0", smoke, StringComparison.Ordinal);
         Assert.DoesNotContain("xattr", smoke, StringComparison.Ordinal);
         Assert.DoesNotContain("spctl", smoke, StringComparison.Ordinal);
@@ -283,6 +284,13 @@ public class Checkpoint62Tests
         File.WriteAllText(Path.Combine(resources, "Localization", "pl-PL.json"), "{}");
 
         StartupSmoke.RequireBundleFiles(resources);
+        StartupSmoke.RequireMacWindowingPlatform(StartupSmoke.MacWindowingPlatform);
+        Assert.Throws<InvalidOperationException>(() => StartupSmoke.RequireMacWindowingPlatform(""));
+        Assert.Throws<InvalidOperationException>(() => StartupSmoke.RequireMacWindowingPlatform("Avalonia.X11.X11Platform"));
+        var smokeSource = File.ReadAllText(Path.Combine(RepositoryRoot(), "src/PowerShellSessionRecorder.App/StartupSmoke.cs"));
+        Assert.Contains("typeof(IWindowingPlatform)", smokeSource, StringComparison.Ordinal);
+        Assert.Contains("GetProperty(\n            \"Current\"", smokeSource, StringComparison.Ordinal);
+        Assert.DoesNotContain("WindowingSubsystemName, \"Native\"", smokeSource, StringComparison.Ordinal);
         File.Delete(Path.Combine(resources, "PowerShellSessionRecorder.runtimeconfig.json"));
         Assert.Throws<FileNotFoundException>(() => StartupSmoke.RequireBundleFiles(resources));
     }
