@@ -41,6 +41,7 @@ public class Checkpoint62Tests
     {
         var root = RepositoryRoot();
         var script = File.ReadAllText(Path.Combine(root, "packaging/macos/build-dmg.sh"));
+        var signer = File.ReadAllText(Path.Combine(root, "packaging/macos/sign-bundle.sh"));
         var notice = File.ReadAllText(Path.Combine(root, "packaging/macos/GATEKEEPER.txt"));
         var release = File.ReadAllText(Path.Combine(root, ".github/workflows/release.yml"));
 
@@ -52,19 +53,45 @@ public class Checkpoint62Tests
         Assert.Contains("hdiutil verify", script, StringComparison.Ordinal);
         Assert.Contains("validate-bundle.py", script, StringComparison.Ordinal);
         Assert.Contains("checksum.py", script, StringComparison.Ordinal);
+        Assert.Contains("sign-bundle.sh", script, StringComparison.Ordinal);
+        var zipAt = script.IndexOf("zip -r -X -y", StringComparison.Ordinal);
+        var signAt = script.IndexOf("sign-bundle.sh\" \"$app\"", StringComparison.Ordinal);
+        var verifyZipAt = script.IndexOf("verify_zipped_bundle \"$root/artifacts/$zip_name\"", StringComparison.Ordinal);
+        var verifyDmgAt = script.IndexOf("verify_mounted_bundle \"$root/artifacts/$dmg_name\"", StringComparison.Ordinal);
+        var imageAt = script.IndexOf("hdiutil create", StringComparison.Ordinal);
+        Assert.True(signAt >= 0 && zipAt > signAt);
+        Assert.True(verifyZipAt > zipAt);
+        Assert.True(verifyDmgAt > imageAt);
+        Assert.Contains("codesign --force --sign -", signer, StringComparison.Ordinal);
+        Assert.Contains("--identifier \"$identifier\"", signer, StringComparison.Ordinal);
+        Assert.Contains("com.timewizard.powershellsessionrecorder", signer, StringComparison.Ordinal);
+        Assert.Contains("codesign --verify --deep --strict --verbose=2", signer, StringComparison.Ordinal);
+        Assert.DoesNotContain("--preserve-metadata", signer, StringComparison.Ordinal);
+        Assert.DoesNotContain("Developer ID Application", signer, StringComparison.Ordinal);
+        Assert.DoesNotContain("notarytool", signer, StringComparison.Ordinal);
+        Assert.DoesNotContain("xattr", signer, StringComparison.Ordinal);
+        Assert.DoesNotContain("--options runtime", signer, StringComparison.Ordinal);
         Assert.DoesNotContain("sudo", script, StringComparison.Ordinal);
         Assert.DoesNotContain("spctl", script, StringComparison.Ordinal);
         Assert.DoesNotContain("osascript", script, StringComparison.Ordinal);
-        Assert.DoesNotContain("codesign", script, StringComparison.Ordinal);
+        Assert.DoesNotContain("sudo", signer, StringComparison.Ordinal);
+        Assert.DoesNotContain("spctl", signer, StringComparison.Ordinal);
         Assert.Contains("Do not run \"sudo spctl --master-disable\"", notice, StringComparison.Ordinal);
         Assert.Contains("nie została poświadczona", notice, StringComparison.Ordinal);
         Assert.DoesNotContain("hdiutil", release, StringComparison.Ordinal);
         Assert.DoesNotContain("build-dmg.sh", release, StringComparison.Ordinal);
+        Assert.DoesNotContain("codesign", release, StringComparison.Ordinal);
 
         if (!OperatingSystem.IsWindows())
         {
             var syntax = Run(root, "sh", "-n", "packaging/macos/build-dmg.sh");
             Assert.Equal(0, syntax.ExitCode);
+            var signerSyntax = Run(root, "sh", "-n", "packaging/macos/sign-bundle.sh");
+            Assert.Equal(0, signerSyntax.ExitCode);
+            var missing = Run(root, "sh", "packaging/macos/sign-bundle.sh");
+            Assert.NotEqual(0, missing.ExitCode);
+            var refused = Run(root, "sh", "packaging/macos/sign-bundle.sh", "--verify", Path.Combine(root, "packaging"));
+            Assert.NotEqual(0, refused.ExitCode);
         }
     }
 

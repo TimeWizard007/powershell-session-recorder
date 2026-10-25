@@ -18,7 +18,7 @@ Aplikacja jest przeznaczona dla:
 - Ubuntu Linux
 - macOS
 
-Ubuntu rejestruje sesję programu PowerShell 7 przez GNOME Terminal. Windows 10/11 x64 może uruchomić program PowerShell 7 (`pwsh.exe`) albo Windows PowerShell 5.1 (`powershell.exe`) w osobnej konsoli. macOS otwiera program PowerShell 7 w Terminal.app. Niepodpisane pakiety dla procesorów Intel i Apple Silicon opisuje [macOS](docs/pl/macos.md).
+Ubuntu rejestruje sesję programu PowerShell 7 przez GNOME Terminal. Windows 10/11 x64 może uruchomić program PowerShell 7 (`pwsh.exe`) albo Windows PowerShell 5.1 (`powershell.exe`) w osobnej konsoli. macOS otwiera program PowerShell 7 w Terminal.app. Pakiety dla procesorów Intel i Apple Silicon z podpisem ad hoc opisuje [macOS](docs/pl/macos.md). Nie są poświadczone.
 
 ## Technologia
 

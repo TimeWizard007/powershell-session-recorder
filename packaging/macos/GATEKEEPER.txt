@@ -1,6 +1,7 @@
 PowerShell Session Recorder 0.1.0-beta.2
 
-This build is unsigned and has not been notarized. It is not a production-trusted
+This build has an ad-hoc signature for internal testing. It is not a Developer ID
+signature and it has not been notarized. It is not a production-trusted
 application. Gatekeeper on macOS will warn the first time it is opened. That is
 expected.
 
@@ -26,7 +27,8 @@ other processor will not run.
 
 Rejestrator sesji PowerShell 0.1.0-beta.2
 
-Ta kompilacja nie jest podpisana i nie została poświadczona (notarized). Nie jest
+Ta kompilacja ma podpis ad hoc do testów wewnętrznych. Nie jest podpisana
+identyfikatorem Developer ID i nie została poświadczona (notarized). Nie jest
 aplikacją zaufaną produkcyjnie. Gatekeeper w macOS ostrzeże przy pierwszym
 otwarciu. To oczekiwane zachowanie.
 

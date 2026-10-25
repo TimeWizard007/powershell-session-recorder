@@ -115,4 +115,4 @@ The `.deb` and the per-user `.tar.gz` use that same configuration directory. A n
 
 ## macOS
 
-Intel and Apple Silicon disk images are built with `sh packaging/macos/build-dmg.sh all`. They are unsigned and are not notarized. Gatekeeper stays enabled. The manual testing steps, including what not to change on the system, are in [macOS](macos.md).
+Intel and Apple Silicon disk images are built with `sh packaging/macos/build-dmg.sh all`. On macOS the completed bundle is ad-hoc signed for internal testing. It is not a Developer ID signature and it is not notarized. Gatekeeper stays enabled. The manual testing steps, including what not to change on the system, are in [macOS](macos.md).

@@ -101,7 +101,7 @@ def validate(app: Path, rid: str, informational: str) -> None:
         if not path.exists():
             raise SystemExit(f"Missing {path}.")
     if (contents / "_CodeSignature").exists():
-        raise SystemExit("The bundle is signed. This beta ships unsigned and does not claim notarization.")
+        raise SystemExit("The bundle already has a signature directory. Sign it only after the contents are complete.")
 
     with plist_path.open("rb") as stream:
         plist = plistlib.load(stream)

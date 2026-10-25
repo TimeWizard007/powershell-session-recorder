@@ -2,7 +2,7 @@
 
 [English](../en/macos.md)
 
-Te pakiety to niepodpisana kompilacja `0.1.0-beta.2`. Nie są poświadczone (notarized) i nie są zaufane produkcyjnie. Opublikowane wydanie GitHub `v0.1.0-beta.2` pozostaje bez zmian, a przepływ wydania jeszcze nie wysyła plików macOS.
+Te pakiety to kompilacja `0.1.0-beta.2` z podpisem ad hoc do testów wewnętrznych. Podpis nie jest podpisem Developer ID. Pakiety nie są poświadczone (notarized) i nie są zaufane produkcyjnie. Opublikowane wydanie GitHub `v0.1.0-beta.2` pozostaje bez zmian, a przepływ wydania jeszcze nie wysyła plików macOS.
 
 ## Budowa
 
@@ -21,7 +21,7 @@ Wyniki w `artifacts/`, katalogu ignorowanym przez Git:
 - archiwum `.zip` pakietu `PowerShell Session Recorder.app` dla każdej architektury, z własnym plikiem `.sha256`
 - sprawdzony katalog `.app` w `artifacts/osx-x64/` i `artifacts/osx-arm64/`
 
-Wiersz sumy kontrolnej podaje nazwę pliku, który naprawdę powstał. W macOS obraz tworzy `hdiutil`, a `hdiutil verify` go sprawdza. Na komputerze bez `hdiutil` narzędzie `xorriso` buduje obraz ISO z Rock Ridge, a skrypt owija go w nieskompresowany plik UDIF `.dmg`. Ten wariant sprawdzono w Ubuntu przez odczyt obrazu. Nie został zamontowany na komputerze Mac z tej kopii roboczej.
+Wiersz sumy kontrolnej podaje nazwę pliku, który naprawdę powstał. W macOS skrypt podpisuje gotowy pakiet `.app` dopiero wtedy, gdy są już plik wykonywalny, `Info.plist`, ikona i natywne biblioteki. Najpierw podpisywane są zagnieżdżone pliki Mach-O, a potem pakiet jako `com.timewizard.powershellsessionrecorder`. Polecenie `codesign --verify --deep --strict --verbose=2` musi się powieść dla pakietu, archiwum zip i zamontowanego obrazu, zanim powstaną sumy kontrolne. Potem `hdiutil` tworzy skompresowany obraz, a `hdiutil verify` go sprawdza. Na komputerze bez `codesign` skrypt nie tworzy tego podpisu. `xorriso` nadal może owinąć obraz ISO z Rock Ridge w nieskompresowany plik UDIF `.dmg` do lokalnego obejrzenia. Ten wariant sprawdzono w Ubuntu przez odczyt obrazu. Nie został zamontowany na komputerze Mac z tej kopii roboczej.
 
 Identyfikator pakietu to `com.timewizard.powershellsessionrecorder`. Nazwa wyświetlana to PowerShell Session Recorder. `CFBundleShortVersionString` ma wartość `0.1.0`, a tekst informacji zawiera `0.1.0-beta.2`. Ikona to `assets/branding/macos/AppIcon.icns`, utworzona z `assets/branding/app-icon-source.png`.
 
@@ -29,7 +29,7 @@ Program PowerShell 7 nie jest w pakiecie. Terminal.app należy do macOS i ten pa
 
 ## Gatekeeper
 
-Aplikacja nie jest podpisana. Gatekeeper ostrzeże przy pierwszym otwarciu. Zostaw Gatekeepera włączonego.
+Podpis ad hoc pozwala systemowi macOS sprawdzić pakiet. Nie czyni aplikacji zaufaną aplikacją Developer ID. Gatekeeper ostrzeże przy pierwszym otwarciu. Zostaw Gatekeepera włączonego.
 
 1. Otwórz plik `.dmg` i przeciągnij **PowerShell Session Recorder** do Applications albo rozpakuj `.app` z archiwum zip. Zastąpienie istniejącego pakietu dotyczy tylko tego pakietu. Ustawienia, historia i transkrypcje zostają w profilu użytkownika oraz w katalogu transkrypcji.
 2. Kliknij aplikację z wciśniętym klawiszem Control, wybierz **Otwórz**, a potem ponownie **Otwórz**. To dopuszcza tę jedną aplikację. Nie wyłącza Gatekeepera.

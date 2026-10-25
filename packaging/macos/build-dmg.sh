@@ -1,9 +1,10 @@
 #!/bin/sh
-# Build unsigned self-contained macOS bundles for osx-x64 and osx-arm64.
+# Build self-contained macOS bundles for osx-x64 and osx-arm64.
 # The .app is a directory. The zip is that same bundle in one checksummed file.
-# On macOS the disk image is an hdiutil UDZO volume. Elsewhere it is an
-# uncompressed UDIF image around a Rock Ridge ISO. Neither path signs the app,
-# notarizes it, or changes Gatekeeper.
+# On macOS the completed bundle is ad-hoc signed and verified before the zip
+# and the hdiutil UDZO image are written. Elsewhere the disk image is an
+# uncompressed UDIF image around a Rock Ridge ISO, and codesign is unavailable.
+# Neither path uses a Developer ID, notarizes the app, or changes Gatekeeper.
 set -eu
 
 root=$(CDPATH= cd -- "$(dirname "$0")/../.." && pwd)
@@ -31,6 +32,37 @@ fi
 
 app_name="PowerShell Session Recorder"
 icon="$root/assets/branding/macos/AppIcon.icns"
+
+verify_zipped_bundle() {
+  archive=$1
+  extract=$(mktemp -d)
+  unzip -q "$archive" -d "$extract"
+  set +e
+  sh "$macos/sign-bundle.sh" --verify "$extract/$app_name.app"
+  verify_status=$?
+  set -e
+  rm -rf "$extract"
+  if [ "$verify_status" -ne 0 ]; then
+    echo "The signed bundle in $archive failed verification." >&2
+    exit "$verify_status"
+  fi
+}
+
+verify_mounted_bundle() {
+  image=$1
+  mount=$(mktemp -d)
+  hdiutil attach -readonly -nobrowse -mountpoint "$mount" "$image"
+  set +e
+  sh "$macos/sign-bundle.sh" --verify "$mount/$app_name.app"
+  verify_status=$?
+  set -e
+  hdiutil detach "$mount" || hdiutil detach -force "$mount"
+  rmdir "$mount" 2>/dev/null || true
+  if [ "$verify_status" -ne 0 ]; then
+    echo "The signed bundle in $image failed verification." >&2
+    exit "$verify_status"
+  fi
+}
 if [ ! -f "$icon" ]; then
   echo "Missing $icon. Run packaging/icons/generate-icons.py." >&2
   exit 1
@@ -102,6 +134,12 @@ for path in [root, *root.rglob("*")]:
 PY
     export COPYFILE_DISABLE=1
 
+    if [ "$(uname -s)" = "Darwin" ]; then
+      sh "$macos/sign-bundle.sh" "$app"
+    else
+      echo "Skipping ad-hoc signing on $(uname -s). codesign binds Info.plist only on macOS."
+    fi
+
     destination="$root/artifacts/$rid"
     rm -rf "$destination"
     mkdir -p "$destination" "$root/artifacts"
@@ -111,6 +149,9 @@ PY
       cd "$image"
       zip -r -X -y "$root/artifacts/$zip_name" "$app_name.app"
     )
+    if [ "$(uname -s)" = "Darwin" ]; then
+      verify_zipped_bundle "$root/artifacts/$zip_name"
+    fi
     if command -v hdiutil >/dev/null 2>&1; then
       hdiutil create \
         -volname "$app_name" \
@@ -119,6 +160,7 @@ PY
         -format UDZO \
         "$root/artifacts/$dmg_name"
       hdiutil verify "$root/artifacts/$dmg_name"
+      verify_mounted_bundle "$root/artifacts/$dmg_name"
     else
       if ! command -v xorriso >/dev/null 2>&1; then
         echo "Creating a disk image requires hdiutil or xorriso." >&2

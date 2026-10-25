@@ -2,7 +2,7 @@
 
 [Polski](../pl/macos.md)
 
-These packages are an unsigned `0.1.0-beta.2` build. They are not notarized and they are not production-trusted. The published `v0.1.0-beta.2` GitHub Release is not changed by this packaging, and the release workflow does not upload the macOS files yet.
+These packages are an ad-hoc signed `0.1.0-beta.2` build for internal testing. The signature is not a Developer ID signature. They are not notarized and they are not production-trusted. The published `v0.1.0-beta.2` GitHub Release is not changed by this packaging, and the release workflow does not upload the macOS files yet.
 
 ## Build
 
@@ -21,7 +21,7 @@ Outputs under `artifacts/`, which is gitignored:
 - a `.zip` of `PowerShell Session Recorder.app` for each architecture, with a matching `.sha256`
 - the validated `.app` directory under `artifacts/osx-x64/` and `artifacts/osx-arm64/`
 
-The checksum line names the file that is actually written. On macOS, `hdiutil` creates a compressed disk image and `hdiutil verify` checks it. On a machine without `hdiutil`, `xorriso` builds a Rock Ridge ISO and the script wraps it in an uncompressed UDIF `.dmg`. That fallback was checked on Ubuntu by reading the image back. It was not mounted on a Mac from this checkout.
+The checksum line names the file that is actually written. On macOS, the script signs the completed `.app` only after the executable, `Info.plist`, icon, and native libraries are in place. Nested Mach-O files are signed first, then the bundle is signed as `com.timewizard.powershellsessionrecorder`. `codesign --verify --deep --strict --verbose=2` must succeed for the bundle, the zip, and the mounted disk image before the checksums are written. `hdiutil` then creates a compressed disk image and `hdiutil verify` checks it. On a machine without `codesign`, the script does not produce that signature. `xorriso` can still wrap a Rock Ridge ISO in an uncompressed UDIF `.dmg` for local inspection. That fallback was checked on Ubuntu by reading the image back. It was not mounted on a Mac from this checkout.
 
 The bundle identifier is `com.timewizard.powershellsessionrecorder`. The display name is PowerShell Session Recorder. `CFBundleShortVersionString` is `0.1.0`, and the Get Info string includes `0.1.0-beta.2`. The icon is `assets/branding/macos/AppIcon.icns`, generated from `assets/branding/app-icon-source.png`.
 
@@ -29,7 +29,7 @@ PowerShell 7 is not inside the bundle. Terminal.app is part of macOS and is not 
 
 ## Gatekeeper
 
-The application is unsigned. Gatekeeper will warn the first time it is opened. Leave Gatekeeper enabled.
+The ad-hoc signature lets macOS check the bundle. It does not make the app a trusted Developer ID application. Gatekeeper will warn the first time it is opened. Leave Gatekeeper enabled.
 
 1. Open the `.dmg` and drag **PowerShell Session Recorder** to Applications, or copy the `.app` out of the zip. Replacing an existing bundle replaces only that bundle. Settings, history, and transcripts stay in the user profile and in the transcript directory.
 2. Control-click the app, choose **Open**, then choose **Open** again. This allows this one app. It does not disable Gatekeeper.

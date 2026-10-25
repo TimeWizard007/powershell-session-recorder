@@ -115,4 +115,4 @@ Pakiet `.deb` i archiwum `.tar.gz` dla użytkownika korzystają z tego samego ka
 
 ## macOS
 
-Obrazy dysku dla procesorów Intel i Apple Silicon powstają poleceniem `sh packaging/macos/build-dmg.sh all`. Nie są podpisane ani poświadczone. Gatekeeper pozostaje włączony. Ręczne sprawdzenie, w tym czego nie zmieniać w systemie, opisuje [macOS](macos.md).
+Obrazy dysku dla procesorów Intel i Apple Silicon powstają poleceniem `sh packaging/macos/build-dmg.sh all`. W macOS gotowy pakiet dostaje podpis ad hoc do testów wewnętrznych. Nie jest to podpis Developer ID i pakiet nie jest poświadczony. Gatekeeper pozostaje włączony. Ręczne sprawdzenie, w tym czego nie zmieniać w systemie, opisuje [macOS](macos.md).
