@@ -20,6 +20,12 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
+        if (StartupSmoke.IsActive)
+        {
+            base.OnFrameworkInitializationCompleted();
+            return;
+        }
+
         var store = new JsonSettingsStore(AppDataPaths.GetSettingsFilePath());
         var settings = store.Load();
         var localization = new LocalizationService(AppDataPaths.GetLocalizationDirectory());

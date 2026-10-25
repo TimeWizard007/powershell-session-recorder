@@ -52,6 +52,17 @@ def cpu_types(path: Path) -> set[int]:
     raise SystemExit(f"{path} is not a Mach-O file.")
 
 
+def _is_macho(path: Path) -> bool:
+    header = path.read_bytes()[:4]
+    return header in {
+        b"\xcf\xfa\xed\xfe",
+        b"\xfe\xed\xfa\xcf",
+        b"\xce\xfa\xed\xfe",
+        b"\xfe\xed\xfa\xce",
+        b"\xca\xfe\xba\xbe",
+    }
+
+
 def require_architecture(path: Path, expected: int, thin: bool) -> None:
     found = cpu_types(path)
     if expected not in found:
@@ -123,17 +134,32 @@ def validate(app: Path, rid: str, informational: str) -> None:
 
     require_executable(executable)
     require_architecture(executable, CPU[rid], thin=True)
+    embedded = b"../Resources/PowerShellSessionRecorder.dll\0"
+    if embedded not in executable.read_bytes():
+        raise SystemExit("The app host is not bound to ../Resources/PowerShellSessionRecorder.dll.")
+    for name in (
+        "PowerShellSessionRecorder.dll",
+        "PowerShellSessionRecorder.deps.json",
+        "PowerShellSessionRecorder.runtimeconfig.json",
+    ):
+        if not (contents / "Resources" / name).is_file():
+            raise SystemExit(f"Managed app file is missing from Contents/Resources: {name}.")
     for name in REQUIRED_LIBRARIES:
         library = macos / name
         if not library.is_file():
             raise SystemExit(f"Avalonia native library is missing: {name}.")
         require_architecture(library, CPU[rid], thin=False)
+    for path in macos.rglob("*"):
+        if path.name in FORBIDDEN_NAMES:
+            raise SystemExit(f"The bundle contains per-user data: {path}.")
+        if path.is_file() and not _is_macho(path):
+            raise SystemExit(f"Contents/MacOS contains a file that is not a Mach-O binary: {path.name}.")
     missing_icons = [kind for kind in REQUIRED_ICNS if kind not in icns_types(icon)]
     if missing_icons:
         raise SystemExit(f"AppIcon.icns is missing {', '.join(missing_icons)}.")
     for language in ("en-US.json", "pl-PL.json"):
-        if not (macos / "Localization" / language).is_file():
-            raise SystemExit(f"Localization/{language} is missing from the bundle.")
+        if not (contents / "Resources" / "Localization" / language).is_file():
+            raise SystemExit(f"Localization/{language} is missing from Contents/Resources.")
 
     for path in app.rglob("*"):
         mode = path.lstat().st_mode

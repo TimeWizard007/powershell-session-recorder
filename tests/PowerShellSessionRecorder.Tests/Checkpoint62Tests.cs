@@ -1,5 +1,6 @@
 using System.Buffers.Binary;
 using System.Diagnostics;
+using PowerShellSessionRecorder.App;
 
 namespace PowerShellSessionRecorder.Tests;
 
@@ -51,15 +52,29 @@ public class Checkpoint62Tests
         Assert.Contains("osx-arm64", script, StringComparison.Ordinal);
         Assert.Contains("hdiutil create", script, StringComparison.Ordinal);
         Assert.Contains("hdiutil verify", script, StringComparison.Ordinal);
+        Assert.Contains("layout-bundle.py", script, StringComparison.Ordinal);
         Assert.Contains("validate-bundle.py", script, StringComparison.Ordinal);
+        Assert.True(script.IndexOf("layout-bundle.py", StringComparison.Ordinal)
+            < script.IndexOf("validate-bundle.py", StringComparison.Ordinal));
         Assert.Contains("checksum.py", script, StringComparison.Ordinal);
         Assert.Contains("sign-bundle.sh", script, StringComparison.Ordinal);
+        Assert.Contains("if [ \"$rid\" = \"osx-arm64\" ]; then\n        sh \"$macos/smoke-bundle.sh\" \"$app\"", script, StringComparison.Ordinal);
+        var smoke = File.ReadAllText(Path.Combine(root, "packaging/macos/smoke-bundle.sh"));
+        Assert.Contains("--smoke", smoke, StringComparison.Ordinal);
+        Assert.Contains("SMOKE_OK ", smoke, StringComparison.Ordinal);
+        Assert.Contains("libAvaloniaNative.dylib", smoke, StringComparison.Ordinal);
+        Assert.Contains("runtimeconfig=net10.0", smoke, StringComparison.Ordinal);
+        Assert.DoesNotContain("xattr", smoke, StringComparison.Ordinal);
+        Assert.DoesNotContain("spctl", smoke, StringComparison.Ordinal);
+        Assert.DoesNotContain("sudo", smoke, StringComparison.Ordinal);
+        Assert.DoesNotContain("smoke-bundle.sh", release, StringComparison.Ordinal);
         var zipAt = script.IndexOf("zip -r -X -y", StringComparison.Ordinal);
         var signAt = script.IndexOf("sign-bundle.sh\" \"$app\"", StringComparison.Ordinal);
+        var smokeAt = script.IndexOf("smoke-bundle.sh\" \"$app\"", StringComparison.Ordinal);
         var verifyZipAt = script.IndexOf("verify_zipped_bundle \"$root/artifacts/$zip_name\"", StringComparison.Ordinal);
         var verifyDmgAt = script.IndexOf("verify_mounted_bundle \"$root/artifacts/$dmg_name\"", StringComparison.Ordinal);
         var imageAt = script.IndexOf("hdiutil create", StringComparison.Ordinal);
-        Assert.True(signAt >= 0 && zipAt > signAt);
+        Assert.True(signAt >= 0 && smokeAt > signAt && zipAt > smokeAt);
         Assert.True(verifyZipAt > zipAt);
         Assert.True(verifyDmgAt > imageAt);
         Assert.Contains("codesign --force --sign -", signer, StringComparison.Ordinal);
@@ -88,6 +103,10 @@ public class Checkpoint62Tests
             Assert.Equal(0, syntax.ExitCode);
             var signerSyntax = Run(root, "sh", "-n", "packaging/macos/sign-bundle.sh");
             Assert.Equal(0, signerSyntax.ExitCode);
+            var smokeSyntax = Run(root, "sh", "-n", "packaging/macos/smoke-bundle.sh");
+            Assert.Equal(0, smokeSyntax.ExitCode);
+            var smokeMissing = Run(root, "sh", "packaging/macos/smoke-bundle.sh");
+            Assert.NotEqual(0, smokeMissing.ExitCode);
             var missing = Run(root, "sh", "packaging/macos/sign-bundle.sh");
             Assert.NotEqual(0, missing.ExitCode);
             var refused = Run(root, "sh", "packaging/macos/sign-bundle.sh", "--verify", Path.Combine(root, "packaging"));
@@ -105,18 +124,24 @@ public class Checkpoint62Tests
         using var directory = new TempDirectory();
         var app = Path.Combine(directory.Path, "PowerShell Session Recorder.app");
         var macos = Path.Combine(app, "Contents", "MacOS");
-        Directory.CreateDirectory(Path.Combine(app, "Contents", "Resources"));
-        Directory.CreateDirectory(Path.Combine(macos, "Localization"));
+        var resources = Path.Combine(app, "Contents", "Resources");
+        Directory.CreateDirectory(macos);
+        Directory.CreateDirectory(resources);
+        Directory.CreateDirectory(Path.Combine(resources, "Localization"));
         File.Copy(
             Path.Combine(root, "assets/branding/macos/AppIcon.icns"),
-            Path.Combine(app, "Contents", "Resources", "AppIcon.icns"));
+            Path.Combine(resources, "AppIcon.icns"));
         var executable = Path.Combine(macos, "PowerShellSessionRecorder");
-        File.WriteAllBytes(executable, Thin(0x01000007));
+        var host = Thin(0x01000007).Concat(System.Text.Encoding.ASCII.GetBytes("../Resources/PowerShellSessionRecorder.dll\0")).ToArray();
+        File.WriteAllBytes(executable, host);
         File.SetUnixFileMode(executable, UnixFileMode.UserRead | UnixFileMode.UserExecute);
         foreach (var library in new[] { "libAvaloniaNative.dylib", "libSkiaSharp.dylib", "libHarfBuzzSharp.dylib" })
             File.WriteAllBytes(Path.Combine(macos, library), Universal());
-        File.WriteAllText(Path.Combine(macos, "Localization", "en-US.json"), "{}");
-        File.WriteAllText(Path.Combine(macos, "Localization", "pl-PL.json"), "{}");
+        File.WriteAllBytes(Path.Combine(resources, "PowerShellSessionRecorder.dll"), [0x4D, 0x5A]);
+        File.WriteAllText(Path.Combine(resources, "PowerShellSessionRecorder.deps.json"), "{}");
+        File.WriteAllText(Path.Combine(resources, "PowerShellSessionRecorder.runtimeconfig.json"), "{}");
+        File.WriteAllText(Path.Combine(resources, "Localization", "en-US.json"), "{}");
+        File.WriteAllText(Path.Combine(resources, "Localization", "pl-PL.json"), "{}");
         var plist = Run(
             root,
             "python3",
@@ -137,6 +162,98 @@ public class Checkpoint62Tests
         var userData = Run(root, "python3", "packaging/macos/validate-bundle.py", app, "osx-x64", "0.1.0-beta.2");
         Assert.NotEqual(0, userData.ExitCode);
         Assert.Contains("per-user data", userData.Text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void BundleLayout_MovesManagedFilesAndKeepsNativeLibraries()
+    {
+        if (OperatingSystem.IsWindows())
+            return;
+
+        var root = RepositoryRoot();
+        using var directory = new TempDirectory();
+        var app = Path.Combine(directory.Path, "PowerShell Session Recorder.app");
+        var macos = Path.Combine(app, "Contents", "MacOS");
+        Directory.CreateDirectory(Path.Combine(macos, "Localization"));
+        var host = Thin(0x01000007).Concat(new byte[64]).ToArray();
+        var published = System.Text.Encoding.ASCII.GetBytes("PowerShellSessionRecorder.dll\0");
+        published.CopyTo(host, 32);
+        File.WriteAllBytes(Path.Combine(macos, "PowerShellSessionRecorder"), host);
+        File.WriteAllBytes(Path.Combine(macos, "libcoreclr.dylib"), Universal());
+        File.WriteAllBytes(Path.Combine(macos, "PowerShellSessionRecorder.dll"), [0x4D, 0x5A, 1, 2]);
+        File.WriteAllText(Path.Combine(macos, "PowerShellSessionRecorder.runtimeconfig.json"), "{}");
+        File.WriteAllText(Path.Combine(macos, "Localization", "en-US.json"), "{}");
+        File.WriteAllText(Path.Combine(macos, "PowerShellSessionRecorder.deps.json"), """
+            {
+              "targets": {
+                ".NETCoreApp,Version=v10.0/osx-x64": {
+                  "runtimepack.Microsoft.NETCore.App.Runtime.osx-x64/10.0.0": {
+                    "native": {
+                      "libcoreclr.dylib": {},
+                      "createdump": {}
+                    }
+                  },
+                  "SkiaSharp.NativeAssets.macOS/3.0.0": {
+                    "native": {
+                      "runtimes/osx/native/libSkiaSharp.dylib": {}
+                    }
+                  }
+                }
+              }
+            }
+            """);
+        File.WriteAllBytes(Path.Combine(macos, "libSkiaSharp.dylib"), Universal());
+
+        var laidOut = Run(root, "python3", "packaging/macos/layout-bundle.py", app);
+        Assert.Equal(0, laidOut.ExitCode);
+
+        var resources = Path.Combine(app, "Contents", "Resources");
+        Assert.False(File.Exists(Path.Combine(macos, "PowerShellSessionRecorder.dll")));
+        Assert.False(File.Exists(Path.Combine(macos, "Localization", "en-US.json")));
+        Assert.True(File.Exists(Path.Combine(resources, "PowerShellSessionRecorder.dll")));
+        Assert.True(File.Exists(Path.Combine(resources, "Localization", "en-US.json")));
+        Assert.True(File.Exists(Path.Combine(macos, "libcoreclr.dylib")));
+        Assert.True(File.Exists(Path.Combine(macos, "libSkiaSharp.dylib")));
+        var bound = System.Text.Encoding.ASCII.GetString(File.ReadAllBytes(Path.Combine(macos, "PowerShellSessionRecorder")));
+        Assert.Contains("../Resources/PowerShellSessionRecorder.dll", bound, StringComparison.Ordinal);
+        var deps = File.ReadAllText(Path.Combine(resources, "PowerShellSessionRecorder.deps.json"));
+        Assert.Contains("../MacOS/libcoreclr.dylib", deps, StringComparison.Ordinal);
+        Assert.Contains("../MacOS/libSkiaSharp.dylib", deps, StringComparison.Ordinal);
+        Assert.Contains("\"createdump\"", deps, StringComparison.Ordinal);
+        Assert.DoesNotContain("../MacOS/createdump", deps, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void StartupSmoke_ChecksTheResourcesLayoutAndRejectsOtherArguments()
+    {
+        Assert.True(StartupSmoke.IsRequested(["--smoke"]));
+        Assert.False(StartupSmoke.IsRequested([]));
+        Assert.False(StartupSmoke.IsRequested(["--smoke", "--extra"]));
+        Assert.False(StartupSmoke.IsRequested(["smoke"]));
+
+        using var directory = new TempDirectory();
+        var resources = Path.Combine(directory.Path, "Contents", "Resources");
+        var macos = Path.Combine(directory.Path, "Contents", "MacOS");
+        Directory.CreateDirectory(Path.Combine(resources, "Localization"));
+        Directory.CreateDirectory(macos);
+        File.WriteAllText(Path.Combine(macos, "PowerShellSessionRecorder"), "host");
+        File.WriteAllBytes(Path.Combine(resources, "PowerShellSessionRecorder.dll"), [0x4D, 0x5A]);
+        File.WriteAllText(Path.Combine(resources, "PowerShellSessionRecorder.deps.json"), "{}");
+        File.WriteAllText(
+            Path.Combine(resources, "PowerShellSessionRecorder.runtimeconfig.json"),
+            """
+            {
+              "runtimeOptions": {
+                "tfm": "net10.0"
+              }
+            }
+            """);
+        File.WriteAllText(Path.Combine(resources, "Localization", "en-US.json"), "{}");
+        File.WriteAllText(Path.Combine(resources, "Localization", "pl-PL.json"), "{}");
+
+        StartupSmoke.RequireBundleFiles(resources);
+        File.Delete(Path.Combine(resources, "PowerShellSessionRecorder.runtimeconfig.json"));
+        Assert.Throws<FileNotFoundException>(() => StartupSmoke.RequireBundleFiles(resources));
     }
 
     [Fact]

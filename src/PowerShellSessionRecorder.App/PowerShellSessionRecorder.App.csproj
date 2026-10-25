@@ -33,6 +33,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="PowerShellSessionRecorder.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="Localization\*.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

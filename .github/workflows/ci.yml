@@ -89,7 +89,7 @@ jobs:
       - name: Release tests
         run: dotnet test -c Release --no-build --nologo
 
-      - name: Package, ad-hoc sign, and verify Intel and Apple Silicon images
+      - name: Package, ad-hoc sign, verify, and smoke-test Apple Silicon
         run: sh packaging/macos/build-dmg.sh all
 
       - name: Verify package checksums

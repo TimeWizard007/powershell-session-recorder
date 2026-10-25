@@ -4,8 +4,9 @@
 # On macOS, dotnet publish signs the host executable by itself and keeps the
 # identifier "apphost". That signature is not bound to Info.plist, seals no
 # bundle resources, and still tells codesign that resources must be present.
-# Verification of the assembled .app then fails. The bundle is signed only
-# after its executable, Info.plist, icon, and native libraries are in place.
+# Managed assemblies must already be in Contents/Resources. Every file left in
+# Contents/MacOS is Mach-O and is signed as nested code. The outer bundle is
+# signed after those libraries, with Info.plist bound.
 # Nested Mach-O files are signed first. The outer bundle is signed after them
 # with com.timewizard.powershellsessionrecorder.
 #
@@ -100,6 +101,11 @@ assert_signature() {
 if [ "$verify_only" -eq 1 ]; then
   assert_signature
   exit 0
+fi
+
+if find "$app/Contents/MacOS" -type f -name '*.dll' -print -quit | grep -q .; then
+  echo "Contents/MacOS still contains a managed assembly. codesign --deep would treat it as unsigned nested code." >&2
+  exit 1
 fi
 
 main="$app/Contents/MacOS/$executable_name"

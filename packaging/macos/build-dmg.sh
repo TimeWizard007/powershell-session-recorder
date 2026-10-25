@@ -114,6 +114,7 @@ build_one() {
       "$app/Contents/Resources/AppIcon.icns" \
       "$app/Contents/Info.plist" \
       "$app/Contents/PkgInfo"
+    python3 "$macos/layout-bundle.py" "$app"
     python3 "$macos/validate-bundle.py" "$app" "$rid" "$informational"
 
     ln -s /Applications "$image/Applications"
@@ -136,6 +137,9 @@ PY
 
     if [ "$(uname -s)" = "Darwin" ]; then
       sh "$macos/sign-bundle.sh" "$app"
+      if [ "$rid" = "osx-arm64" ]; then
+        sh "$macos/smoke-bundle.sh" "$app"
+      fi
     else
       echo "Skipping ad-hoc signing on $(uname -s). codesign binds Info.plist only on macOS."
     fi
