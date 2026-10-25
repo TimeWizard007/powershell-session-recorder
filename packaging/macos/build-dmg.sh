@@ -121,6 +121,10 @@ build_one() {
     if [ -n "${SOURCE_REVISION_ID:-}" ]; then
       revision_args="-p:SourceRevisionId=${SOURCE_REVISION_ID} -p:ContinuousIntegrationBuild=true"
     fi
+    # The managed entry assembly is moved to Contents/Resources, so the apphost's
+    # application directory is no longer the directory that contains libhostfxr.
+    # App-relative search makes that host look in ../MacOS and ignore DOTNET_ROOT
+    # and a machine-wide install. This is a publish-time apphost setting.
     # shellcheck disable=SC2086
     dotnet publish "$csproj" \
       -c Release \
@@ -129,6 +133,8 @@ build_one() {
       -p:PublishReadyToRun=false \
       -p:DebugType=none \
       -p:DebugSymbols=false \
+      -p:AppHostDotNetSearch=AppRelative \
+      -p:AppHostRelativeDotNet=../MacOS \
       -o "$publish" \
       $revision_args
 

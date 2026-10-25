@@ -6,8 +6,9 @@ assembly there fails `codesign --verify --deep --strict` with
 "code object is not signed at all". Managed assemblies, dependency manifests,
 and localization catalogs move to Contents/Resources. The host executable is
 rebound to ../Resources/<app>.dll, and native library paths in the deps file
-point back at Contents/MacOS. Native dylibs stay beside the host so dyld and
-the self-contained runtime can load them.
+point back at Contents/MacOS. Native dylibs stay beside the host. The
+publish step embeds an app-relative runtime location of ../MacOS so hostfxr
+and hostpolicy load from that directory instead of DOTNET_ROOT.
 """
 
 from __future__ import annotations

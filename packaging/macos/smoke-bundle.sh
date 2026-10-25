@@ -23,14 +23,16 @@ if [ "$(uname -s)" != "Darwin" ] || [ "$(uname -m)" != "arm64" ]; then
 fi
 
 if [ ! -x "$exe" ] || [ ! -f "$app/Contents/Resources/PowerShellSessionRecorder.dll" ]; then
-  echo "Refusing to start an incomplete bundle: $app" >&2
+  echo "Packaging or signing failed: the bundle is incomplete: $app" >&2
   exit 1
 fi
 
 log=$(mktemp)
+trace=$(mktemp)
 timeout_flag=$(mktemp)
-trap 'rm -f "$log" "$timeout_flag"' EXIT
-"$exe" --smoke >"$log" 2>&1 &
+trap 'rm -f "$log" "$trace" "$timeout_flag"' EXIT
+# Host tracing applies only to this process. A normal GUI launch does not set it.
+COREHOST_TRACE=1 COREHOST_TRACEFILE="$trace" "$exe" --smoke >"$log" 2>&1 &
 pid=$!
 (
   sleep "$limit"
@@ -49,16 +51,50 @@ kill "$timer" 2>/dev/null
 wait "$timer" 2>/dev/null
 set -e
 cat "$log"
+
+classify_failure() {
+  if grep -F -q "SMOKE_FAIL" "$log"; then
+    if grep -F -q "DllNotFoundException" "$log" \
+      || grep -F -q "did not resolve" "$log" \
+      || grep -F -q "instead of Contents/MacOS" "$log"; then
+      echo "Native dependency loading failed." >&2
+    elif grep -F -q "Avalonia" "$log" || grep -F -q "subsystem" "$log"; then
+      echo "Avalonia backend initialization failed." >&2
+    elif grep -F -q "beside the runtime configuration" "$log" \
+      || grep -F -q "application base directory" "$log"; then
+      echo "Apphost could not locate the managed entry assembly." >&2
+    else
+      echo "Startup smoke test reported a failure." >&2
+    fi
+  elif grep -F -q "The application to execute does not exist" "$log" "$trace" \
+    || grep -F -q "This executable is not bound to a managed DLL" "$log" "$trace"; then
+    echo "Apphost could not locate the managed entry assembly." >&2
+  elif grep -F -q "libhostpolicy" "$log" "$trace" \
+    || grep -F -q "libhostfxr" "$log" "$trace" \
+    || grep -F -q "Failed to run as a self-contained" "$log" "$trace"; then
+    echo "Hostfxr or hostpolicy could not initialize." >&2
+  else
+    echo "Startup smoke test failed before the application reported a result." >&2
+  fi
+  if [ -s "$trace" ]; then
+    echo "--- .NET host trace ---" >&2
+    cat "$trace" >&2
+  fi
+}
+
 if [ -s "$timeout_flag" ]; then
   echo "Startup smoke test timed out after ${limit}s." >&2
+  classify_failure
   exit 1
 fi
 if [ "$status" -ne 0 ]; then
   echo "Startup smoke test exited $status." >&2
+  classify_failure
   exit "$status"
 fi
 if grep -F -q "SMOKE_FAIL" "$log"; then
   echo "Startup smoke test reported a failure." >&2
+  classify_failure
   exit 1
 fi
 for marker in \
@@ -74,6 +110,7 @@ for marker in \
 do
   if ! grep -F -q "$marker" "$log"; then
     echo "Startup smoke test did not report $marker." >&2
+    classify_failure
     exit 1
   fi
 done

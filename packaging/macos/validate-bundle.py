@@ -134,9 +134,14 @@ def validate(app: Path, rid: str, informational: str) -> None:
 
     require_executable(executable)
     require_architecture(executable, CPU[rid], thin=True)
+    host = executable.read_bytes()
     embedded = b"../Resources/PowerShellSessionRecorder.dll\0"
-    if embedded not in executable.read_bytes():
+    if embedded not in host:
         raise SystemExit("The app host is not bound to ../Resources/PowerShellSessionRecorder.dll.")
+    # Search flag 2 is app-relative only. The following NUL-terminated path is
+    # resolved from the managed assembly directory, Contents/Resources.
+    if b"\x02\x00../MacOS\x00" not in host:
+        raise SystemExit("The app host does not look for the self-contained runtime in ../MacOS.")
     for name in (
         "PowerShellSessionRecorder.dll",
         "PowerShellSessionRecorder.deps.json",

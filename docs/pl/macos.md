@@ -27,6 +27,8 @@ Identyfikator pakietu to `com.timewizard.powershellsessionrecorder`. Nazwa wyśw
 
 `Contents/MacOS` zawiera natywny program hosta i biblioteki Mach-O. Zestawy zarządzane, `PowerShellSessionRecorder.deps.json`, `PowerShellSessionRecorder.runtimeconfig.json` oraz katalogi językowe są w `Contents/Resources`. Host wskazuje `../Resources/PowerShellSessionRecorder.dll`, a plik deps kieruje biblioteki natywne z powrotem do `../MacOS`. Dzięki temu podziałowi `codesign --verify --deep --strict` akceptuje pakiet: zarządzana biblioteka DLL pozostawiona w `Contents/MacOS` jest traktowana jako niepodpisany kod zagnieżdżony.
 
+Ta sama publikacja zapisuje w hoście położenie środowiska `../MacOS` względem aplikacji i tylko to położenie. Względna ścieżka zestawu wejściowego sprawia, że katalogiem aplikacji jest `Contents/Resources`. Nie ma w nim `libhostfxr.dylib`, więc domyślne wyszukiwanie hosta przechodzi do `DOTNET_ROOT`, a potem do instalacji .NET dla całego komputera. W aplikacji samodzielnej hostpolicy jest wtedy wymagany w tej instalacji, a nie obok `libcoreclr.dylib`. Ścieżka `../MacOS` jest liczona od `Contents/Resources`, czyli wskazuje `Contents/MacOS`, gdzie już są `libhostfxr.dylib`, `libhostpolicy.dylib` i `libcoreclr.dylib`. Aplikacja pozostaje samodzielna. Ta kopia robocza nie uruchamiała tego hosta; nadal musi go uruchomić runner Apple Silicon.
+
 Program PowerShell 7 nie jest w pakiecie. Terminal.app należy do macOS i ten pakiet go nie instaluje.
 
 ## Gatekeeper

@@ -27,6 +27,8 @@ The bundle identifier is `com.timewizard.powershellsessionrecorder`. The display
 
 `Contents/MacOS` contains the native host and Mach-O libraries. Managed assemblies, `PowerShellSessionRecorder.deps.json`, `PowerShellSessionRecorder.runtimeconfig.json`, and the localization catalogs are in `Contents/Resources`. The host is bound to `../Resources/PowerShellSessionRecorder.dll`, and the deps file points native libraries back at `../MacOS`. That split is what lets `codesign --verify --deep --strict` accept the bundle: a managed DLL left in `Contents/MacOS` is treated as unsigned nested code.
 
+The same publish also records an app-relative runtime location of `../MacOS` in the host, and only that location. A relative entry-assembly path makes the application directory `Contents/Resources`. `libhostfxr.dylib` is not in that directory, so the default host search continues with `DOTNET_ROOT` and then a machine-wide .NET install. For a self-contained app, hostpolicy is then required in that install instead of beside `libcoreclr.dylib`. `../MacOS` is resolved from `Contents/Resources`, which is `Contents/MacOS`, where `libhostfxr.dylib`, `libhostpolicy.dylib`, and `libcoreclr.dylib` already are. The application stays self-contained. This checkout has not executed that host; the Apple Silicon runner still has to start it.
+
 PowerShell 7 is not inside the bundle. Terminal.app is part of macOS and is not installed by this package.
 
 ## Gatekeeper

@@ -47,6 +47,11 @@ public class Checkpoint62Tests
         var release = File.ReadAllText(Path.Combine(root, ".github/workflows/release.yml"));
 
         Assert.Contains("--self-contained true", script, StringComparison.Ordinal);
+        Assert.Contains("-p:AppHostDotNetSearch=AppRelative", script, StringComparison.Ordinal);
+        Assert.Contains("-p:AppHostRelativeDotNet=../MacOS", script, StringComparison.Ordinal);
+        var project = File.ReadAllText(Path.Combine(root, "src/PowerShellSessionRecorder.App/PowerShellSessionRecorder.App.csproj"));
+        Assert.DoesNotContain("AppHostRelativeDotNet", project, StringComparison.Ordinal);
+        Assert.DoesNotContain("AppHostDotNetSearch", project, StringComparison.Ordinal);
         Assert.Contains("-r \"$rid\"", script, StringComparison.Ordinal);
         Assert.Contains("osx-x64", script, StringComparison.Ordinal);
         Assert.Contains("osx-arm64", script, StringComparison.Ordinal);
@@ -68,7 +73,13 @@ public class Checkpoint62Tests
         Assert.Contains("if [ \"$rid\" = \"osx-arm64\" ]; then\n        sh \"$macos/smoke-bundle.sh\" \"$app\"", script, StringComparison.Ordinal);
         var smoke = File.ReadAllText(Path.Combine(root, "packaging/macos/smoke-bundle.sh"));
         Assert.Contains("--smoke", smoke, StringComparison.Ordinal);
+        Assert.Contains("COREHOST_TRACE=1 COREHOST_TRACEFILE=\"$trace\"", smoke, StringComparison.Ordinal);
         Assert.Contains("SMOKE_OK ", smoke, StringComparison.Ordinal);
+        Assert.Contains("Apphost could not locate the managed entry assembly.", smoke, StringComparison.Ordinal);
+        Assert.Contains("Hostfxr or hostpolicy could not initialize.", smoke, StringComparison.Ordinal);
+        Assert.Contains("Native dependency loading failed.", smoke, StringComparison.Ordinal);
+        Assert.Contains("Avalonia backend initialization failed.", smoke, StringComparison.Ordinal);
+        Assert.Contains("Packaging or signing failed:", smoke, StringComparison.Ordinal);
         Assert.Contains("libAvaloniaNative.dylib", smoke, StringComparison.Ordinal);
         Assert.Contains("runtimeconfig=net10.0", smoke, StringComparison.Ordinal);
         Assert.DoesNotContain("xattr", smoke, StringComparison.Ordinal);
@@ -100,6 +111,7 @@ public class Checkpoint62Tests
         Assert.DoesNotContain("spctl", signer, StringComparison.Ordinal);
         Assert.Contains("Do not run \"sudo spctl --master-disable\"", notice, StringComparison.Ordinal);
         Assert.Contains("nie została poświadczona", notice, StringComparison.Ordinal);
+        Assert.DoesNotContain("AppHostRelativeDotNet", release, StringComparison.Ordinal);
         Assert.DoesNotContain("hdiutil", release, StringComparison.Ordinal);
         Assert.DoesNotContain("build-dmg.sh", release, StringComparison.Ordinal);
         Assert.DoesNotContain("codesign", release, StringComparison.Ordinal);
@@ -139,7 +151,11 @@ public class Checkpoint62Tests
             Path.Combine(root, "assets/branding/macos/AppIcon.icns"),
             Path.Combine(resources, "AppIcon.icns"));
         var executable = Path.Combine(macos, "PowerShellSessionRecorder");
-        var host = Thin(0x01000007).Concat(System.Text.Encoding.ASCII.GetBytes("../Resources/PowerShellSessionRecorder.dll\0")).ToArray();
+        var host = Thin(0x01000007)
+            .Concat(System.Text.Encoding.ASCII.GetBytes("../Resources/PowerShellSessionRecorder.dll\0"))
+            .Concat(new byte[] { 0x02, 0x00 })
+            .Concat(System.Text.Encoding.ASCII.GetBytes("../MacOS\0"))
+            .ToArray();
         File.WriteAllBytes(executable, host);
         File.SetUnixFileMode(executable, UnixFileMode.UserRead | UnixFileMode.UserExecute);
         foreach (var library in new[] { "libAvaloniaNative.dylib", "libSkiaSharp.dylib", "libHarfBuzzSharp.dylib" })
@@ -169,6 +185,14 @@ public class Checkpoint62Tests
         var userData = Run(root, "python3", "packaging/macos/validate-bundle.py", app, "osx-x64", "0.1.0-beta.2");
         Assert.NotEqual(0, userData.ExitCode);
         Assert.Contains("per-user data", userData.Text, StringComparison.Ordinal);
+        File.Delete(Path.Combine(macos, "settings.json"));
+        File.SetUnixFileMode(executable, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+        File.WriteAllBytes(
+            executable,
+            Thin(0x01000007).Concat(System.Text.Encoding.ASCII.GetBytes("../Resources/PowerShellSessionRecorder.dll\0")).ToArray());
+        var unboundRuntime = Run(root, "python3", "packaging/macos/validate-bundle.py", app, "osx-x64", "0.1.0-beta.2");
+        Assert.NotEqual(0, unboundRuntime.ExitCode);
+        Assert.Contains("self-contained runtime in ../MacOS", unboundRuntime.Text, StringComparison.Ordinal);
     }
 
     [Fact]
