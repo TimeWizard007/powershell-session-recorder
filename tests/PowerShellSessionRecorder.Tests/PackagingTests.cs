@@ -27,8 +27,8 @@ public class PackagingTests
             .Single()
             .Value;
 
-        Assert.Equal("0.1.0-beta.2", informational);
-        Assert.Equal("0.1.0~beta.2-1", DebianPackageVersion.FromInformational(informational));
+        Assert.Equal("1.0.0", informational);
+        Assert.Equal("1.0.0-1", DebianPackageVersion.FromInformational(informational));
         var assemblyVersion = typeof(ProductVersion).Assembly
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
             ?.InformationalVersion

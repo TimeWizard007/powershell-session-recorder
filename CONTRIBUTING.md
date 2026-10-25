@@ -2,7 +2,7 @@
 
 [Polski](#współtworzenie)
 
-Thank you for helping with PowerShell Session Recorder. The project is at Checkpoint 2. Please keep changes focused. Do not add Windows PowerShell 5.1 launching, elevation, or a history list until that work is scheduled.
+Thank you for helping with PowerShell Session Recorder. This source tree is version 1.0.0. Please keep changes focused.
 
 ## Development setup
 
@@ -26,6 +26,7 @@ dotnet run --project src/PowerShellSessionRecorder.App/PowerShellSessionRecorder
 - `src/PowerShellSessionRecorder.Core` contains platform-independent models and rules.
 - `src/PowerShellSessionRecorder.App` contains the Avalonia application.
 - `tests/PowerShellSessionRecorder.Tests` contains automated tests.
+- `packaging/` contains the Ubuntu `.deb`, Linux archive, Windows installer, and macOS bundle scripts. Package outputs belong in `artifacts/` and are not committed.
 - Visible interface text belongs in `src/PowerShellSessionRecorder.App/Localization/en-US.json` and `pl-PL.json`.
 
 ## Localization
@@ -45,7 +46,7 @@ Do not store passwords, tokens, or customer secrets in settings or in the reposi
 
 ## Współtworzenie
 
-Dziękujemy za pomoc przy Rejestratorze sesji PowerShell. Projekt jest na etapie 2. Zmiany powinny pozostać skupione na bieżącym zakresie. Nie dodawaj uruchamiania Windows PowerShell 5.1, podnoszenia uprawnień ani listy historii, dopóki ta praca nie zostanie zaplanowana.
+Dziękujemy za pomoc przy Rejestratorze sesji PowerShell. To drzewo źródeł ma wersję 1.0.0. Zmiany powinny pozostać skupione.
 
 ### Środowisko
 
@@ -69,6 +70,7 @@ dotnet run --project src/PowerShellSessionRecorder.App/PowerShellSessionRecorder
 - `src/PowerShellSessionRecorder.Core` zawiera niezależne od platformy modele i reguły.
 - `src/PowerShellSessionRecorder.App` zawiera aplikację Avalonia.
 - `tests/PowerShellSessionRecorder.Tests` zawiera testy automatyczne.
+- `packaging/` zawiera skrypty pakietu Ubuntu `.deb`, archiwum Linuksa, instalatora Windows i pakietów macOS. Wyniki należą do `artifacts/` i nie wchodzą do commita.
 - Widoczny tekst interfejsu należy do plików `src/PowerShellSessionRecorder.App/Localization/en-US.json` i `pl-PL.json`.
 
 ### Lokalizacja

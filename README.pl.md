@@ -2,13 +2,13 @@
 
 [English](README.md)
 
-Rejestrator sesji PowerShell to lekka, lokalna aplikacja pulpitowa dla administratorów IT oraz zespołów MSP i helpdesku. Ma umożliwiać uruchomienie niezależnej sesji programu PowerShell dla klienta, oznaczenie jej TAG-iem i zapisanie transkrypcji na komputerze lokalnym.
+Rejestrator sesji PowerShell to lekka, lokalna aplikacja pulpitowa dla administratorów IT oraz zespołów MSP i helpdesku. Administrator uruchamia niezależną sesję programu PowerShell dla klienta, oznacza ją TAG-iem i zapisuje transkrypcję na komputerze lokalnym.
 
 Aplikacja nie wymaga serwera zaplecza, serwera bazy danych, konta w chmurze ani usługi systemu Windows.
 
 ## Stan projektu
 
-**Wersja 0.1.0-beta.2 jest przygotowana i nieopublikowana.** Opublikowane wydanie GitHub pozostaje [0.1.0-beta.1](docs/en/release-notes-0.1.0-beta.1.md). Ta kopia repozytorium podaje `0.1.0-beta.2`. Ubuntu zachowuje GNOME Terminal i program PowerShell 7. Windows 10/11 x64 może otworzyć program PowerShell 7 albo Windows PowerShell 5.1, z opcjonalną Kontrolą konta użytkownika tylko dla tej konsoli. Ustawienia mogą używać kanału stabilnego albo testowego. Nic nie jest pobierane ani instalowane automatycznie. Skrypt instalatora Windows jest gotowy dla Inno Setup 6 i nie został tu skompilowany. Szczegóły zawierają [etap 5.2](docs/pl/etap-5.2.md), [informacje o wydaniu](docs/en/release-notes-0.1.0-beta.2.md) i [instalację](docs/pl/instalacja.md).
+**To drzewo źródeł ma wersję 1.0.0.** Wydanie GitHub `v1.0.0` powstaje tylko przez ręczny przepływ wydania po utworzeniu tego znacznika. Opublikowane bety pozostają dostępne. Windows 10/11 x64, Ubuntu 24.04 i macOS Intel sprawdzono pod kątem startu, wykrycia programu PowerShell, rejestrowania, transkrypcji i historii. Pakiet Apple Silicon przechodzi test dymny CI, a ten test nie otwiera okna. Ustawienia mogą używać kanału stabilnego albo testowego. Nic nie jest pobierane ani instalowane automatycznie. Szczegóły zawierają [przewodnik](docs/pl/przewodnik.md), [informacje o wydaniu](docs/pl/informacje-1.0.0.md) i [instalację](docs/pl/instalacja.md).
 
 ## Obsługiwane systemy operacyjne
 
@@ -18,14 +18,14 @@ Aplikacja jest przeznaczona dla:
 - Ubuntu Linux
 - macOS
 
-Ubuntu rejestruje sesję programu PowerShell 7 przez GNOME Terminal. Windows 10/11 x64 może uruchomić program PowerShell 7 (`pwsh.exe`) albo Windows PowerShell 5.1 (`powershell.exe`) w osobnej konsoli. macOS otwiera program PowerShell 7 w Terminal.app. Pakiety dla procesorów Intel i Apple Silicon z podpisem ad hoc opisuje [macOS](docs/pl/macos.md). Nie są poświadczone.
+Ubuntu rejestruje sesję programu PowerShell 7 przez GNOME Terminal. Windows 10/11 x64 uruchamia program PowerShell 7 (`pwsh.exe`) albo Windows PowerShell 5.1 (`powershell.exe`) w osobnej konsoli. macOS otwiera program PowerShell 7 w Terminal.app. Intel używa pakietu `osx-x64`, a Apple Silicon pakietu `osx-arm64`. Oba mają podpis ad hoc i nie są poświadczone. Szczegóły zawiera [macOS](docs/pl/macos.md).
 
 ## Technologia
 
 - C# i .NET 10 (LTS)
 - Avalonia UI 12 z motywem Fluent
 - MVVM z pakietem CommunityToolkit.Mvvm
-- PowerShell 7. Rejestrowanie jest zaimplementowane dla Ubuntu z GNOME Terminal
+- PowerShell 7 w Ubuntu, Windows i macOS. Rejestrowanie używa GNOME Terminal, osobnej konsoli Windows albo Terminal.app
 - Windows PowerShell 5.1 tylko w systemie Windows. Program PowerShell 7 nie jest wtedy wymagany
 - JSON dla ustawień lokalnych i historii sesji
 
@@ -39,13 +39,14 @@ Ubuntu rejestruje sesję programu PowerShell 7 przez GNOME Terminal. Windows 10/
 - Lokalne ustawienia JSON
 - Zapisany katalog klientów. Nowa sesja nie ma wybranego TAG-u. TAG wybiera się z katalogu albo dodaje w formularzu sesji. Zmiana nazwy albo usunięcie klienta nie zmienia Historii ani plików transkrypcji
 - Strona Historia dla sesji zarejestrowanych z zaznaczoną opcją **Zapisz sesję w historii**. Starsze pliki transkrypcji nie są importowane. Wpis historii można usunąć osobno albo razem z plikiem transkrypcji, który ma stopkę zakończenia
-- Przycisk **Uruchom sesję** w Ubuntu, gdy formularz jest poprawny oraz dostępne są `pwsh` i GNOME Terminal
+- Przycisk **Uruchom sesję** w Ubuntu, gdy formularz jest poprawny oraz dostępne są `pwsh` i GNOME Terminal, w macOS Intel w Terminal.app oraz w Windows w osobnej konsoli
 - W Windows 10/11 x64 wybór programu PowerShell 7 albo Windows PowerShell 5.1 i osobna widoczna konsola. PowerShell 7 jest preferowany, gdy oba są zainstalowane. Bieżący katalog nie jest przeszukiwany w poszukiwaniu silnika
 - Samo powiadomienie GitHub z kanałem stabilnym albo testowym. Domyślny jest kanał stabilny. Automatyczne sprawdzenie działa najwyżej raz na 24 godziny i można je wyłączyć. Nic nie jest pobierane ani instalowane. Żądanie nie wysyła TAG-ów klientów, nazw sesji, transkrypcji, historii ani ustawień
 
 ## Ograniczenia
 
-- Rejestrowania, instalacji i układu okna w Windows nie sprawdzono na komputerze z Windows dla tej bety. Instalatora Inno Setup nie skompilowano w Ubuntu
+- Graficznego okna Apple Silicon nie sprawdzono w teście funkcjonalnym. Test dymny CI uruchamia zapakowany host `osx-arm64` i nie otwiera okna
+- Pakiety macOS mają podpis ad hoc i nie są poświadczone. Gatekeeper pozostaje włączony
 - W Ubuntu opcja administratora jest ukryta i sesji nie można uruchomić, gdy podniesienie uprawnień jest ustawione. W Windows podniesienie dotyczy tylko konsoli programu PowerShell. Anulowanie pytania nie uruchamia rejestrowania, a przyjęte pytanie nie jest zapisywane jako potwierdzone podniesienie uprawnień
 - Historia nie pokazuje stanu Aktywna. Etykieta to „Nagrywanie uruchomione (obecny stan nieznany)”, dopóki transkrypcja nie ma stopki. Stan Zakończona nie wymyśla czasu zakończenia
 - Transkrypcje zarejestrowane bez zaznaczonej opcji **Zapisz sesję w historii** oraz transkrypcje sprzed tej funkcji nie trafiają do Historii
@@ -54,7 +55,7 @@ Ubuntu rejestruje sesję programu PowerShell 7 przez GNOME Terminal. Windows 10/
 - Stopka transkrypcji oznacza, że transkrypcja się zakończyła. Nie dowodzi, że każdy powiązany proces został zakończony. Aplikacja nie śledzi działającego procesu programu PowerShell, więc plik jest kasowany tylko wtedy, gdy ta stopka została odczytana z samego pliku
 - Sprawdzono tylko GNOME Terminal 3.52 w Ubuntu 24.04. Nie twierdzimy, że inne emulatory terminala działają
 - Pakiet `.deb` jest przeznaczony tylko dla Ubuntu 24.04 LTS amd64. Do rejestrowania sesji potrzebne są PowerShell 7 i GNOME Terminal, a pakiet ich nie zawiera. Innych dystrybucji i architektur nie sprawdzano
-- Sprawdzanie aktualizacji pokazuje zainstalowaną wersję i porównuje ją z najnowszym stabilnym wydaniem GitHub. Nie śledzi wydań beta
+- Kanał stabilny porównuje zainstalowaną wersję z najnowszym stabilnym wydaniem GitHub, którym może być `v1.0.0`. Nie proponuje znaczników przedpremierowych. Kanał testowy je uwzględnia. Żaden kanał nie pobiera plików
 - Nazwa pliku w podglądzie używa przykładowego identyfikatora. Uruchomienie sesji rezerwuje nowy plik i nie nadpisuje istniejącej transkrypcji
 
 ## Wymagania
@@ -87,7 +88,7 @@ dotnet build PowerShellSessionRecorder.sln
 
 ## Pakiet Ubuntu
 
-Instrukcja zbudowania i instalacji pakietu Ubuntu 24.04 amd64 jest w [instalacji](docs/pl/instalacja.md). Wersja pakietu tej bety to `0.1.0~beta.1-1`. Pakiet nie zawiera programu PowerShell 7 ani GNOME Terminal. Jego usunięcie nie kasuje transkrypcji, ustawień, historii ani katalogu klientów. Plik `.deb` i jego suma SHA-256 powstają w katalogu `artifacts/` i nie należą do drzewa źródeł.
+Instrukcja zbudowania i instalacji jest w [instalacji](docs/pl/instalacja.md). Wersja pakietu Ubuntu w tym drzewie to `1.0.0-1`. Pakiet nie zawiera programu PowerShell 7 ani GNOME Terminal. Jego usunięcie nie kasuje transkrypcji, ustawień, historii ani katalogu klientów. Pliki pakietów i ich sumy SHA-256 powstają w katalogu `artifacts/` i nie należą do drzewa źródeł.
 
 ## Uruchomienie w Ubuntu ze źródeł
 
@@ -105,10 +106,6 @@ Ustawienia są zapisywane w `$XDG_CONFIG_HOME/powershell-session-recorder/settin
 dotnet test PowerShellSessionRecorder.sln
 ```
 
-## Planowane funkcje
-
-Rejestrowanie w macOS nie jest zaimplementowane. Działanie konsoli Windows nadal trzeba sprawdzić w systemie Windows.
-
 ## Położenie ustawień
 
 | System operacyjny | Plik ustawień |
@@ -123,11 +120,13 @@ Historia sesji to osobny plik `history.json` w tym samym katalogu. Zawiera metad
 
 ## Dokumentacja
 
-- [Etap 5](docs/pl/etap-5.md)
+- [Przewodnik](docs/pl/przewodnik.md)
+- [Informacje o wydaniu 1.0.0](docs/pl/informacje-1.0.0.md)
 - [Informacje o wydaniu 0.1.0-beta.1](docs/en/release-notes-0.1.0-beta.1.md)
 - [Informacje o wydaniu 0.1.0-beta.2](docs/en/release-notes-0.1.0-beta.2.md)
 - [CI i kompilacje wydania](docs/pl/potok-wydania.md)
 - [Instalacja](docs/pl/instalacja.md)
+- [macOS](docs/pl/macos.md)
 - [Etap 4.1](docs/pl/etap-4.1.md)
 - [Etap 4](docs/pl/etap-4.md)
 - [Etap 3](docs/pl/etap-3.md)

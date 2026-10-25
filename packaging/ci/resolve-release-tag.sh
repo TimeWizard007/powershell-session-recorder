@@ -4,7 +4,7 @@
 set -eu
 
 if [ "$#" -ne 1 ]; then
-  echo "Usage: resolve-release-tag.sh v0.1.0-beta.2" >&2
+  echo "Usage: resolve-release-tag.sh v1.0.0" >&2
   exit 1
 fi
 
@@ -12,7 +12,7 @@ tag=$1
 case "$tag" in
   v[0-9]*) ;;
   *)
-    echo "Tag must look like v0.1.0-beta.2." >&2
+    echo "Tag must look like v1.0.0." >&2
     exit 1
     ;;
 esac

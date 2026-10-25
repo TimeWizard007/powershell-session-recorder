@@ -37,7 +37,9 @@ if [ "$tagged" != "$expected_sha" ]; then
 fi
 
 packaging/ci/assert-version-files.sh "$version" >/dev/null
-packaging/ci/verify-checksum-files.sh "$assets" 3
+packaging/ci/verify-checksum-files.sh "$assets" 7
+. packaging/ubuntu/debian-version.sh
+debian=$(debian_version_from_informational "$version")
 
 if gh release view "$tag" >/dev/null 2>&1; then
   echo "Release $tag already exists. Refusing to overwrite it." >&2
@@ -55,16 +57,32 @@ case "$version" in
   *-*) prerelease="--prerelease" ;;
 esac
 
-files=$(find "$assets" -type f \( \
-  -name '*.deb' -o -name '*.deb.sha256' -o \
-  -name '*.tar.gz' -o -name '*.tar.gz.sha256' -o \
-  -name '*setup.exe' -o -name '*setup.exe.sha256' \
-  \) | sort)
-file_count=$(printf '%s\n' "$files" | wc -l | tr -d ' ')
-if [ "$file_count" -lt 6 ]; then
-  echo "Expected the Debian package, Linux archive, Windows installer, and their checksums." >&2
-  exit 1
-fi
+required="
+powershell-session-recorder_${debian}_amd64.deb
+powershell-session-recorder_${debian}_amd64.deb.sha256
+powershell-session-recorder-${version}-linux-x64.tar.gz
+powershell-session-recorder-${version}-linux-x64.tar.gz.sha256
+PowerShellSessionRecorder-${version}-win-x64-setup.exe
+PowerShellSessionRecorder-${version}-win-x64-setup.exe.sha256
+PowerShellSessionRecorder-${version}-osx-x64.dmg
+PowerShellSessionRecorder-${version}-osx-x64.dmg.sha256
+PowerShellSessionRecorder-${version}-osx-x64.zip
+PowerShellSessionRecorder-${version}-osx-x64.zip.sha256
+PowerShellSessionRecorder-${version}-osx-arm64.dmg
+PowerShellSessionRecorder-${version}-osx-arm64.dmg.sha256
+PowerShellSessionRecorder-${version}-osx-arm64.zip
+PowerShellSessionRecorder-${version}-osx-arm64.zip.sha256
+"
+files=
+for name in $required; do
+  found=$(find "$assets" -type f -name "$name")
+  found_count=$(printf '%s\n' "$found" | grep -c . || true)
+  if [ "$found_count" -ne 1 ]; then
+    echo "Expected exactly one $name in $assets, found $found_count." >&2
+    exit 1
+  fi
+  files="$files $found"
+done
 
 # shellcheck disable=SC2086
 gh release create "$tag" \

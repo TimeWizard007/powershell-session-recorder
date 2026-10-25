@@ -29,7 +29,7 @@ packaging\windows\publish-win-x64.sh
 packaging\windows\build-setup.ps1
 ```
 
-Skrypt znajduje `ISCC.exe` w `PATH` oraz w Program Files i Program Files (x86), w tym `C:\Program Files (x86)\Inno Setup 6\ISCC.exe`. Inną kopię wskaż przez `-CompilerPath` albo `INNO_SETUP_COMPILER`. Wynik pozostaje `artifacts\PowerShellSessionRecorder-0.1.0-beta.2-win-x64-setup.exe`.
+Skrypt znajduje `ISCC.exe` w `PATH` oraz w Program Files i Program Files (x86), w tym `C:\Program Files (x86)\Inno Setup 6\ISCC.exe`. Inną kopię wskaż przez `-CompilerPath` albo `INNO_SETUP_COMPILER`. Wynik pozostaje `artifacts\PowerShellSessionRecorder-1.0.0-win-x64-setup.exe`.
 
 Po instalacji skrót menu Start, opcjonalny skrót pulpitu i uruchomione okno powinny pokazywać niebieski kafelek rejestratora. Z Ubuntu tego nie sprawdzono wizualnie.
 

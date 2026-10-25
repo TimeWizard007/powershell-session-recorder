@@ -29,7 +29,7 @@ packaging\windows\publish-win-x64.sh
 packaging\windows\build-setup.ps1
 ```
 
-The script finds `ISCC.exe` on `PATH` and under Program Files and Program Files (x86), including `C:\Program Files (x86)\Inno Setup 6\ISCC.exe`. Pass `-CompilerPath` or set `INNO_SETUP_COMPILER` to use another copy. The output remains `artifacts\PowerShellSessionRecorder-0.1.0-beta.2-win-x64-setup.exe`.
+The script finds `ISCC.exe` on `PATH` and under Program Files and Program Files (x86), including `C:\Program Files (x86)\Inno Setup 6\ISCC.exe`. Pass `-CompilerPath` or set `INNO_SETUP_COMPILER` to use another copy. The output remains `artifacts\PowerShellSessionRecorder-1.0.0-win-x64-setup.exe`.
 
 After installation, the Start Menu shortcut, an optional desktop shortcut, and the running window should show the blue recorder tile. This was not visually checked from Ubuntu.
 

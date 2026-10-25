@@ -2,7 +2,7 @@
 
 [Polski](../pl/instalacja.md)
 
-This package is for Ubuntu 24.04 LTS, amd64 only. It was not tested on other distributions or architectures. The published GitHub release is `0.1.0-beta.1`, Debian package `0.1.0~beta.1-1`. This working tree prepares `0.1.0-beta.2`, Debian package `0.1.0~beta.2-1`. Notes are in [Release notes](release-notes-0.1.0-beta.2.md).
+This package is for Ubuntu 24.04 LTS, amd64 only. It was not tested on other distributions or architectures. This working tree is `1.0.0`, Debian package `1.0.0-1`. Notes are in [Release notes](release-notes-1.0.0.md). Previously published betas remain available.
 
 A recorded session requires PowerShell 7 and GNOME Terminal. Neither program is inside the package. PowerShell 7 is not in the default Ubuntu 24.04 repositories.
 
@@ -18,13 +18,13 @@ From a clean checkout, with the .NET SDK 10 and `dpkg-deb`:
 packaging/ubuntu/build-deb.sh
 ```
 
-The script publishes a self-contained `linux-x64` build and writes `artifacts/powershell-session-recorder_<debian-version>_amd64.deb` plus a SHA-256 file with the same name and a `.sha256` suffix. Both files are gitignored. The informational version in `PowerShellSessionRecorder.App.csproj` is the source of truth. `0.1.0-beta.2` becomes the Debian version `0.1.0~beta.2-1`. A stable `1.0.0` would become `1.0.0-1`. The `~` makes the beta package sort before the stable package with the same core version. `<AssemblyVersion>` and `<FileVersion>` stay `0.1.0.0` because those fields are numeric. The Git commit is kept after `+` in the assembly informational version and is omitted from the package version and from About.
+The script publishes a self-contained `linux-x64` build and writes `artifacts/powershell-session-recorder_<debian-version>_amd64.deb` plus a SHA-256 file with the same name and a `.sha256` suffix. Both files are gitignored. The informational version in `PowerShellSessionRecorder.App.csproj` is the source of truth. `1.0.0` becomes the Debian version `1.0.0-1`. A prerelease such as `0.1.0-beta.1` becomes `0.1.0~beta.1-1`. The `~` makes a beta package sort before the stable package with the same core version. `<AssemblyVersion>` and `<FileVersion>` are `1.0.0.0` because those fields are numeric. The Git commit is kept after `+` in the assembly informational version and is omitted from the package version and from About.
 
 Check the package after the build:
 
 ```bash
 cd artifacts
-sha256sum -c powershell-session-recorder_0.1.0~beta.2-1_amd64.deb.sha256
+sha256sum -c powershell-session-recorder_1.0.0-1_amd64.deb.sha256
 ```
 
 To publish a later build, update `<InformationalVersion>` in the application project, then run the script again.
@@ -32,7 +32,7 @@ To publish a later build, update `<InformationalVersion>` in the application pro
 ## Install
 
 ```bash
-sudo apt install ./artifacts/powershell-session-recorder_0.1.0~beta.2-1_amd64.deb
+sudo apt install ./artifacts/powershell-session-recorder_1.0.0-1_amd64.deb
 ```
 
 `apt` installs the runtime libraries named in the package. It does not install PowerShell 7. GNOME Terminal, `xdg-desktop-portal`, and `xdg-desktop-portal-gtk` are suggestions. On a normal Ubuntu desktop they are already present. If they are missing, the application still opens and explains how to install them. It does not run those commands.
@@ -43,11 +43,11 @@ Icons are documented in [Icons](icons.md). The approved source is `assets/brandi
 
 ## Per-user Linux archive
 
-`packaging/linux/build-tarball.sh` writes `artifacts/powershell-session-recorder-0.1.0-beta.2-linux-x64.tar.gz` and a `.sha256` file. It needs Bash and GNU find. It was checked on Ubuntu 24.04, not on every Debian release or desktop.
+`packaging/linux/build-tarball.sh` writes `artifacts/powershell-session-recorder-1.0.0-linux-x64.tar.gz` and a `.sha256` file. It needs Bash and GNU find. It was checked on Ubuntu 24.04, not on every Debian release or desktop.
 
 ```bash
-tar -xzf powershell-session-recorder-0.1.0-beta.2-linux-x64.tar.gz
-cd powershell-session-recorder-0.1.0-beta.2-linux-x64
+tar -xzf powershell-session-recorder-1.0.0-linux-x64.tar.gz
+cd powershell-session-recorder-1.0.0-linux-x64
 ./install-user.sh
 ```
 
@@ -69,13 +69,13 @@ The output is `artifacts/win-x64/`. That directory is gitignored. On Windows, fr
 packaging\windows\build-setup.ps1
 ```
 
-The expected installer name is `artifacts\PowerShellSessionRecorder-0.1.0-beta.2-win-x64-setup.exe`. It was not compiled on Ubuntu. The default choice is a per-user install in `%LOCALAPPDATA%\Programs\PowerShellSessionRecorder`, without administrator rights. Choosing all users asks for User Account Control and installs in `%ProgramFiles%\PowerShellSessionRecorder`. An upgrade stays in the scope already registered for the same AppId. The installer does not change `PATH`, does not bundle PowerShell 7, and does not remove `%LOCALAPPDATA%\PowerShellSessionRecorder`.
+The expected installer name is `artifacts\PowerShellSessionRecorder-1.0.0-win-x64-setup.exe`. It is compiled by the Windows release job, not on Ubuntu. The default choice is a per-user install in `%LOCALAPPDATA%\Programs\PowerShellSessionRecorder`, without administrator rights. Choosing all users asks for User Account Control and installs in `%ProgramFiles%\PowerShellSessionRecorder`. An upgrade stays in the scope already registered for the same AppId. The installer does not change `PATH`, does not bundle PowerShell 7, and does not remove `%LOCALAPPDATA%\PowerShellSessionRecorder`.
 
 Configuration on Windows is `%LOCALAPPDATA%\PowerShellSessionRecorder`. Transcripts stay in the folder selected in the application. The program does not need administrator rights for ordinary use. Run as administrator applies only to the PowerShell console.
 
 A new Windows account starts with an empty customer catalog, no selected customer, empty history, and the ordinary setting defaults. Per-user and all-users installs share that same profile folder. They do not create sample customers, TAGs, sessions, or transcripts. A customer that is already in `customers.json`, including one saved during earlier testing, stays there after an upgrade or reinstall. Remove it in the application with **Remove from catalog** and confirm. History entries and transcript files remain until you remove those entries from History.
 
-The informational version in this working tree is `0.1.0-beta.2`. The published GitHub release remains `0.1.0-beta.1`. GitHub Actions can build the `.deb`, the Linux archive, and the Windows installer from one tag. The steps and the manual approval are in [CI and release builds](release-pipeline.md).
+The informational version in this working tree is `1.0.0`. GitHub Actions builds the `.deb`, the Linux archive, the Windows installer, and the macOS disk images and zip archives from one tag. The steps and the manual approval are in [CI and release builds](release-pipeline.md). The day-to-day guide is [User guide](user-guide.md).
 
 ## Launch
 
@@ -115,4 +115,4 @@ The `.deb` and the per-user `.tar.gz` use that same configuration directory. A n
 
 ## macOS
 
-Intel and Apple Silicon disk images are built with `sh packaging/macos/build-dmg.sh all`. On macOS the completed bundle is ad-hoc signed for internal testing. It is not a Developer ID signature and it is not notarized. Gatekeeper stays enabled. The manual testing steps, including what not to change on the system, are in [macOS](macos.md).
+Intel and Apple Silicon disk images and zip archives are built with `sh packaging/macos/build-dmg.sh all`. The names are `PowerShellSessionRecorder-1.0.0-osx-x64.dmg`, `PowerShellSessionRecorder-1.0.0-osx-x64.zip`, and the same two files for `osx-arm64`, each with a `.sha256` file. On macOS the completed bundle is ad-hoc signed. It is not a Developer ID signature and it is not notarized. Gatekeeper stays enabled. Installation, including what not to change on the system, is in [macOS](macos.md).

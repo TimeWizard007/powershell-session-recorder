@@ -17,9 +17,14 @@ public class CheckpointReleaseTests
         Assert.Contains("runs-on: windows-2022", ci, StringComparison.Ordinal);
         Assert.Contains("runs-on: macos-15", ci, StringComparison.Ordinal);
         Assert.Contains("sh packaging/macos/build-dmg.sh all", ci, StringComparison.Ordinal);
+        Assert.Contains("runs-on: macos-15", release, StringComparison.Ordinal);
+        Assert.Contains("sh packaging/macos/build-dmg.sh all", release, StringComparison.Ordinal);
+        Assert.Contains("release-macos", release, StringComparison.Ordinal);
+        Assert.Contains("PowerShellSessionRecorder-${{ needs.resolve.outputs.version }}-osx-x64.dmg", release, StringComparison.Ordinal);
+        Assert.Contains("PowerShellSessionRecorder-${{ needs.resolve.outputs.version }}-osx-arm64.zip", release, StringComparison.Ordinal);
+        Assert.Contains("verify-checksum-files.sh release-assets 7", release, StringComparison.Ordinal);
         Assert.DoesNotContain("hdiutil", release, StringComparison.Ordinal);
-        Assert.DoesNotContain("osx-arm64", release, StringComparison.Ordinal);
-        Assert.DoesNotContain("osx-x64", release, StringComparison.Ordinal);
+        Assert.DoesNotContain("notarytool", release, StringComparison.Ordinal);
         Assert.Contains("dotnet-version: 10.0.x", ci, StringComparison.Ordinal);
         Assert.Contains("dotnet test -c Debug --no-build --nologo", ci, StringComparison.Ordinal);
         Assert.Contains("dotnet test -c Release --no-build --nologo", ci, StringComparison.Ordinal);
@@ -40,18 +45,22 @@ public class CheckpointReleaseTests
         Assert.Contains("packaging/ci/validate-linux-release.sh", release, StringComparison.Ordinal);
         Assert.Contains("dotnet test -c Release --nologo", release, StringComparison.Ordinal);
         Assert.Contains("FA73BF47A4DA250D185D07561C2BFDA387E5E20DB77E4570004CF6A133CC10B1", File.ReadAllText(Path.Combine(root, "packaging/windows/install-inno-setup.ps1")), StringComparison.Ordinal);
-        Assert.Contains("RELEASE_APPROVED", File.ReadAllText(Path.Combine(root, "packaging/ci/publish-github-release.sh")), StringComparison.Ordinal);
-        Assert.Contains("Refusing to overwrite", File.ReadAllText(Path.Combine(root, "packaging/ci/publish-github-release.sh")), StringComparison.Ordinal);
+        var publisher = File.ReadAllText(Path.Combine(root, "packaging/ci/publish-github-release.sh"));
+        Assert.Contains("RELEASE_APPROVED", publisher, StringComparison.Ordinal);
+        Assert.Contains("Refusing to overwrite", publisher, StringComparison.Ordinal);
+        Assert.Contains("PowerShellSessionRecorder-${version}-osx-arm64.dmg", publisher, StringComparison.Ordinal);
+        Assert.Contains("PowerShellSessionRecorder-${version}-osx-x64.zip", publisher, StringComparison.Ordinal);
+        Assert.Contains("*-*) prerelease=\"--prerelease\"", publisher, StringComparison.Ordinal);
     }
 
     [Fact]
-    public void VersionFiles_AgreeOnBeta2()
+    public void VersionFiles_AgreeOnTheStableRelease()
     {
-        var output = RunShell(RepositoryRoot(), "packaging/ci/assert-version-files.sh", "0.1.0-beta.2");
+        var output = RunShell(RepositoryRoot(), "packaging/ci/assert-version-files.sh", "1.0.0");
         Assert.Equal(0, output.ExitCode);
         var lines = output.Text.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        Assert.Equal("0.1.0-beta.2", lines[0]);
-        Assert.Equal("0.1.0~beta.2-1", lines[1]);
+        Assert.Equal("1.0.0", lines[0]);
+        Assert.Equal("1.0.0-1", lines[1]);
     }
 
     [Fact]

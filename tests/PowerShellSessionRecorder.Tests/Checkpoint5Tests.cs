@@ -302,8 +302,8 @@ public class Checkpoint5Tests
     [Fact]
     public void CheckpointVersion_IsConsistentAcrossAboutAndThePackageMapper()
     {
-        Assert.Equal("0.1.0-beta.2", ProductVersion.Current);
-        Assert.Equal("0.1.0~beta.2-1", DebianPackageVersion.FromInformational(ProductVersion.Current));
+        Assert.Equal("1.0.0", ProductVersion.Current);
+        Assert.Equal("1.0.0-1", DebianPackageVersion.FromInformational(ProductVersion.Current));
     }
 
     [Fact]

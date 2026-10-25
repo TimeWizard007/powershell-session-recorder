@@ -82,13 +82,16 @@ public class UpdateCheckTests
     }
 
     [Fact]
-    public void BetaProductVersion_IsReportedToGitHubAndIsNotAStableRelease()
+    public void StableProductVersion_IsReportedToGitHubAndIgnoresPrereleases()
     {
-        Assert.Equal("0.1.0-beta.2", ProductVersion.Current);
-        Assert.Equal(ReleaseRelation.RemotePrerelease, ReleaseVersionComparison.Relate(ProductVersion.Current, "0.1.0-beta.3"));
+        Assert.Equal("1.0.0", ProductVersion.Current);
+        Assert.True(ReleaseVersion.TryParse("v1.0.0", out var published) && published.IsStable);
+        Assert.Equal(ReleaseRelation.SameStable, ReleaseVersionComparison.Relate(ProductVersion.Current, "v1.0.0"));
+        Assert.Equal(ReleaseRelation.RemotePrerelease, ReleaseVersionComparison.Relate(ProductVersion.Current, "v0.1.0-beta.2"));
+        Assert.Equal(ReleaseRelation.NewerStable, ReleaseVersionComparison.Relate("0.1.0-beta.2", "v1.0.0"));
         using var client = GitHubReleaseClient.CreateClient(ProductVersion.Current);
         Assert.Contains(
-            "PowerShellSessionRecorder/0.1.0-beta.2",
+            "PowerShellSessionRecorder/1.0.0",
             client.DefaultRequestHeaders.UserAgent.ToString(),
             StringComparison.Ordinal);
         Assert.Equal(

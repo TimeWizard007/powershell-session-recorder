@@ -134,11 +134,11 @@ public class Checkpoint522Tests
         }
 
         AssertPackageMembers(
-            Path.Combine(root, "artifacts/powershell-session-recorder_0.1.0~beta.2-1_amd64.deb"),
+            Path.Combine(root, "artifacts/powershell-session-recorder_1.0.0-1_amd64.deb"),
             "dpkg-deb",
             "-c");
         AssertPackageMembers(
-            Path.Combine(root, "artifacts/powershell-session-recorder-0.1.0-beta.2-linux-x64.tar.gz"),
+            Path.Combine(root, "artifacts/powershell-session-recorder-1.0.0-linux-x64.tar.gz"),
             "tar",
             "-tzf");
 

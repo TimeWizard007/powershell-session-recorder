@@ -2,7 +2,7 @@
 
 [English](../en/installation.md)
 
-Ten pakiet jest przeznaczony tylko dla Ubuntu 24.04 LTS w wersji amd64. Nie był sprawdzany na innych dystrybucjach ani architekturach. Opublikowane wydanie GitHub to `0.1.0-beta.1`, pakiet Debiana `0.1.0~beta.1-1`. Ta kopia robocza przygotowuje `0.1.0-beta.2`, pakiet Debiana `0.1.0~beta.2-1`. Informacje są w [opisie wydania](../en/release-notes-0.1.0-beta.2.md).
+Ten pakiet jest przeznaczony tylko dla Ubuntu 24.04 LTS w wersji amd64. Nie był sprawdzany na innych dystrybucjach ani architekturach. Ta kopia robocza to `1.0.0`, pakiet Debiana `1.0.0-1`. Informacje są w [opisie wydania](informacje-1.0.0.md). Wcześniej opublikowane bety pozostają dostępne.
 
 Rejestrowana sesja wymaga programu PowerShell 7 i GNOME Terminal. Żaden z tych programów nie jest w pakiecie. PowerShell 7 nie znajduje się w domyślnych repozytoriach Ubuntu 24.04.
 
@@ -18,13 +18,13 @@ W czystej kopii repozytorium, przy zainstalowanym .NET SDK 10 i narzędziu `dpkg
 packaging/ubuntu/build-deb.sh
 ```
 
-Skrypt publikuje samodzielną kompilację `linux-x64` i zapisuje `artifacts/powershell-session-recorder_<wersja-debiana>_amd64.deb` oraz plik SHA-256 o tej samej nazwie z przyrostkiem `.sha256`. Oba pliki są ignorowane przez Git. Wersja informacyjna w `PowerShellSessionRecorder.App.csproj` jest źródłem prawdy. `0.1.0-beta.2` staje się wersją Debiana `0.1.0~beta.2-1`. Stabilna wersja `1.0.0` stałaby się `1.0.0-1`. Znak `~` sprawia, że pakiet bety sortuje się przed stabilnym pakietem o tym samym rdzeniu wersji. `<AssemblyVersion>` i `<FileVersion>` pozostają `0.1.0.0`, bo te pola są liczbowe. Commit Gita zostaje po znaku `+` w wersji informacyjnej zestawu i jest pomijany w wersji pakietu oraz na stronie O programie.
+Skrypt publikuje samodzielną kompilację `linux-x64` i zapisuje `artifacts/powershell-session-recorder_<wersja-debiana>_amd64.deb` oraz plik SHA-256 o tej samej nazwie z przyrostkiem `.sha256`. Oba pliki są ignorowane przez Git. Wersja informacyjna w `PowerShellSessionRecorder.App.csproj` jest źródłem prawdy. `1.0.0` staje się wersją Debiana `1.0.0-1`. Wersja przedpremierowa, na przykład `0.1.0-beta.1`, staje się `0.1.0~beta.1-1`. Znak `~` sprawia, że pakiet bety sortuje się przed stabilnym pakietem o tym samym rdzeniu wersji. `<AssemblyVersion>` i `<FileVersion>` mają wartość `1.0.0.0`, bo te pola są liczbowe. Commit Gita zostaje po znaku `+` w wersji informacyjnej zestawu i jest pomijany w wersji pakietu oraz na stronie O programie.
 
 Po kompilacji sprawdź pakiet:
 
 ```bash
 cd artifacts
-sha256sum -c powershell-session-recorder_0.1.0~beta.2-1_amd64.deb.sha256
+sha256sum -c powershell-session-recorder_1.0.0-1_amd64.deb.sha256
 ```
 
 Przy kolejnej kompilacji zaktualizuj `<InformationalVersion>` w projekcie aplikacji, a potem uruchom skrypt ponownie.
@@ -32,7 +32,7 @@ Przy kolejnej kompilacji zaktualizuj `<InformationalVersion>` w projekcie aplika
 ## Instalacja
 
 ```bash
-sudo apt install ./artifacts/powershell-session-recorder_0.1.0~beta.2-1_amd64.deb
+sudo apt install ./artifacts/powershell-session-recorder_1.0.0-1_amd64.deb
 ```
 
 `apt` instaluje biblioteki nazwane w pakiecie. Nie instaluje programu PowerShell 7. GNOME Terminal, `xdg-desktop-portal` i `xdg-desktop-portal-gtk` są tylko sugerowane. Na zwykłym pulpicie Ubuntu już są. Gdy ich brakuje, aplikacja i tak się otwiera i wyjaśnia, jak je zainstalować. Sama tych poleceń nie uruchamia.
@@ -43,11 +43,11 @@ Ikony opisuje [ikony](ikony.md). Zatwierdzone źródło to `assets/branding/app-
 
 ## Archiwum dla bieżącego użytkownika Linuksa
 
-`packaging/linux/build-tarball.sh` zapisuje `artifacts/powershell-session-recorder-0.1.0-beta.2-linux-x64.tar.gz` i plik `.sha256`. Wymaga Basha i GNU find. Sprawdzono je w Ubuntu 24.04, nie na każdym wydaniu Debiana i nie na każdym pulpicie.
+`packaging/linux/build-tarball.sh` zapisuje `artifacts/powershell-session-recorder-1.0.0-linux-x64.tar.gz` i plik `.sha256`. Wymaga Basha i GNU find. Sprawdzono je w Ubuntu 24.04, nie na każdym wydaniu Debiana i nie na każdym pulpicie.
 
 ```bash
-tar -xzf powershell-session-recorder-0.1.0-beta.2-linux-x64.tar.gz
-cd powershell-session-recorder-0.1.0-beta.2-linux-x64
+tar -xzf powershell-session-recorder-1.0.0-linux-x64.tar.gz
+cd powershell-session-recorder-1.0.0-linux-x64
 ./install-user.sh
 ```
 
@@ -69,13 +69,13 @@ Wynik to `artifacts/win-x64/`. Ten katalog jest ignorowany przez Git. W Windows,
 packaging\windows\build-setup.ps1
 ```
 
-Oczekiwana nazwa instalatora to `artifacts\PowerShellSessionRecorder-0.1.0-beta.2-win-x64-setup.exe`. W Ubuntu go nie skompilowano. Domyślny wybór to instalacja dla bieżącego użytkownika w `%LOCALAPPDATA%\Programs\PowerShellSessionRecorder`, bez uprawnień administratora. Wybór dla wszystkich użytkowników pyta o Kontrolę konta użytkownika i instaluje w `%ProgramFiles%\PowerShellSessionRecorder`. Aktualizacja zostaje w zakresie już zapisanym dla tego samego AppId. Instalator nie zmienia `PATH`, nie dołącza programu PowerShell 7 i nie usuwa `%LOCALAPPDATA%\PowerShellSessionRecorder`.
+Oczekiwana nazwa instalatora to `artifacts\PowerShellSessionRecorder-1.0.0-win-x64-setup.exe`. Kompiluje go zadanie wydania w Windows, nie Ubuntu. Domyślny wybór to instalacja dla bieżącego użytkownika w `%LOCALAPPDATA%\Programs\PowerShellSessionRecorder`, bez uprawnień administratora. Wybór dla wszystkich użytkowników pyta o Kontrolę konta użytkownika i instaluje w `%ProgramFiles%\PowerShellSessionRecorder`. Aktualizacja zostaje w zakresie już zapisanym dla tego samego AppId. Instalator nie zmienia `PATH`, nie dołącza programu PowerShell 7 i nie usuwa `%LOCALAPPDATA%\PowerShellSessionRecorder`.
 
 Konfiguracja w Windows to `%LOCALAPPDATA%\PowerShellSessionRecorder`. Transkrypcje zostają w folderze wybranym w aplikacji. Do zwykłego użycia program nie potrzebuje uprawnień administratora. Uruchom jako administrator dotyczy tylko konsoli programu PowerShell.
 
 Nowe konto Windows startuje z pustym katalogiem klientów, bez wybranego klienta, z pustą historią i ze zwykłymi ustawieniami domyślnymi. Instalacja dla użytkownika i instalacja dla wszystkich korzystają z tego samego folderu profilu. Nie tworzą przykładowych klientów, TAG-ów, sesji ani transkrypcji. Klient już zapisany w `customers.json`, także dodany podczas wcześniejszego testu, zostaje po aktualizacji i ponownej instalacji. Usuń go w aplikacji poleceniem **Usuń z katalogu** i potwierdź. Wpisy historii i pliki transkrypcji zostają, dopóki nie usuniesz tych wpisów z Historii.
 
-Wersja informacyjna w tej kopii roboczej to `0.1.0-beta.2`. Opublikowane wydanie GitHub pozostaje `0.1.0-beta.1`. GitHub Actions może zbudować `.deb`, archiwum Linuksa i instalator Windows z jednego znacznika. Kroki i ręczne zatwierdzenie opisuje [CI i kompilacje wydania](potok-wydania.md).
+Wersja informacyjna w tej kopii roboczej to `1.0.0`. GitHub Actions buduje `.deb`, archiwum Linuksa, instalator Windows oraz obrazy i archiwa macOS z jednego znacznika. Kroki i ręczne zatwierdzenie opisuje [CI i kompilacje wydania](potok-wydania.md). Codzienny opis jest w [przewodniku](przewodnik.md).
 
 ## Uruchomienie
 
@@ -115,4 +115,4 @@ Pakiet `.deb` i archiwum `.tar.gz` dla użytkownika korzystają z tego samego ka
 
 ## macOS
 
-Obrazy dysku dla procesorów Intel i Apple Silicon powstają poleceniem `sh packaging/macos/build-dmg.sh all`. W macOS gotowy pakiet dostaje podpis ad hoc do testów wewnętrznych. Nie jest to podpis Developer ID i pakiet nie jest poświadczony. Gatekeeper pozostaje włączony. Ręczne sprawdzenie, w tym czego nie zmieniać w systemie, opisuje [macOS](macos.md).
+Obrazy dysku i archiwa ZIP dla procesorów Intel i Apple Silicon powstają poleceniem `sh packaging/macos/build-dmg.sh all`. Nazwy to `PowerShellSessionRecorder-1.0.0-osx-x64.dmg`, `PowerShellSessionRecorder-1.0.0-osx-x64.zip` oraz te same dwa pliki dla `osx-arm64`, każdy z plikiem `.sha256`. W macOS gotowy pakiet dostaje podpis ad hoc. Nie jest to podpis Developer ID i pakiet nie jest poświadczony. Gatekeeper pozostaje włączony. Instalację, w tym czego nie zmieniać w systemie, opisuje [macOS](macos.md).

@@ -5,15 +5,17 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-Version 1.0.0 has not been released.
-
 ## [Unreleased]
 
-Prepared `0.1.0-beta.2`. It is not published. The published GitHub release remains `0.1.0-beta.1`.
+## [1.0.0] - 2026-10-25
+
+First stable release prepared in this source tree. Application binaries and package names use `1.0.0` with no prerelease suffix. The Debian package version is `1.0.0-1`. Existing beta GitHub releases stay available. This changelog heading does not create the GitHub Release; that still requires the manual release workflow after the `v1.0.0` tag exists.
+
+Windows 10/11 x64, Ubuntu 24.04 amd64, and Intel macOS were exercised from the installed application: startup, PowerShell detection, recording, transcripts, and history. The packaged Apple Silicon `osx-arm64` apphost passes the macOS CI startup smoke test. That smoke test does not open a window, and the Apple Silicon graphical interface was not part of the functional test. macOS packages are ad-hoc signed and are not notarized.
 
 ### Added
 
-- macOS bundles for Intel (`osx-x64`) and Apple Silicon (`osx-arm64`): a self-contained `.app`, a `.dmg`, and SHA-256 files whose names match those artifacts. On macOS the completed bundle is ad-hoc signed after `Info.plist` and the native libraries are in place, then checked with `codesign --verify --deep --strict`. The Apple Silicon runner then starts the signed `osx-arm64` bundle with `--smoke`, which initializes the .NET host and Avalonia without opening a window. That signature is not a Developer ID signature and the packages are not notarized. Gatekeeper stays enabled. The release workflow does not publish them yet.
+- macOS bundles for Intel (`osx-x64`) and Apple Silicon (`osx-arm64`): a self-contained `.app`, a `.dmg`, and SHA-256 files whose names match those artifacts. On macOS the completed bundle is ad-hoc signed after `Info.plist` and the native libraries are in place, then checked with `codesign --verify --deep --strict`. The Apple Silicon runner starts the signed `osx-arm64` bundle with `--smoke`, which initializes the .NET host and Avalonia without opening a window. That signature is not a Developer ID signature and the packages are not notarized. Gatekeeper stays enabled. The manual release workflow publishes the Intel and Apple Silicon disk images and zip archives for `v1.0.0`.
 - GitHub Actions CI for pull requests and `main`, and a manual release workflow that builds the Ubuntu `.deb`, Linux `.tar.gz`, and Windows installer from one tag. Publishing a GitHub Release stays behind an environment approval and does not run on push. The CI workflow also builds and tests on `macos-15`.
 - Stable and Beta update channels. Stable stays the default and still reads GitHub’s latest stable release. Beta compares published stable and prerelease tags, skips drafts, and looks at most three pages of 100 releases. A lower version is not offered. Changing the channel clears the cached result. Nothing is downloaded or installed.
 - A self-contained Linux x64 `.tar.gz` with `install-user.sh` and `uninstall-user.sh`. The default directory is `~/.local/opt/powershell-session-recorder`. The desktop entry is separate from the system `.deb`. User settings, customers, history, and transcripts are not removed.
@@ -22,7 +24,7 @@ Prepared `0.1.0-beta.2`. It is not published. The published GitHub release remai
 ### Fixed
 
 - The macOS startup check accepts Avalonia's native windowing platform after it has initialized. `UseAvaloniaNative` does not set `WindowingSubsystemName`, so the previous check rejected a successful init because that name is empty. Skia and HarfBuzz still have to report their names. The check does not open a window.
-- The macOS app host looks for its self-contained runtime in `Contents/MacOS`. Moving the managed assembly to `Contents/Resources` made that directory the application root, so hostfxr was not found beside the assembly and hostpolicy was loaded from `DOTNET_ROOT` instead of the bundle. Both architectures publish with app-relative runtime search set to `../MacOS`. The Apple Silicon startup smoke test still has to pass on the macOS runner.
+- The macOS app host looks for its self-contained runtime in `Contents/MacOS`. Moving the managed assembly to `Contents/Resources` made that directory the application root, so hostfxr was not found beside the assembly and hostpolicy was loaded from `DOTNET_ROOT` instead of the bundle. Both architectures publish with app-relative runtime search set to `../MacOS`. The Apple Silicon CI smoke test starts that signed bundle and does not open a window.
 - macOS disk images are built on a private per-architecture mount. `hdiutil create -srcfolder` failed on the macOS runner with `Resource busy` after the signed bundle was ready, because that command attaches a shared volume name while it copies. The mounted image is detached on both success and failure.
 - macOS bundles are ad-hoc signed after the `.app` is assembled. Managed assemblies live in `Contents/Resources` and Mach-O files stay in `Contents/MacOS`, because `codesign --verify --deep --strict` treats every file under `Contents/MacOS` as nested code. The host executable is bound to `../Resources/PowerShellSessionRecorder.dll`. Nested Mach-O files are signed first, then the bundle identifier `com.timewizard.powershellsessionrecorder` is sealed. This is internal testing only and is not notarization.
 - Checkpoint 5.2.2 does not ship sample customers, TAGs, history, or transcripts. A new profile starts empty, and an existing catalog is left unchanged on upgrade. Package builds refuse `settings.json`, `customers.json`, and `history.json`.
@@ -34,7 +36,7 @@ Prepared `0.1.0-beta.2`. It is not published. The published GitHub release remai
 
 - Checkpoint 5 Windows console: PowerShell 7 and Windows PowerShell 5.1 can be selected on Windows 10/11 x64. Start Session opens a separate visible console that is not embedded in the application. Optional elevation uses the standard User Account Control prompt for that console only. Canceling the prompt does not start a recording and does not write History.
 - Windows configuration is `%LOCALAPPDATA%\PowerShellSessionRecorder`. Transcript deletion on Windows refuses reparse points, directories, and unfinished transcripts, and it does not use a command shell.
-- A self-contained `win-x64` publish script and an Inno Setup script. The installer was not built or tested on Windows. The published Ubuntu beta remains `0.1.0-beta.1`. The prepared informational version is `0.1.0-beta.2`.
+- A self-contained `win-x64` publish script and an Inno Setup script. The `1.0.0` installer is compiled by the Windows release job. Ubuntu does not compile that installer.
 
 ## [0.1.0-beta.1] - 2026-10-19
 
@@ -69,17 +71,26 @@ First public Ubuntu 24.04 amd64 beta. About and the GitHub update checker report
 
 ## [Niewydane]
 
-Przygotowano `0.1.0-beta.2`. To wydanie nie jest opublikowane. Opublikowane wydanie GitHub pozostaje `0.1.0-beta.1`.
+## [1.0.0] - 2026-10-25
+
+Pierwsze stabilne wydanie przygotowane w tym drzewie źródeł. Pliki aplikacji i nazwy pakietów używają `1.0.0` bez przyrostka przedpremierowego. Wersja pakietu Debiana to `1.0.0-1`. Istniejące bety na GitHub pozostają dostępne. Ten nagłówek nie tworzy wydania GitHub. Do tego potrzebny jest ręczny przepływ wydania po znaczniku `v1.0.0`.
+
+Windows 10/11 x64, Ubuntu 24.04 amd64 i macOS Intel sprawdzono na zainstalowanej aplikacji: start, wykrycie programu PowerShell, rejestrowanie, transkrypcje i historię. Zapakowany host `osx-arm64` przechodzi test dymny CI na macOS. Ten test nie otwiera okna, a graficzny interfejs Apple Silicon nie był częścią testu funkcjonalnego. Pakiety macOS mają podpis ad hoc i nie są poświadczone.
 
 ### Dodano
 
-- GitHub Actions CI dla żądań ściągnięcia i gałęzi `main` oraz ręczny przepływ wydania, który buduje pakiet Ubuntu `.deb`, archiwum Linux `.tar.gz` i instalator Windows z jednego znacznika. Publikacja wydania GitHub wymaga zatwierdzenia środowiska i nie uruchamia się po wypchnięciu.
+- Pakiety macOS dla Intela (`osx-x64`) i Apple Silicon (`osx-arm64`): samodzielny `.app`, `.dmg` oraz pliki SHA-256 o nazwach zgodnych z tymi artefaktami. W macOS gotowy pakiet dostaje podpis ad hoc po umieszczeniu `Info.plist` i bibliotek natywnych, a potem jest sprawdzany przez `codesign --verify --deep --strict`. Runner Apple Silicon uruchamia podpisany pakiet `osx-arm64` z `--smoke`, co inicjuje host .NET i Avalonię bez otwierania okna. To nie jest podpis Developer ID i pakiety nie są poświadczone. Gatekeeper pozostaje włączony. Ręczny przepływ wydania publikuje obrazy dysku i archiwa ZIP Intela oraz Apple Silicon dla `v1.0.0`.
+- GitHub Actions CI dla żądań ściągnięcia i gałęzi `main` oraz ręczny przepływ wydania, który buduje pakiet Ubuntu `.deb`, archiwum Linux `.tar.gz` i instalator Windows z jednego znacznika. Publikacja wydania GitHub wymaga zatwierdzenia środowiska i nie uruchamia się po wypchnięciu. Przepływ CI buduje i testuje także na `macos-15`.
 - Kanały aktualizacji: stabilny i testowy. Stabilny pozostaje domyślny i nadal czyta najnowsze stabilne wydanie GitHub. Kanał testowy porównuje opublikowane wersje stabilne i przedpremierowe, pomija szkice i przegląda najwyżej trzy strony po 100 wydań. Niższa wersja nie jest proponowana. Zmiana kanału czyści zapisany wynik. Nic nie jest pobierane ani instalowane.
 - Samodzielne archiwum Linux x64 `.tar.gz` ze skryptami `install-user.sh` i `uninstall-user.sh`. Domyślny katalog to `~/.local/opt/powershell-session-recorder`. Wpis pulpitu jest oddzielny od systemowego pakietu `.deb`. Ustawienia, klienci, historia i transkrypcje nie są usuwane.
 - Wybór Inno Setup: instalacja dla bieżącego użytkownika, która jest domyślna, oraz instalacja dla wszystkich użytkowników. Skryptu nie skompilowano w Ubuntu.
 
 ### Naprawiono
 
+- Sprawdzenie startu macOS akceptuje natywną platformę okien Avalonii po jej inicjalizacji. `UseAvaloniaNative` nie ustawia `WindowingSubsystemName`, więc poprzednie sprawdzenie odrzucało udaną inicjalizację, bo ta nazwa jest pusta. Skia i HarfBuzz nadal muszą podać swoje nazwy. Sprawdzenie nie otwiera okna.
+- Host aplikacji macOS szuka samodzielnego środowiska w `Contents/MacOS`. Przeniesienie zestawu zarządzanego do `Contents/Resources` czyniło ten katalog katalogiem aplikacji, więc hostfxr nie był obok zestawu, a hostpolicy był ładowany z `DOTNET_ROOT` zamiast z pakietu. Obie architektury publikują wyszukiwanie środowiska względem aplikacji ustawione na `../MacOS`. Test dymny CI na Apple Silicon uruchamia ten podpisany pakiet i nie otwiera okna.
+- Obrazy dysku macOS powstają na prywatnym montowaniu dla każdej architektury. `hdiutil create -srcfolder` kończył się na runnerze macOS błędem `Resource busy` po przygotowaniu podpisanego pakietu, bo to polecenie podłącza wspólną nazwę woluminu podczas kopiowania. Zamontowany obraz jest odłączany zarówno po sukcesie, jak i po błędzie.
+- Pakiety macOS dostają podpis ad hoc po złożeniu `.app`. Zestawy zarządzane są w `Contents/Resources`, a pliki Mach-O zostają w `Contents/MacOS`, bo `codesign --verify --deep --strict` traktuje każdy plik w `Contents/MacOS` jako zagnieżdżony kod. Program hosta jest związany z `../Resources/PowerShellSessionRecorder.dll`. Najpierw podpisywane są zagnieżdżone pliki Mach-O, a potem pieczętowany jest identyfikator `com.timewizard.powershellsessionrecorder`. To służy testom wewnętrznym i nie jest poświadczeniem.
 - Etap 5.2.2 nie dołącza przykładowych klientów, TAG-ów, historii ani transkrypcji. Nowy profil startuje pusty, a istniejący katalog zostaje bez zmian przy aktualizacji. Kompilacja pakietów odrzuca `settings.json`, `customers.json` i `history.json`.
 - Etap 5.2.1 używa zatwierdzonej ikony z `assets/branding/app-icon-source.png` dla okna, pliku wykonywalnego Windows, instalatora Inno Setup i ikon hicolor w Linuksie. Skrypt kompilacji Windows szuka Inno Setup 6 w Program Files, także w `C:\Program Files (x86)\Inno Setup 6\ISCC.exe`.
 - Etap 5.1 zapisuje skrypt startowy Windows jako UTF-8 ze znacznikiem BOM, żeby Windows PowerShell 5.1 poprawnie odczytał polski tekst. Skrypty w Linuksie pozostają UTF-8 bez znacznika BOM.
@@ -89,7 +100,7 @@ Przygotowano `0.1.0-beta.2`. To wydanie nie jest opublikowane. Opublikowane wyda
 
 - Konsola Windows etapu 5: w Windows 10/11 x64 można wybrać program PowerShell 7 albo Windows PowerShell 5.1. Uruchom sesję otwiera osobną widoczną konsolę, która nie jest osadzona w aplikacji. Opcjonalne podniesienie uprawnień używa standardowego pytania Kontroli konta użytkownika tylko dla tej konsoli. Anulowanie pytania nie uruchamia rejestrowania i nie zapisuje Historii.
 - Konfiguracja Windows to `%LOCALAPPDATA%\PowerShellSessionRecorder`. Kasowanie transkrypcji w Windows odrzuca punkty ponownej analizy, katalogi i niedokończone transkrypcje oraz nie używa powłoki poleceń.
-- Skrypt samodzielnej publikacji `win-x64` i skrypt Inno Setup. Instalator nie został zbudowany ani sprawdzony w Windows. Opublikowana beta Ubuntu pozostaje `0.1.0-beta.1`. Przygotowana wersja informacyjna to `0.1.0-beta.2`.
+- Skrypt samodzielnej publikacji `win-x64` i skrypt Inno Setup. Instalator `1.0.0` kompiluje zadanie wydania w Windows. Ubuntu tego instalatora nie kompiluje.
 
 ## [0.1.0-beta.1] - 2026-10-19
 

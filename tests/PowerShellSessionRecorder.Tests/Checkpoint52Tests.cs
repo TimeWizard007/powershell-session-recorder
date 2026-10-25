@@ -187,7 +187,7 @@ public class Checkpoint52Tests
         Assert.Contains("OutputBaseFilename=PowerShellSessionRecorder-{#MyAppVersion}-win-x64-setup", text, StringComparison.Ordinal);
         Assert.Contains("SetupIconFile=..\\..\\assets\\branding\\app-icon.ico", text, StringComparison.Ordinal);
         Assert.Contains("IconFilename: \"{app}\\{#MyAppExeName}\"", text, StringComparison.Ordinal);
-        Assert.Contains("#define MyAppVersion \"0.1.0-beta.2\"", text, StringComparison.Ordinal);
+        Assert.Contains("#define MyAppVersion \"1.0.0\"", text, StringComparison.Ordinal);
         Assert.Contains("Excludes: \"*.pdb,settings.json,customers.json,history.json\"", text, StringComparison.Ordinal);
         Assert.DoesNotContain("[Registry]", text, StringComparison.Ordinal);
         Assert.DoesNotContain("PATH", text, StringComparison.Ordinal);

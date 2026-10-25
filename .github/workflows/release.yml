@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Existing Git tag to build, for example v0.1.0-beta.2
+        description: Existing Git tag to build, for example v1.0.0
         required: true
         type: string
       mode:
@@ -133,6 +133,52 @@ jobs:
             artifacts/PowerShellSessionRecorder-${{ needs.resolve.outputs.version }}-win-x64-setup.exe
             artifacts/PowerShellSessionRecorder-${{ needs.resolve.outputs.version }}-win-x64-setup.exe.sha256
 
+  macos:
+    name: Build macOS packages
+    runs-on: macos-15
+    needs: resolve
+    permissions:
+      contents: read
+      actions: write
+    env:
+      SOURCE_REVISION_ID: ${{ needs.resolve.outputs.sha }}
+    steps:
+      - name: Check out the resolved commit
+        uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ needs.resolve.outputs.sha }}
+          fetch-depth: 1
+
+      - name: Install the .NET 10 SDK
+        uses: actions/setup-dotnet@v6.0.0
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Release tests
+        run: dotnet test -c Release --nologo
+
+      - name: Package, ad-hoc sign, verify, and smoke-test Apple Silicon
+        run: sh packaging/macos/build-dmg.sh all
+
+      - name: Verify package checksums
+        run: sh packaging/ci/verify-checksum-files.sh artifacts 4
+
+      - name: Upload macOS packages
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: release-macos
+          retention-days: 14
+          if-no-files-found: error
+          path: |
+            artifacts/PowerShellSessionRecorder-${{ needs.resolve.outputs.version }}-osx-x64.dmg
+            artifacts/PowerShellSessionRecorder-${{ needs.resolve.outputs.version }}-osx-x64.dmg.sha256
+            artifacts/PowerShellSessionRecorder-${{ needs.resolve.outputs.version }}-osx-x64.zip
+            artifacts/PowerShellSessionRecorder-${{ needs.resolve.outputs.version }}-osx-x64.zip.sha256
+            artifacts/PowerShellSessionRecorder-${{ needs.resolve.outputs.version }}-osx-arm64.dmg
+            artifacts/PowerShellSessionRecorder-${{ needs.resolve.outputs.version }}-osx-arm64.dmg.sha256
+            artifacts/PowerShellSessionRecorder-${{ needs.resolve.outputs.version }}-osx-arm64.zip
+            artifacts/PowerShellSessionRecorder-${{ needs.resolve.outputs.version }}-osx-arm64.zip.sha256
+
   review:
     name: Collect artifacts for review
     runs-on: ubuntu-24.04
@@ -140,6 +186,7 @@ jobs:
       - resolve
       - linux
       - windows
+      - macos
     steps:
       - name: Check out the resolved commit
         uses: actions/checkout@v7.0.1
@@ -155,7 +202,7 @@ jobs:
 
       - name: Verify checksums and the installer icon
         run: |
-          packaging/ci/verify-checksum-files.sh release-assets 3
+          packaging/ci/verify-checksum-files.sh release-assets 7
           python3 packaging/ci/assert-icon-resource.py \
             assets/branding/app-icon.ico \
             release-assets/release-windows/PowerShellSessionRecorder-${{ needs.resolve.outputs.version }}-win-x64-setup.exe

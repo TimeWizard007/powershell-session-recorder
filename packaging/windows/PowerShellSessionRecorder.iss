@@ -14,7 +14,7 @@
 ; %LOCALAPPDATA%\PowerShellSessionRecorder.
 
 #define MyAppName "PowerShell Session Recorder"
-#define MyAppVersion "0.1.0-beta.2"
+#define MyAppVersion "1.0.0"
 #define MyAppPublisher "TimeWizard"
 #define MyAppExeName "PowerShellSessionRecorder.exe"
 #define MyAppURL "https://github.com/TimeWizard007/powershell-session-recorder"

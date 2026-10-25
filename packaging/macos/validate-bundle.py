@@ -122,8 +122,8 @@ def validate(app: Path, rid: str, informational: str) -> None:
         "CFBundleExecutable": "PowerShellSessionRecorder",
         "CFBundlePackageType": "APPL",
         "CFBundleIconFile": "AppIcon",
-        "CFBundleShortVersionString": "0.1.0",
-        "CFBundleVersion": "0.1.0",
+        "CFBundleShortVersionString": "1.0.0",
+        "CFBundleVersion": "1.0.0",
         "LSMinimumSystemVersion": "14.0",
     }
     for key, value in expected.items():

@@ -113,8 +113,8 @@ public class Checkpoint62Tests
         Assert.Contains("Do not run \"sudo spctl --master-disable\"", notice, StringComparison.Ordinal);
         Assert.Contains("nie została poświadczona", notice, StringComparison.Ordinal);
         Assert.DoesNotContain("AppHostRelativeDotNet", release, StringComparison.Ordinal);
+        Assert.Contains("sh packaging/macos/build-dmg.sh all", release, StringComparison.Ordinal);
         Assert.DoesNotContain("hdiutil", release, StringComparison.Ordinal);
-        Assert.DoesNotContain("build-dmg.sh", release, StringComparison.Ordinal);
         Assert.DoesNotContain("codesign", release, StringComparison.Ordinal);
 
         if (!OperatingSystem.IsWindows())
@@ -171,19 +171,19 @@ public class Checkpoint62Tests
             "python3",
             "packaging/macos/write-plist.py",
             Path.Combine(app, "Contents", "Info.plist"),
-            "0.1.0-beta.2",
-            "0.1.0",
+            "1.0.0",
+            "1.0.0",
             "Copyright (c) 2026 TimeWizard");
         Assert.Equal(0, plist.ExitCode);
 
-        var accepted = Run(root, "python3", "packaging/macos/validate-bundle.py", app, "osx-x64", "0.1.0-beta.2");
+        var accepted = Run(root, "python3", "packaging/macos/validate-bundle.py", app, "osx-x64", "1.0.0");
         Assert.Equal(0, accepted.ExitCode);
 
-        var wrongArchitecture = Run(root, "python3", "packaging/macos/validate-bundle.py", app, "osx-arm64", "0.1.0-beta.2");
+        var wrongArchitecture = Run(root, "python3", "packaging/macos/validate-bundle.py", app, "osx-arm64", "1.0.0");
         Assert.NotEqual(0, wrongArchitecture.ExitCode);
 
         File.WriteAllText(Path.Combine(macos, "settings.json"), "{}");
-        var userData = Run(root, "python3", "packaging/macos/validate-bundle.py", app, "osx-x64", "0.1.0-beta.2");
+        var userData = Run(root, "python3", "packaging/macos/validate-bundle.py", app, "osx-x64", "1.0.0");
         Assert.NotEqual(0, userData.ExitCode);
         Assert.Contains("per-user data", userData.Text, StringComparison.Ordinal);
         File.Delete(Path.Combine(macos, "settings.json"));
@@ -191,7 +191,7 @@ public class Checkpoint62Tests
         File.WriteAllBytes(
             executable,
             Thin(0x01000007).Concat(System.Text.Encoding.ASCII.GetBytes("../Resources/PowerShellSessionRecorder.dll\0")).ToArray());
-        var unboundRuntime = Run(root, "python3", "packaging/macos/validate-bundle.py", app, "osx-x64", "0.1.0-beta.2");
+        var unboundRuntime = Run(root, "python3", "packaging/macos/validate-bundle.py", app, "osx-x64", "1.0.0");
         Assert.NotEqual(0, unboundRuntime.ExitCode);
         Assert.Contains("self-contained runtime in ../MacOS", unboundRuntime.Text, StringComparison.Ordinal);
     }
